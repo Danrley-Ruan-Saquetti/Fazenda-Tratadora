@@ -59,11 +59,58 @@ const GLOBAL_SETTINGS = {
 };
 const GLOBAL_HISTORY = [];
 const GLOBAL_PANEL_ITENS = [
-    { icon: "house-door", title: "Fazenda", name: "farm", type: "", router: "routes/panel-farm.html", script: "FarmScript" },
-    { icon: "ui-radios", title: "Histórico", name: "history", type: "", router: "routes/panel-history.html", script: "HistoryScript" },
-    { icon: "calculator", title: "Testes", name: "test", type: "", router: "routes/panel-test.html", script: "TestScript" },
-    { icon: "gear", title: "Configurações", name: "setting", type: "", router: "routes/panel-setting.html", script: "SettingScripta" },
+    { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
+    { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
 ];
+const GLOBAL_ROUTES = [
+    { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
+    { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
+];
+const GLOBAL_ROUTES_ROUTER = {
+    "routes/panel-history.html": `<button class="load-table">Load</button>
+    <div class="table" table-parent>
+        <table table="history"></table>
+    </div>`,
+    "routes/panel-test.html": `<h1>Teste</h1>`,
+    "routes/panel-farm.html": `<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
+    <input type="file" name="input-file-plant-price" id="input-file-plant-price">
+    <label for="input-file-plant-deadline">Selecione o arquivo de Prazo</label>
+    <input type="file" name="input-file-plant-deadline" id="input-file-plant-deadline">
+    <label for="input-file-settings">Selecione o arquivo de Configurações</label>
+    <input type="file" name="input-file-settings" id="input-file-settings">
+    <label for="param-cep-initial">Informe o Cep Inicial</label>
+    <input type="text" name="param-cep-initial" id="param-cep-initial">
+    <label for="param-cep-final">Informe o Cep Final</label>
+    <input type="text" name="param-cep-final" id="param-cep-final">
+    <label for="param-cep-origin-initial">Informe o Cep de Origem Inicial</label>
+    <input type="text" name="param-cep-origin-initial" id="param-cep-origin-initial">
+    <label for="param-cep-origin-final">Informe o Cep de Origem Final</label>
+    <input type="text" name="param-cep-origin-final" id="param-cep-origin-final">
+    <label for="param-deadline">Informe o cabeçalho de Prazo</label>
+    <input type="text" name="param-deadline" id="param-deadline">
+    <label for="param-rate-price">Informe o cabeçalho de Taxa do Preço</label>
+    <input type="text" name="param-rate-price" id="param-rate-price">
+    <label for="param-rate-deadline">Informe o cabeçalho de Taxa do Prazo</label>
+    <input type="text" name="param-rate-deadline" id="param-rate-deadline">
+    <label for="param-selection-criteria-price">Informe o cabeçalho de Critério de Seleção do Preço</label>
+    <input type="text" name="param-selection-criteria-price" id="param-selection-criteria-price">
+    <label for="param-selection-criteria-deadline">Informe o cabeçalho de Critério de Seleção do Prazo</label>
+    <input type="text" name="param-selection-criteria-deadline" id="param-selection-criteria-deadline">
+    <label for="param-excess">Informe o cabeçalho de Excesso</label>
+    <input type="text" name="param-excess" id="param-excess">
+    <label for="param-name-farm">Informe o nome da Fazenda</label>
+    <input type="text" name="param-name-farm" id="param-name-farm">
+    <button id="upload-files-plant">Upload</button>
+    <a href="#" id="download-files" download>Download</a>
+    <button id="save-farm">Salvar</button>
+    <button id="get-data">Fazenda</button>
+    <button id="clear-ls">Limpar Histórico</button>
+    <button id="clear-farm">Limpar Fazenda</button>
+    <button id="clear-settings">Limpar Configurações</button>`,
+    "routes/panel-404.html": `<h1>Router not found</h1>`,
+};
 function Setup() {
     const historyTableControl = HistoryTableControl();
     const settingControl = SettingControl(FarmRepository());
@@ -244,53 +291,6 @@ I;PA;PA I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;21
 I;AC;AC I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
 I;RR;RR I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
 I;RO;RO I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85`;
-
-const GLOBAL_ROUTES = {
-    "routes/panel-history.html": `<button class="load-table">Load</button>
-
-    <div class="table" table-parent>
-        <table table="history"></table>
-    </div>`,
-    "routes/panel-setting.html": `<h1>Configurações</h1>`,
-    "routes/panel-test.html": `<h1>Teste</h1>`,
-    "routes/panel-farm.html": `<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
-    <input type="file" name="input-file-plant-price" id="input-file-plant-price">
-    <label for="input-file-plant-deadline">Selecione o arquivo de Prazo</label>
-    <input type="file" name="input-file-plant-deadline" id="input-file-plant-deadline">
-    <label for="input-file-settings">Selecione o arquivo de Configurações</label>
-    <input type="file" name="input-file-settings" id="input-file-settings">
-    <label for="param-cep-initial">Informe o Cep Inicial</label>
-    <input type="text" name="param-cep-initial" id="param-cep-initial">
-    <label for="param-cep-final">Informe o Cep Final</label>
-    <input type="text" name="param-cep-final" id="param-cep-final">
-    <label for="param-cep-origin-initial">Informe o Cep de Origem Inicial</label>
-    <input type="text" name="param-cep-origin-initial" id="param-cep-origin-initial">
-    <label for="param-cep-origin-final">Informe o Cep de Origem Final</label>
-    <input type="text" name="param-cep-origin-final" id="param-cep-origin-final">
-    <label for="param-deadline">Informe o cabeçalho de Prazo</label>
-    <input type="text" name="param-deadline" id="param-deadline">
-    <label for="param-rate-price">Informe o cabeçalho de Taxa do Preço</label>
-    <input type="text" name="param-rate-price" id="param-rate-price">
-    <label for="param-rate-deadline">Informe o cabeçalho de Taxa do Prazo</label>
-    <input type="text" name="param-rate-deadline" id="param-rate-deadline">
-    <label for="param-selection-criteria-price">Informe o cabeçalho de Critério de Seleção do Preço</label>
-    <input type="text" name="param-selection-criteria-price" id="param-selection-criteria-price">
-    <label for="param-selection-criteria-deadline">Informe o cabeçalho de Critério de Seleção do Prazo</label>
-    <input type="text" name="param-selection-criteria-deadline" id="param-selection-criteria-deadline">
-    <label for="param-excess">Informe o cabeçalho de Excesso</label>
-    <input type="text" name="param-excess" id="param-excess">
-    <label for="param-name-farm">Informe o nome da Fazenda</label>
-    <input type="text" name="param-name-farm" id="param-name-farm">
-    <button id="upload-files-plant">Upload</button>
-    <a href="#" id="download-files" download>Download</a>
-    <button id="save-farm">Salvar</button>
-    <button id="get-data">Fazenda</button>
-    <button id="clear-ls">Limpar Histórico</button>
-    <button id="clear-farm">Limpar Fazenda</button>
-    <button id="clear-settings">Limpar Configurações</button>`,
-    "routes/panel-404.html": `<h1>Router not found</h1>`,
-}
-
 function FarmControl(farmRepository) {
     const fileControl = FileControl(farmRepository);
     const tableControl = TableControl();
@@ -1152,6 +1152,7 @@ function ModelWindowControl() {
 }
 function PanelControl() {
     const modelWindowControl = ModelWindowControl();
+    const routerControl = RouterControl();
     let panelList;
     let abaList;
     let panelActive = null;
@@ -1159,30 +1160,34 @@ function PanelControl() {
         panelList = listPanel;
         abaList = listAba;
     };
-    const createPanel = (id, router, name, callback) => {
-        if (!router) {
+    const createPanel = (id, name, callback) => {
+        if (!name) {
             return callback && callback(false, null);
         }
         const create = (data) => {
             const panelEl = document.createElement("div");
             panelEl.innerHTML = data;
-            panelEl.setAttribute("id", id);
-            panelEl.setAttribute("panel", name);
+            panelEl.setAttribute("id", `${id}`);
+            panelEl.setAttribute("panel", `${name}`);
             panelEl.setAttribute("model-window-parent", "");
             callback && callback(true, panelEl);
         };
-        getRouter(router, create, (err) => {
+        const router = routerControl.getRouter({ name });
+        if (!router) {
+            return;
+        }
+        getRouter(router.router, create, (err) => {
             console.log(err);
             callback && callback(false, null);
         });
     };
-    const newPanel = (title, router, name, script, isCtrl, callback) => {
+    const newPanel = ({ name, title }, isCtrl, callback) => {
         if (!isCtrl && getPanelByName(name)) {
             return;
         }
         const id = generatedId();
         const { bt: btCloseAba, el: abaEl } = createAba(title, id);
-        createPanel(id, router, name, (res, panel) => {
+        createPanel(id, name, (res, panel) => {
             if (!res || !panel) {
                 return;
             }
@@ -1191,7 +1196,8 @@ function PanelControl() {
                 getRouter("routes/panel-404.html", (res) => {
                     panel.innerHTML = res;
                 });
-            } else {
+            }
+            else {
                 const response = GLOBAL_MODULE_SCRIPTS[script](id);
                 if (response.error) {
                     getRouter("routes/panel-404.html", (res) => {
@@ -1199,22 +1205,14 @@ function PanelControl() {
                     });
                 }
             }
-            if (!isCtrl) {
+            if (!isCtrl || !getPanelByName(name)) {
                 togglePanel(id);
             }
             callback && callback();
         });
-        abaEl.addEventListener("mousedown", (ev) => {
-            if (ev.button == 1) {
-                return removePanelModel(id);
-            }
-        })
-        abaEl.addEventListener("click", (ev) => {
-            togglePanel(id);
-        });
-        btCloseAba.addEventListener("click", () => {
-            removePanelModel(id);
-        });
+        abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
+        abaEl.addEventListener("click", () => togglePanel(id));
+        btCloseAba.addEventListener("click", () => removePanelModel(id));
     };
     const removePanelModel = (id) => {
         removeAba(id);
@@ -1330,10 +1328,11 @@ function RenderControl() {
     const initComponents = () => {
         panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList);
         GLOBAL_PANEL_ITENS.forEach(_item => {
-            const itemEl = createItem(_item.title, _item.icon, _item.name, _item.type);
+            const itemEl = createItem(_item.title, _item.icon, _item.name);
             itemEl.addEventListener("click", (ev) => {
-                panelControl.newPanel(_item.title, _item.router, _item.name, _item.script, ev.ctrlKey);
+                panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
+            _item.name == "history" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
@@ -1364,7 +1363,7 @@ function RenderControl() {
             ELEMENTS.listFarms?.appendChild(div);
         });
     };
-    const createItem = (title, icon, name, type) => {
+    const createItem = (title, icon, name) => {
         const itemEl = document.createElement("div");
         const span = document.createElement("span");
         const iconEl = createIcon(icon);
@@ -1414,6 +1413,33 @@ function RenderControl() {
         loadListFarms,
         loadHeaderTable,
         loadDataTable,
+    };
+}
+function RouterControl() {
+    const dependence = "development";
+    const apiRouter = {
+        "production": (router, callback) => {
+            fetch(`${router}`).then(response => response.text()).then(response => callback({ response })).catch(error => callback({ error: "Rout not found" }));
+        },
+        "development": (router, callback) => {
+            const routerResponse = GLOBAL_ROUTES_ROUTER[`${router}`];
+            if (routerResponse)
+                return routerResponse;
+            return callback({ error: "Rout not found" });
+        },
+    };
+    const fetchRouter = (router, callback) => {
+        apiRouter[dependence](router, callback);
+    };
+    const getRouter = ({ router, name, script }) => {
+        return GLOBAL_ROUTES.find(_router => { return _router.router == router || _router.name == name || _router.script == script; }) || null;
+    };
+    const query = ({ router }, callback) => {
+        fetchRouter(`${router}`, callback);
+    };
+    return {
+        getRouter,
+        query
     };
 }
 function SettingControl(farmRepository) {
@@ -1885,17 +1911,8 @@ function FarmRepository() {
 const GLOBAL_MODULE_SCRIPTS = {
     FarmScript: FarmScript,
     HistoryScript: HistoryScript,
-    TestScript: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
-    SettingScript: SettingScript,
+    TestScript: (id) => { return { error: { msg: 'Router "Test" not found' } }; }
 };
-function SettingScript(idPanel) {
-    const panel = document.querySelector(`[panel="setting"][id="${idPanel}"]`);
-    if (!panel) {
-        return { error: { msg: "Panel not found" } };
-    }
-
-    return {}
-}
 function FarmScript(idPanel) {
     const panel = document.querySelector(`[panel="farm"][id="${idPanel}"]`);
     if (!panel) {
@@ -2095,13 +2112,15 @@ const createIcon = (name, type = "bi") => {
     iconEl.setAttribute("icon", "");
     return iconEl;
 };
-const getRouter = (route, callback, onerror = (err) => { }) => {
-    if (!GLOBAL_ROUTES[route]) {
-        return onerror("Erro de rota")
+const getRouter = async (route, callback, onerror = (err) => { }) => {
+    try {
+        const response = await fetch(route);
+        const data = await response.text();
+        callback(data);
     }
-    return callback(GLOBAL_ROUTES[route])
-
-    // fetch(`${route}`).then(res => res.text()).then(data => callback(data)).catch(err => onerror(err))
+    catch (error) {
+        onerror(error);
+    }
 };
 function isNumber(str) { return !isNaN(parseFloat(str)); }
 function generatedId() {

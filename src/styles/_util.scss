@@ -1,0 +1,76 @@
+@mixin flex($isColumn: false) {
+    display: flex;
+    @if $isColumn {
+        @extend .flex-column;
+    }
+}
+
+@mixin center {
+    @include flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin shadow($type: "filter", $positionX: 0, $positionY: 0) {
+    @if $type=="box" {
+        box-shadow: $positionX $positionY $shadow-range $shadow-color;
+    }
+    @else if $type=="filter" {
+        filter: drop-shadow($positionX $positionY $drop-shadow-range $shadow-color);
+    }
+}
+
+@mixin text-overflow() {
+    text-overflow: ellipsis;
+}
+
+@mixin border($direction, $color: $neutro-color) {
+    @if $direction=="top" {
+        border-top: 1px solid $color;
+    }
+    @else if $direction=="left" {
+        border-left: 1px solid $color;
+    }
+    @else if $direction=="right" {
+        border-right: 1px solid $color;
+    }
+    @else if $direction=="bottom" {
+        border-bottom: 1px solid $color;
+    }
+}
+
+@mixin scroll($type: "", $value: auto) {
+    @if $type=="y" {
+        overflow-y: $value;
+    }
+    @else if $type=="x" {
+        overflow-x: $value;
+    }
+    @else {
+        overflow: hidden;
+    }
+}
+
+@function get-text-color($bg, $color: null) {
+    $red: red($bg);
+    $green: green($bg);
+    $blue: blue($bg);
+    $yiq: (($red * 299) + ($green * 587) + ($blue * 114)) / 1000;
+    $default-color: if($yiq > 128, $text-color-primary, $text-color-secondary);
+    $color-applied: if($color, $color, $default-color);
+    $adjusted-color: if($yiq > 128, darken($color-applied, 20%), lighten($color-applied, 20%));
+    @return $adjusted-color;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.header {
+    @include flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: $main-color;
+    color: get-text-color($main-color);
+    height: 15px;
+}

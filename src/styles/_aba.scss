@@ -1,0 +1,26 @@
+[aba-parent] {
+    @include flex();
+    min-width: 100%;
+}
+
+[aba] {
+    @include center;
+    justify-content: space-between;
+    padding-inline: $padding-1;
+    gap: $padding-1;
+    width: fit-content;
+    width: -moz-fit-content;
+    max-width: 17rem;
+    white-space: nowrap;
+    @include border("right");
+    @extend [icon-parent];
+    cursor: pointer;
+    transition: $transition;
+    &.active {
+        cursor: default;
+    }
+    .aba-title {
+        @include scroll;
+        @include text-overflow;
+    }
+}

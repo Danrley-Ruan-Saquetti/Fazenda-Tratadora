@@ -1,0 +1,13 @@
+header {
+    height: min(10%, 12rem);
+    @include flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: $padding-default;
+    background-color: $main-color;
+    color: get-text-color($main-color);
+    .logo {
+        font-weight: 300;
+        font-size: 1.3rem;
+    }
+}

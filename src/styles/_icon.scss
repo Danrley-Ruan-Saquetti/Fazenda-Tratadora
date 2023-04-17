@@ -1,0 +1,12 @@
+[icon-parent] {
+    @include flex;
+    align-items: center;
+}
+
+[icon] {
+    position: relative;
+    font-size: 2rem;
+    &:before {
+        vertical-align: -0.4rem !important;
+    }
+}

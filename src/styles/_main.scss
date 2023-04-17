@@ -1,0 +1,8 @@
+main {
+    @include flex;
+    background-color: $bg-neutro;
+    color: get-text-color($bg-neutro);
+    &>* {
+        width: 100%;
+    }
+}

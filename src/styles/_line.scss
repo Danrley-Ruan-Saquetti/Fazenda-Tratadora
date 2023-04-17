@@ -1,0 +1,27 @@
+[line] {
+    background-color: $neutro-color;
+}
+
+[line="vertical"] {
+    height: 1px;
+    margin-block: $margin-default;
+    &[line-width="margin"] {
+        margin-inline: $margin-default;
+        width: calc(100% - ($margin-default * 2));
+    }
+    &[line-width="filled"] {
+        width: 100%;
+    }
+}
+
+[line="horizontal"] {
+    width: 1px;
+    margin-inline: $margin-default;
+    &[line-height="margin"] {
+        margin-block: $margin-default;
+        height: calc(100% - ($margin-default * 2));
+    }
+    &[line-height="filled"] {
+        height: 100%;
+    }
+}

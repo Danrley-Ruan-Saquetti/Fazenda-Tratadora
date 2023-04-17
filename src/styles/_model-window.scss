@@ -1,0 +1,40 @@
+[model-window-parent] {
+    position: relative;
+    &:has([model-window="enabled"]) {
+        &:after {
+            position: absolute;
+            content: '';
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, .3);
+        }
+    }
+}
+
+[model-window] {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    pointer-events: none;
+    z-index: 100;
+    background-color: $bg-neutro;
+    resize: both;
+    @include scroll("x");
+    @include scroll("y");
+    @include shadow("filter", 10px, 10px);
+    .header {
+        cursor: move;
+    }
+}
+
+[model-window="enabled"] {
+    display: block;
+    pointer-events: all;
+}
+
+[model-window="disabled"] {
+    display: none;
+    pointer-events: none;
+}

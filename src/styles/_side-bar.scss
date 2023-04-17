@@ -1,0 +1,26 @@
+.side-bar {
+    white-space: nowrap;
+    width: max-content;
+    min-width: 17rem;
+    height: 100%;
+    @include border("right");
+    [list] {
+        height: auto;
+        &>* {
+            cursor: pointer;
+        }
+        .item {
+            @include flex;
+            padding-inline: $padding-default;
+            gap: $gap-1;
+            height: 6rem;
+            transition: $transition;
+            &:hover {
+                background-color: $neutro-color;
+            }
+            .item-title {
+                font-size: 1.3rem;
+            }
+        }
+    }
+}

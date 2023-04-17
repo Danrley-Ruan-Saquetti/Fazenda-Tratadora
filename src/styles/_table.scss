@@ -1,0 +1,54 @@
+table,
+td,
+th,
+tr {
+    border: $border;
+}
+
+[table-parent] {
+    height: 100%;
+    width: 100%;
+}
+
+[table] {
+    max-height: 100%;
+    min-width: 100%;
+    border-radius: $border-radius;
+    border-collapse: collapse;
+    @include scroll("y", hidden);
+    @include scroll("x");
+    [table-header] {
+        background-color: $grey-color;
+    }
+    [table-data] {
+        position: relative;
+        min-height: 100%;
+        @include scroll("y");
+        tr {
+            cursor: pointer;
+        }
+    }
+    th {
+        position: relative;
+        width: fit-content;
+        width: -moz-fit-content;
+        resize: horizontal;
+        @include scroll("x", hidden);
+        &::-webkit-resizer {
+            height: calc(100% + ($padding-2 * 2));
+            width: 8px;
+            cursor: ew-resize;
+        }
+    }
+    td>* {
+        cursor: text !important;
+    }
+    td,
+    th {
+        padding: $padding-2;
+        text-align: center;
+        white-space: nowrap;
+        @include scroll("x", hidden);
+        @include text-overflow;
+    }
+}

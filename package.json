@@ -1,0 +1,19 @@
+{
+    "name": "fazenda-tratadora",
+    "version": "1.0.0",
+    "main": "dist/app.js",
+    "type": "module",
+    "scripts": {
+        "build:watch": "npx tsc -w",
+        "build": "npx tsc",
+        "dev": "nodemon dist/app.js"
+    },
+    "keywords": [],
+    "author": "Dan Ruan",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/jszip": "^3.4.1",
+        "typescript": "^4.9.5"
+    },
+    "description": ""
+}

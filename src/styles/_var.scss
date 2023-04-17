@@ -1,0 +1,24 @@
+// Palette Color
+$main-color: #0076ca;
+$second-color: #004679;
+$neutro-color: #b6b6b6;
+$grey-color: #dfdfdf;
+// Color - Background
+$bg-neutro: #fff;
+// Color - Text
+$text-color-primary: #000;
+$text-color-secondary: #fff;
+// Templates
+$padding-default: 2rem;
+$padding-1: 1.2rem;
+$padding-2: 0.8rem;
+$margin-default: 2rem;
+$border: 1px solid $neutro-color;
+$border-radius: .3rem;
+$shadow-range: 1rem;
+$drop-shadow-range: .4rem;
+$shadow-color: rgba(0, 0, 0, .3);
+$gap: 2rem;
+$gap-1: 1.25rem;
+$transition-time: .3s;
+$transition: all $transition-time ease-in-out;

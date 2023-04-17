@@ -58,11 +58,6 @@ const GLOBAL_SETTINGS = {
     }
 };
 const GLOBAL_HISTORY = [];
-const GLOBAL_PANEL_ITENS = [
-    { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
-    { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
-    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
-];
 const GLOBAL_ROUTES = [
     { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
     { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
@@ -111,6 +106,7 @@ const GLOBAL_ROUTES_ROUTER = {
     <button id="clear-settings">Limpar Configurações</button>`,
     "routes/panel-404.html": `<h1>Router not found</h1>`,
 };
+const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 function Setup() {
     const historyTableControl = HistoryTableControl();
     const settingControl = SettingControl(FarmRepository());
@@ -1160,56 +1156,46 @@ function PanelControl() {
         panelList = listPanel;
         abaList = listAba;
     };
-    const createPanel = (id, name, callback) => {
+    const createPanel = async (id, name, parent) => {
         if (!name) {
-            return callback && callback(false, null);
+            return null;
         }
-        const create = (data) => {
-            const panelEl = document.createElement("div");
-            panelEl.innerHTML = data;
-            panelEl.setAttribute("id", `${id}`);
-            panelEl.setAttribute("panel", `${name}`);
-            panelEl.setAttribute("model-window-parent", "");
-            callback && callback(true, panelEl);
-        };
-        const router = routerControl.getRouter({ name });
-        if (!router) {
-            return;
+        const panelEl = document.createElement("div");
+        panelEl.setAttribute("id", `${id}`);
+        panelEl.setAttribute("panel", `${name}`);
+        panelEl.setAttribute("model-window-parent", "");
+        const responseRouter = routerControl.getRouter({ name });
+        if (!responseRouter) {
+            panelEl.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
+            parent.appendChild(panelEl);
         }
-        getRouter(router.router, create, (err) => {
-            console.log(err);
-            callback && callback(false, null);
-        });
+        else {
+            const { router, script } = responseRouter;
+            const response = await routerControl.query({ router });
+            if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
+                panelEl.innerHTML = "Cannot load page";
+            }
+            panelEl.innerHTML = response.data;
+            parent.appendChild(panelEl);
+            if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) {
+                return null;
+            }
+        }
+        return panelEl;
     };
-    const newPanel = ({ name, title }, isCtrl, callback) => {
+    const newPanel = async ({ name, title }, isCtrl) => {
         if (!isCtrl && getPanelByName(name)) {
             return;
         }
         const id = generatedId();
         const { bt: btCloseAba, el: abaEl } = createAba(title, id);
-        createPanel(id, name, (res, panel) => {
-            if (!res || !panel) {
-                return;
-            }
-            addPanel(panel);
-            if (!GLOBAL_MODULE_SCRIPTS[script]) {
-                getRouter("routes/panel-404.html", (res) => {
-                    panel.innerHTML = res;
-                });
-            }
-            else {
-                const response = GLOBAL_MODULE_SCRIPTS[script](id);
-                if (response.error) {
-                    getRouter("routes/panel-404.html", (res) => {
-                        panel.innerHTML = res;
-                    });
-                }
-            }
-            if (!isCtrl || !getPanelByName(name)) {
-                togglePanel(id);
-            }
-            callback && callback();
-        });
+        const panel = await createPanel(id, name, panelList);
+        if (!panel) {
+            return removePanelModel(id);
+        }
+        if (!isCtrl || !getPanelByName(name)) {
+            togglePanel(id);
+        }
         abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
         abaEl.addEventListener("click", () => togglePanel(id));
         btCloseAba.addEventListener("click", () => removePanelModel(id));
@@ -1217,9 +1203,6 @@ function PanelControl() {
     const removePanelModel = (id) => {
         removeAba(id);
         removePanel(id);
-    };
-    const addPanel = (panel) => {
-        panelList.appendChild(panel);
     };
     const showPanel = (id) => {
         const panel = getPanel(id);
@@ -1327,12 +1310,11 @@ function RenderControl() {
     };
     const initComponents = () => {
         panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList);
-        GLOBAL_PANEL_ITENS.forEach(_item => {
+        GLOBAL_ROUTES.forEach(_item => {
             const itemEl = createItem(_item.title, _item.icon, _item.name);
-            itemEl.addEventListener("click", (ev) => {
-                panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
+            itemEl.addEventListener("click", async (ev) => {
+                await panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
-            _item.name == "history" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
@@ -1416,26 +1398,37 @@ function RenderControl() {
     };
 }
 function RouterControl() {
-    const dependence = "development";
+    const dependence = "production";
     const apiRouter = {
-        "production": (router, callback) => {
-            fetch(`${router}`).then(response => response.text()).then(response => callback({ response })).catch(error => callback({ error: "Rout not found" }));
+        "production": async (router) => {
+            const response = await fetch(`${router}`).then(response => response.text()).then(response => {
+                return { data: response };
+            }).catch(error => {
+                return { error: "Rout not found" };
+            });
+            return response;
         },
-        "development": (router, callback) => {
+        "development": (router) => {
             const routerResponse = GLOBAL_ROUTES_ROUTER[`${router}`];
             if (routerResponse)
-                return routerResponse;
-            return callback({ error: "Rout not found" });
+                return { data: routerResponse };
+            return { error: "Rout not found" };
         },
     };
-    const fetchRouter = (router, callback) => {
-        apiRouter[dependence](router, callback);
+    const fetchRouter = async (router) => {
+        const response = await apiRouter[dependence](router);
+        if (!response.data || response.error) {
+            const errorRouterData = await apiRouter[dependence]("routes/panel-404.html");
+            return { data: errorRouterData.data || "Server Error" };
+        }
+        return { data: response.data };
     };
     const getRouter = ({ router, name, script }) => {
         return GLOBAL_ROUTES.find(_router => { return _router.router == router || _router.name == name || _router.script == script; }) || null;
     };
-    const query = ({ router }, callback) => {
-        fetchRouter(`${router}`, callback);
+    const query = async ({ router }) => {
+        const response = await fetchRouter(`${router}`);
+        return response;
     };
     return {
         getRouter,
@@ -1909,9 +1902,9 @@ function FarmRepository() {
     };
 }
 const GLOBAL_MODULE_SCRIPTS = {
-    FarmScript: FarmScript,
-    HistoryScript: HistoryScript,
-    TestScript: (id) => { return { error: { msg: 'Router "Test" not found' } }; }
+    ["FarmScript"]: FarmScript,
+    ["HistoryScript"]: HistoryScript,
+    ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; }
 };
 function FarmScript(idPanel) {
     const panel = document.querySelector(`[panel="farm"][id="${idPanel}"]`);

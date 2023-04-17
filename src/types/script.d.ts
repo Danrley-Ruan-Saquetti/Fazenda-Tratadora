@@ -1,0 +1,1 @@
+type TScript = "FarmScript" | "HistoryScript" | "TestScript"

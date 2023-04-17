@@ -1,6 +1,4 @@
 function PanelControl() {
-    type IRouterWithouIcon = Pick<TItemRoute, 'router' | 'script' | "name" | "title"> & Partial<Pick<TItemRoute, 'icon'>>;
-
     const modelWindowControl = ModelWindowControl()
     const routerControl = RouterControl()
 
@@ -15,64 +13,54 @@ function PanelControl() {
     }
 
     // Panel
-    const createPanel = (id: string, name: string, callback?: (res: boolean, panel: HTMLElement | null) => void) => {
-        if (!name) { return callback && callback(false, null) }
+    const createPanel = async (id: string, name: string, parent: HTMLElement) => {
+        if (!name) { return null }
 
-        const create = (data: string) => {
-            const panelEl = document.createElement("div")
+        const panelEl = document.createElement("div")
 
-            panelEl.innerHTML = data
+        panelEl.setAttribute("id", `${id}`)
+        panelEl.setAttribute("panel", `${name}`)
+        panelEl.setAttribute("model-window-parent", "")
 
-            panelEl.setAttribute("id", `${id}`)
-            panelEl.setAttribute("panel", `${name}`)
-            panelEl.setAttribute("model-window-parent", "")
+        const responseRouter = routerControl.getRouter({ name })
 
-            callback && callback(true, panelEl)
+        if (!responseRouter) {
+            panelEl.innerHTML = GLOBAL_ROUTER_NOT_FOUND
+
+            parent.appendChild(panelEl)
+        } else {
+            const { router, script } = responseRouter
+
+            const response = await routerControl.query({ router })
+
+            if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
+                panelEl.innerHTML = "Cannot load page"
+            }
+
+            panelEl.innerHTML = response.data
+
+            parent.appendChild(panelEl)
+
+            if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) { return null }
         }
 
-        const router = routerControl.getRouter({ name })
-
-        if (!router) {
-
-            return
-        }
-
-        getRouter(router.router, create, (err) => {
-            console.log(err)
-            callback && callback(false, null)
-        })
+        return panelEl
     }
 
-    const newPanel = ({ name, title }: { name: TRouterName, title: string }, isCtrl: boolean, callback?: () => void) => {
+    const newPanel = async ({ name, title }: { name: TRouterName, title: string }, isCtrl: boolean) => {
         if (!isCtrl && getPanelByName(name)) { return }
 
         const id = generatedId()
 
         const { bt: btCloseAba, el: abaEl } = createAba(title, id)
 
-        createPanel(id, name, (res, panel) => {
-            if (!res || !panel) { return }
+        const panel = await createPanel(id, name, panelList)
 
-            addPanel(panel)
+        if (!panel) {
+            return removePanelModel(id)
+        }
 
-            if (!GLOBAL_MODULE_SCRIPTS[script]) {
-                getRouter("routes/panel-404.html", (res) => {
-                    panel.innerHTML = res
-                })
-            } else {
-                const response = GLOBAL_MODULE_SCRIPTS[script](id)
-
-                if (response.error) {
-                    getRouter("routes/panel-404.html", (res) => {
-                        panel.innerHTML = res
-                    })
-                }
-            }
-
-            if (!isCtrl || !getPanelByName(name)) { togglePanel(id) }
-
-            callback && callback()
-        })
+        if (!isCtrl || !getPanelByName(name)) { togglePanel(id) }
 
         abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id))
 
@@ -84,10 +72,6 @@ function PanelControl() {
     const removePanelModel = (id: string) => {
         removeAba(id)
         removePanel(id)
-    }
-
-    const addPanel = (panel: HTMLElement) => {
-        panelList.appendChild(panel)
     }
 
     const showPanel = (id: string) => {

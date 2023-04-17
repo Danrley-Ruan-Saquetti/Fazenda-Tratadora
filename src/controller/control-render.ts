@@ -14,14 +14,12 @@ function RenderControl() {
     const initComponents = () => {
         panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList)
 
-        GLOBAL_PANEL_ITENS.forEach(_item => {
+        GLOBAL_ROUTES.forEach(_item => {
             const itemEl = createItem(_item.title, _item.icon, _item.name)
 
-            itemEl.addEventListener("click", (ev) => {
-                panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey)
+            itemEl.addEventListener("click", async (ev) => {
+                await panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey)
             })
-
-            _item.name == "history" && panelControl.newPanel({ name: _item.name, title: _item.title }, false)
 
             ELEMENTS.sideBarList.appendChild(itemEl)
         })

@@ -1176,14 +1176,14 @@ function PanelControl() {
             return;
         }
         const id = generatedId();
-        const { bt: btCloseAba, el: abaEl } = createAba(title, id);
+        const { bt: closePanel, el: aba } = createAba(title, id);
         createPanel(id, name, panelList, (panel) => {
-            if (!isCtrl) {
+            if (!isCtrl || !getPanelByName(name)) {
                 togglePanel(id);
             }
-            abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
-            abaEl.addEventListener("click", () => togglePanel(id));
-            btCloseAba.addEventListener("click", () => removePanelModel(id));
+            aba.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
+            aba.addEventListener("click", () => togglePanel(id));
+            closePanel.addEventListener("click", () => removePanelModel(id));
         });
     };
     const loadPanel = (panel, id, name, parent, callback) => {
@@ -1325,8 +1325,8 @@ function RenderControl() {
         panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList);
         GLOBAL_ROUTES.forEach(_item => {
             const itemEl = createItem(_item.title, _item.icon, _item.name);
-            itemEl.addEventListener("click", async (ev) => {
-                await panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
+            itemEl.addEventListener("click", (ev) => {
+                panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
             ELEMENTS.sideBarList.appendChild(itemEl);
         });

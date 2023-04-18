@@ -17,8 +17,8 @@ function RenderControl() {
         GLOBAL_ROUTES.forEach(_item => {
             const itemEl = createItem(_item.title, _item.icon, _item.name)
 
-            itemEl.addEventListener("click", async (ev) => {
-                await panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey)
+            itemEl.addEventListener("click", (ev) => {
+                panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey)
             })
 
             ELEMENTS.sideBarList.appendChild(itemEl)

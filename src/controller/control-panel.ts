@@ -34,16 +34,16 @@ function PanelControl() {
 
         const id = generatedId()
 
-        const { bt: btCloseAba, el: abaEl } = createAba(title, id)
+        const { bt: closePanel, el: aba } = createAba(title, id)
 
         createPanel(id, name, panelList, (panel) => {
             if (!isCtrl) { togglePanel(id) }
 
-            abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id))
+            aba.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id))
 
-            abaEl.addEventListener("click", () => togglePanel(id))
+            aba.addEventListener("click", () => togglePanel(id))
 
-            btCloseAba.addEventListener("click", () => removePanelModel(id))
+            closePanel.addEventListener("click", () => removePanelModel(id))
         })
 
     }

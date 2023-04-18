@@ -1156,7 +1156,7 @@ function PanelControl() {
         panelList = listPanel;
         abaList = listAba;
     };
-    const createPanel = async (id, name, parent) => {
+    const createPanel = (id, name, parent, callback) => {
         if (!name) {
             return null;
         }
@@ -1164,41 +1164,54 @@ function PanelControl() {
         panelEl.setAttribute("id", `${id}`);
         panelEl.setAttribute("panel", `${name}`);
         panelEl.setAttribute("model-window-parent", "");
-        const responseRouter = routerControl.getRouter({ name });
-        if (!responseRouter) {
-            panelEl.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
-            parent.appendChild(panelEl);
-        }
-        else {
-            const { router, script } = responseRouter;
-            const response = await routerControl.query({ router });
-            if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
-                panelEl.innerHTML = "Cannot load page";
+        loadPanel(panelEl, id, name, parent, (res) => {
+            if (!res) {
+                return callback(null);
             }
-            panelEl.innerHTML = response.data;
-            parent.appendChild(panelEl);
-            if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) {
-                return null;
-            }
-        }
-        return panelEl;
+            callback(panelEl);
+        });
     };
-    const newPanel = async ({ name, title }, isCtrl) => {
+    const newPanel = ({ name, title }, isCtrl) => {
         if (!isCtrl && getPanelByName(name)) {
             return;
         }
         const id = generatedId();
         const { bt: btCloseAba, el: abaEl } = createAba(title, id);
-        const panel = await createPanel(id, name, panelList);
-        if (!panel) {
-            return removePanelModel(id);
+        createPanel(id, name, panelList, (panel) => {
+            if (!isCtrl) {
+                togglePanel(id);
+            }
+            abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
+            abaEl.addEventListener("click", () => togglePanel(id));
+            btCloseAba.addEventListener("click", () => removePanelModel(id));
+        });
+    };
+    const loadPanel = (panel, id, name, parent, callback) => {
+        const responseRouter = routerControl.getRouter({ name });
+        if (!responseRouter) {
+            panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
         }
-        if (!isCtrl || !getPanelByName(name)) {
-            togglePanel(id);
+        else {
+            const { router, script } = responseRouter;
+            routerControl.query({ router }, ({ data, error }) => {
+                if (!data || error) {
+                    panel.innerHTML = error?.msg || GLOBAL_ROUTER_NOT_FOUND;
+                    return callback(false);
+                }
+                if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
+                    panel.innerHTML = "Cannot load page";
+                    return callback(false);
+                }
+                panel.innerHTML = data;
+                parent.appendChild(panel);
+                if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) {
+                    panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
+                    return callback(false);
+                }
+                callback(true);
+            });
         }
-        abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
-        abaEl.addEventListener("click", () => togglePanel(id));
-        btCloseAba.addEventListener("click", () => removePanelModel(id));
+        return true;
     };
     const removePanelModel = (id) => {
         removeAba(id);
@@ -1241,8 +1254,8 @@ function PanelControl() {
         const panel = panelList.querySelector(`[panel][id="${id}"]`);
         return panel;
     };
-    const getPanelByName = (name) => {
-        const panel = panelList.querySelector(`[panel="${name}"]`);
+    const getPanelByName = (name, id) => {
+        const panel = document.querySelector(`[panel="${name}"]${id ? `[id="${id}"]` : ``}`);
         return panel;
     };
     const togglePanel = (id) => {
@@ -1400,35 +1413,34 @@ function RenderControl() {
 function RouterControl() {
     const dependence = "production";
     const apiRouter = {
-        "production": async (router) => {
-            const response = await fetch(`${router}`).then(response => response.text()).then(response => {
+        "production": (router, callback) => {
+            const response = fetch(`${router}`).then(response => response.text()).then(response => {
                 return { data: response };
             }).catch(error => {
-                return { error: "Rout not found" };
+                return { error: { msg: "Rout not found" } };
             });
+            response.then(callback);
             return response;
         },
-        "development": (router) => {
+        "development": (router, callback) => {
             const routerResponse = GLOBAL_ROUTES_ROUTER[`${router}`];
             if (routerResponse)
-                return { data: routerResponse };
-            return { error: "Rout not found" };
+                return callback({ data: routerResponse });
+            callback({ error: { msg: "Rout not found" } });
         },
     };
-    const fetchRouter = async (router) => {
-        const response = await apiRouter[dependence](router);
-        if (!response.data || response.error) {
-            const errorRouterData = await apiRouter[dependence]("routes/panel-404.html");
-            return { data: errorRouterData.data || "Server Error" };
-        }
-        return { data: response.data };
+    const fetchRouter = (router, callback) => {
+        apiRouter[dependence](router, ({ data, error }) => {
+            if (!data || error)
+                return apiRouter[dependence]("routes/panel-404.html", callback);
+            callback({ data });
+        });
     };
     const getRouter = ({ router, name, script }) => {
         return GLOBAL_ROUTES.find(_router => { return _router.router == router || _router.name == name || _router.script == script; }) || null;
     };
-    const query = async ({ router }) => {
-        const response = await fetchRouter(`${router}`);
-        return response;
+    const query = ({ router }, callback) => {
+        fetchRouter(`${router}`, callback);
     };
     return {
         getRouter,

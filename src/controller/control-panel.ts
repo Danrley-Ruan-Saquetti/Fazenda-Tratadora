@@ -13,7 +13,7 @@ function PanelControl() {
     }
 
     // Panel
-    const createPanel = async (id: string, name: string, parent: HTMLElement) => {
+    const createPanel = (id: string, name: string, parent: HTMLElement, callback: (panel: HTMLElement | null) => void) => {
         if (!name) { return null }
 
         const panelEl = document.createElement("div")
@@ -22,51 +22,65 @@ function PanelControl() {
         panelEl.setAttribute("panel", `${name}`)
         panelEl.setAttribute("model-window-parent", "")
 
-        const responseRouter = routerControl.getRouter({ name })
+        loadPanel(panelEl, id, name, parent, (res) => {
+            if (!res) { return callback(null) }
 
-        if (!responseRouter) {
-            panelEl.innerHTML = GLOBAL_ROUTER_NOT_FOUND
-
-            parent.appendChild(panelEl)
-        } else {
-            const { router, script } = responseRouter
-
-            const response = await routerControl.query({ router })
-
-            if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
-                panelEl.innerHTML = "Cannot load page"
-            }
-
-            panelEl.innerHTML = response.data
-
-            parent.appendChild(panelEl)
-
-            if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) { return null }
-        }
-
-        return panelEl
+            callback(panelEl)
+        })
     }
 
-    const newPanel = async ({ name, title }: { name: TRouterName, title: string }, isCtrl: boolean) => {
+    const newPanel = ({ name, title }: { name: TRouterName, title: string }, isCtrl: boolean) => {
         if (!isCtrl && getPanelByName(name)) { return }
 
         const id = generatedId()
 
         const { bt: btCloseAba, el: abaEl } = createAba(title, id)
 
-        const panel = await createPanel(id, name, panelList)
+        createPanel(id, name, panelList, (panel) => {
+            if (!isCtrl) { togglePanel(id) }
 
-        if (!panel) {
-            return removePanelModel(id)
+            abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id))
+
+            abaEl.addEventListener("click", () => togglePanel(id))
+
+            btCloseAba.addEventListener("click", () => removePanelModel(id))
+        })
+
+    }
+
+    const loadPanel = (panel: HTMLElement, id: string, name: string, parent: HTMLElement, callback: (res: boolean) => void) => {
+        const responseRouter = routerControl.getRouter({ name })
+
+        if (!responseRouter) {
+            panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND
+        } else {
+            const { router, script } = responseRouter
+
+            routerControl.query({ router }, ({ data, error }) => {
+                if (!data || error) {
+                    panel.innerHTML = error?.msg || GLOBAL_ROUTER_NOT_FOUND
+                    return callback(false)
+                }
+                if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
+                    panel.innerHTML = "Cannot load page"
+                    return callback(false)
+                }
+
+                panel.innerHTML = data
+
+                parent.appendChild(panel)
+
+                if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) {
+                    panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND
+
+                    return callback(false)
+                }
+
+                callback(true)
+            })
         }
 
-        if (!isCtrl || !getPanelByName(name)) { togglePanel(id) }
-
-        abaEl.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id))
-
-        abaEl.addEventListener("click", () => togglePanel(id))
-
-        btCloseAba.addEventListener("click", () => removePanelModel(id))
+        return true
     }
 
     const removePanelModel = (id: string) => {
@@ -118,8 +132,8 @@ function PanelControl() {
         return panel
     }
 
-    const getPanelByName = (name: string) => {
-        const panel = panelList.querySelector(`[panel="${name}"]`)
+    const getPanelByName = (name: string, id?: string) => {
+        const panel = document.querySelector(`[panel="${name}"]${id ? `[id="${id}"]` : ``}`)
 
         return panel
     }

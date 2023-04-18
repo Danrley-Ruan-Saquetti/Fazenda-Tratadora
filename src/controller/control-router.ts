@@ -2,44 +2,40 @@ function RouterControl() {
     const dependence: "development" | "production" = "production"
 
     const apiRouter = {
-        "production": async (router: TRouter) => {
-            const response: { data?: string, error?: string } = await fetch(`${router}`).then(response => response.text()).then(response => {
+        "production": (router: TRouter, callback: ICallback) => {
+            const response = fetch(`${router}`).then(response => response.text()).then(response => {
                 return { data: response }
             }).catch(error => {
-                return { error: "Rout not found" }
+                return { error: { msg: "Rout not found" } }
             })
+
+            response.then(callback)
 
             return response
         },
-        "development": (router: TDefineRouter) => {
+        "development": (router: TDefineRouter, callback: ICallback) => {
             const routerResponse: string = GLOBAL_ROUTES_ROUTER[`${router}`]
 
-            if (routerResponse) return { data: routerResponse }
+            if (routerResponse) return callback({ data: routerResponse })
 
-            return { error: "Rout not found" }
+            callback({ error: { msg: "Rout not found" } })
         },
     }
 
-    const fetchRouter = async (router: TRouter) => {
-        const response = await apiRouter[dependence](router)
+    const fetchRouter = (router: TRouter, callback: ICallback) => {
+        apiRouter[dependence](router, ({ data, error }) => {
+            if (!data || error) return apiRouter[dependence]("routes/panel-404.html", callback)
 
-        if (!response.data || response.error) {
-            const errorRouterData = await apiRouter[dependence]("routes/panel-404.html")
-
-            return { data: errorRouterData.data || "Server Error" }
-        }
-
-        return { data: response.data }
+            callback({ data })
+        })
     }
 
     const getRouter = ({ router, name, script }: { router?: TRouter, name?: TRouterName, script?: TRouterScript }) => {
         return GLOBAL_ROUTES.find(_router => { return _router.router == router || _router.name == name || _router.script == script }) || null
     }
 
-    const query = async ({ router }: { router: TRouter }) => {
-        const response = await fetchRouter(`${router}`)
-
-        return response
+    const query = ({ router }: { router: TRouter }, callback: ICallback) => {
+        fetchRouter(`${router}`, callback)
     }
 
     return {

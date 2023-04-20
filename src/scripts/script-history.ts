@@ -15,7 +15,7 @@ function HistoryScript(idPanel: string) {
     }
 
     const initComponents = () => {
-        ELEMENTS.btLoadTable.addEventListener("click", loadTableHistory)
+        // ELEMENTS.btLoadTable.addEventListener("click", loadTableHistory)
 
         renderControl.loadHeaderTable(ELEMENTS.tableHistory, HEADERS_TABLE)
 

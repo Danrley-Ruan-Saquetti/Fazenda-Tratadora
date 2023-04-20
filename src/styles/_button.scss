@@ -1,0 +1,33 @@
+$bt-actions: ( _confirm: #3535d4, _cancel: #cc3a3a, _new: #26b131);
+[button-container] {
+    @extend [list-type="vertical"];
+    gap: $gap-2;
+    padding: $padding-1;
+    flex-wrap: wrap;
+}
+
+[panel] {
+    button {
+        @extend [icon-parent];
+        padding: $padding-3 $padding-1;
+        border-radius: $border-radius;
+        @each $key,
+        $value in $bt-actions {
+            &[action="#{$key}"] {
+                background-color: $value;
+                color: get-text-color($value);
+                transition: $transition-time-fast;
+                &:hover {
+                    $value: darken($value, 10%);
+                    background-color: $value;
+                    color: get-text-color($value);
+                }
+                &:active {
+                    $value: darken($value, 15%);
+                    background-color: $value;
+                    color: get-text-color($value);
+                }
+            }
+        }
+    }
+}

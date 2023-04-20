@@ -59,9 +59,9 @@ const GLOBAL_SETTINGS = {
 };
 const GLOBAL_HISTORY = [];
 const GLOBAL_ROUTES = [
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
     { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
     { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
-    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
 ];
 const GLOBAL_ROUTES_ROUTER = {
     "routes/panel-history.html": `<button class="load-table">Load</button>
@@ -1328,6 +1328,7 @@ function RenderControl() {
             itemEl.addEventListener("click", (ev) => {
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
+            _item.name == "history" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
@@ -2097,7 +2098,6 @@ function HistoryScript(idPanel) {
         btLoadTable: panel.querySelector('.load-table'),
     };
     const initComponents = () => {
-        ELEMENTS.btLoadTable.addEventListener("click", loadTableHistory);
         renderControl.loadHeaderTable(ELEMENTS.tableHistory, HEADERS_TABLE);
         loadTableHistory();
     };

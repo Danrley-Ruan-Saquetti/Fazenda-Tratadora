@@ -8,47 +8,73 @@ tr {
 [table-parent] {
     height: 100%;
     width: 100%;
+    @include scroll("y");
+    @include scroll("x");
 }
 
 [table] {
-    max-height: 100%;
+    min-height: 100%;
     min-width: 100%;
-    border-radius: $border-radius;
     border-collapse: collapse;
-    @include scroll("y", hidden);
-    @include scroll("x");
-    [table-header] {
-        background-color: $grey-color;
+    border: $border;
+    tr:first-child,
+    tr:last-child {
+        border: none;
     }
     [table-data] {
-        position: relative;
-        min-height: 100%;
-        @include scroll("y");
         tr {
             cursor: pointer;
         }
+        tr:nth-child(odd) {
+            background-color: $grey-color-1;
+        }
     }
     th {
-        position: relative;
-        width: fit-content;
-        width: -moz-fit-content;
         resize: horizontal;
-        @include scroll("x", hidden);
         &::-webkit-resizer {
-            height: calc(100% + ($padding-2 * 2));
-            width: 8px;
             cursor: ew-resize;
         }
     }
-    td>* {
-        cursor: text !important;
-    }
-    td,
-    th {
-        padding: $padding-2;
+    th,
+    td {
+        padding: $padding-3 $padding-2;
         text-align: center;
         white-space: nowrap;
-        @include scroll("x", hidden);
         @include text-overflow;
+        @include scroll();
     }
 }
+
+// [table] {
+//     min-height: 100%;
+//     min-width: 100%;
+//     border-collapse: collapse;
+//     border: $border;
+//     [table-header] {
+//         position: sticky;
+//         top: 0;
+//         background-color: $bg-neutro;
+//     }
+//     [table-data] {
+//         tr {
+//             cursor: pointer;
+//         }
+//     }
+//     th {
+//         position: relative;
+//         resize: horizontal;
+//         &::-webkit-resizer {
+//             height: calc(100% + ($padding-2 * 2));
+//             width: 8px;
+//             cursor: ew-resize;
+//         }
+//     }
+//     td,
+//     th {
+//         padding: $padding-3 $padding-2;
+//         text-align: center;
+//         white-space: nowrap;
+//         @include scroll("x", hidden);
+//         @include text-overflow;
+//     }
+// }

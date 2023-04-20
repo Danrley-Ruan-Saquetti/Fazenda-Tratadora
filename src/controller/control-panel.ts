@@ -37,7 +37,7 @@ function PanelControl() {
         const { bt: closePanel, el: aba } = createAba(title, id)
 
         createPanel(id, name, panelList, (panel) => {
-            if (!isCtrl) { togglePanel(id) }
+            if (!isCtrl || !getPanelByName(name)) { togglePanel(id) }
 
             aba.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id))
 

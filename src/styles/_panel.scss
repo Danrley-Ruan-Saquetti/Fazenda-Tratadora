@@ -6,7 +6,7 @@
         height: 100%;
     }
     .aba-container {
-        height: min(7.5%, 5rem);
+        height: 3.76rem;
         width: 100%;
         @include border("bottom");
         .abas {
@@ -36,10 +36,10 @@
     input[type="text"] {
         @include border("bottom");
     }
-    button:hover,
-    a:hover {
-        background-color: $neutro-color;
-    }
+    // button:hover,
+    // a:hover {
+    //     background-color: $neutro-color;
+    // }
     &.active {
         display: flex;
     }

@@ -52,9 +52,9 @@ const GLOBAL_SETTINGS: ISettingsGeneral = {
 const GLOBAL_HISTORY: IHistoryTable = []
 
 const GLOBAL_ROUTES: TItemRoute[] = [
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
     { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
     { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
-    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
 ]
 
 const GLOBAL_ROUTES_ROUTER: TDependenceRouter = {

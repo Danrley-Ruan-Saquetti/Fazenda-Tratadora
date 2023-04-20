@@ -3,6 +3,7 @@ $main-color: #0076ca;
 $second-color: #004679;
 $neutro-color: #b6b6b6;
 $grey-color: #dfdfdf;
+$grey-color-1: #f0f0f0;
 // Color - Background
 $bg-neutro: #fff;
 // Color - Text
@@ -12,6 +13,7 @@ $text-color-secondary: #fff;
 $padding-default: 2rem;
 $padding-1: 1.2rem;
 $padding-2: 0.8rem;
+$padding-3: 0.4rem;
 $margin-default: 2rem;
 $border: 1px solid $neutro-color;
 $border-radius: .3rem;
@@ -20,5 +22,7 @@ $drop-shadow-range: .4rem;
 $shadow-color: rgba(0, 0, 0, .3);
 $gap: 2rem;
 $gap-1: 1.25rem;
+$gap-2: .85rem;
 $transition-time: .3s;
+$transition-time-fast: .2s;
 $transition: all $transition-time ease-in-out;

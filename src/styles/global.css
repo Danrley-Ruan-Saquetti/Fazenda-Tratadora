@@ -52,14 +52,14 @@ body > * {
   overflow: hidden;
 }
 
-[list-content]:has([list-type=vertical]) {
+[list-content]:has([list-type=vertical], [button-container]) {
   overflow-x: auto;
 }
 [list-content]:has([list-type=horizontal]) {
   overflow-y: auto;
 }
 
-[list-type=vertical] {
+[list-type=vertical], [button-container] {
   display: flex;
   min-width: 100%;
 }
@@ -73,31 +73,31 @@ body > * {
   background-color: #b6b6b6;
 }
 
-[line=vertical] {
+[line=horizontal] {
   height: 1px;
   margin-block: 2rem;
 }
-[line=vertical][line-width=margin] {
+[line=horizontal][line-width=margin] {
   margin-inline: 2rem;
   width: calc(100% - 4rem);
 }
-[line=vertical][line-width=filled] {
+[line=horizontal][line-width=filled] {
   width: 100%;
 }
 
-[line=horizontal] {
+[line=vertical] {
   width: 1px;
   margin-inline: 2rem;
 }
-[line=horizontal][line-height=margin] {
+[line=vertical][line-height=margin] {
   margin-block: 2rem;
   height: calc(100% - 4rem);
 }
-[line=horizontal][line-height=filled] {
+[line=vertical][line-height=filled] {
   height: 100%;
 }
 
-[icon-parent], [aba] {
+[icon-parent], [panel] button, [aba] {
   display: flex;
   align-items: center;
 }
@@ -179,6 +179,7 @@ body > * {
 
 header {
   height: min(10%, 12rem);
+  min-height: 6rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -188,7 +189,7 @@ header {
 }
 header .logo {
   font-weight: 300;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 main {
@@ -204,7 +205,7 @@ main > * {
   white-space: nowrap;
   width: -moz-max-content;
   width: max-content;
-  min-width: 17rem;
+  min-width: 19rem;
   height: 100%;
   border-right: 1px solid #b6b6b6;
 }
@@ -237,7 +238,7 @@ main > * {
   height: 100%;
 }
 .panel .aba-container {
-  height: min(7.5%, 5rem);
+  height: 3.76rem;
   width: 100%;
   border-bottom: 1px solid #b6b6b6;
 }
@@ -267,10 +268,6 @@ main > * {
 [panel] input[type=text] {
   border-bottom: 1px solid #b6b6b6;
 }
-[panel] button:hover,
-[panel] a:hover {
-  background-color: #b6b6b6;
-}
 [panel].active {
   display: flex;
 }
@@ -285,47 +282,87 @@ tr {
 [table-parent] {
   height: 100%;
   width: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
 }
 
 [table] {
-  max-height: 100%;
-  min-width: 100%;
-  border-radius: 0.3rem;
-  border-collapse: collapse;
-  overflow-y: hidden;
-  overflow-x: auto;
-}
-[table] [table-header] {
-  background-color: #dfdfdf;
-}
-[table] [table-data] {
-  position: relative;
   min-height: 100%;
-  overflow-y: auto;
+  min-width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #b6b6b6;
+}
+[table] tr:first-child,
+[table] tr:last-child {
+  border: none;
 }
 [table] [table-data] tr {
   cursor: pointer;
 }
+[table] [table-data] tr:nth-child(odd) {
+  background-color: #f0f0f0;
+}
 [table] th {
-  position: relative;
-  width: fit-content;
-  width: -moz-fit-content;
   resize: horizontal;
-  overflow-x: hidden;
 }
 [table] th::-webkit-resizer {
-  height: calc(100% + 1.6rem);
-  width: 8px;
   cursor: ew-resize;
 }
-[table] td > * {
-  cursor: text !important;
-}
-[table] td,
-[table] th {
-  padding: 0.8rem;
+[table] th,
+[table] td {
+  padding: 0.4rem 0.8rem;
   text-align: center;
   white-space: nowrap;
-  overflow-x: hidden;
   text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+[button-container] {
+  gap: 0.85rem;
+  padding: 1.2rem;
+  flex-wrap: wrap;
+}
+
+[panel] button {
+  padding: 0.4rem 1.2rem;
+  border-radius: 0.3rem;
+}
+[panel] button[action=_confirm] {
+  background-color: #3535d4;
+  color: white;
+  transition: 0.2s;
+}
+[panel] button[action=_confirm]:hover {
+  background-color: #2626b0;
+  color: white;
+}
+[panel] button[action=_confirm]:active {
+  background-color: #181871;
+  color: white;
+}
+[panel] button[action=_cancel] {
+  background-color: #cc3a3a;
+  color: white;
+  transition: 0.2s;
+}
+[panel] button[action=_cancel]:hover {
+  background-color: #a82b2b;
+  color: white;
+}
+[panel] button[action=_cancel]:active {
+  background-color: #6b1c1c;
+  color: white;
+}
+[panel] button[action=_new] {
+  background-color: #26b131;
+  color: white;
+  transition: 0.2s;
+}
+[panel] button[action=_new]:hover {
+  background-color: #1d8725;
+  color: white;
+}
+[panel] button[action=_new]:active {
+  background-color: #0f4814;
+  color: white;
 }/*# sourceMappingURL=global.css.map */

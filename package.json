@@ -6,7 +6,8 @@
     "scripts": {
         "build:watch": "npx tsc -w",
         "build": "npx tsc",
-        "dev": "nodemon dist/app.js"
+        "dev": "nodemon dist/app.js",
+        "live": "live-server"
     },
     "keywords": [],
     "author": "Dan Ruan",

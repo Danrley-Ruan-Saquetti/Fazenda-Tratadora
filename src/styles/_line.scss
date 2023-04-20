@@ -2,7 +2,7 @@
     background-color: $neutro-color;
 }
 
-[line="vertical"] {
+[line="horizontal"] {
     height: 1px;
     margin-block: $margin-default;
     &[line-width="margin"] {
@@ -14,7 +14,7 @@
     }
 }
 
-[line="horizontal"] {
+[line="vertical"] {
     width: 1px;
     margin-inline: $margin-default;
     &[line-height="margin"] {

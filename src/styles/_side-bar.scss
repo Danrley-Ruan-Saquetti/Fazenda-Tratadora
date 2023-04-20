@@ -1,7 +1,7 @@
 .side-bar {
     white-space: nowrap;
     width: max-content;
-    min-width: 17rem;
+    min-width: 19rem;
     height: 100%;
     @include border("right");
     [list] {

@@ -1,4 +1,4 @@
-$bt-actions: ( _confirm: $main-color, _cancel: #cc3a3a, _new: #26b131);
+$bt-actions: ( _confirm: $main-color, _cancel: #cc3a3a, _new: #26b131, _view: #426eff);
 [button-container] {
     @extend [list-type="vertical"];
     gap: $gap-2;

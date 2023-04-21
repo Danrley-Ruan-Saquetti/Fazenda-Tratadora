@@ -1,57 +1,7 @@
 function FarmRepository(): IFarmRepository {
     const data: IFarm = {
-        tables: [], id: null, settings: {
-            table: {
-                "cep.final": "",
-                "cep.initial": "",
-                "selection.criteria": {
-                    deadline: "",
-                    price: ""
-                },
-                deadline: "",
-                excess: "",
-                rate: {
-                    deadline: "",
-                    price: ""
-                }
-            },
-            process: {
-                "criteria.selection": {
-                    join: ""
-                },
-                "deadline+D": 0,
-                converterStringTable: {
-                    configSeparatorColumn: {
-                        betweenText: "",
-                        replaceValue: "",
-                        searchValue: "",
-                        separator: ""
-                    },
-                    separatorColumn: "",
-                    separatorLine: ""
-                }
-            },
-            template: {
-                headerName: {
-                    "cep.final": "",
-                    "cep.initial": "",
-                    "cep.origin.final": "",
-                    "cep.origin.initial": "",
-                    "deadline+D": "",
-                    excess: ""
-                },
-                rateValue: {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                },
-                "cepOriginValue": {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                }
-            },
-            isActive: false
-        },
-        logs: []
+        tables: [], id: null, settings: _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false }),
+        process: []
     }
 
     // Table
@@ -59,64 +9,14 @@ function FarmRepository(): IFarmRepository {
         data.tables = [...props.tables]
         data.id = props.id
         data.settings = { ..._.cloneDeep(props.settings), isActive: true }
-        data.logs = [..._.cloneDeep(props.logs)]
+        data.process = [..._.cloneDeep(props.process)]
     }
 
     const reset = () => {
         data.tables.splice(0, data.tables.length)
-        data.logs.splice(0, data.logs.length)
+        data.process.splice(0, data.process.length)
         data.id = null
-        data.settings = {
-            isActive: false,
-            table: {
-                "cep.final": "",
-                "cep.initial": "",
-                "selection.criteria": {
-                    deadline: "",
-                    price: ""
-                },
-                deadline: "",
-                excess: "",
-                rate: {
-                    deadline: "",
-                    price: ""
-                }
-            },
-            process: {
-                "criteria.selection": {
-                    join: ""
-                },
-                "deadline+D": 0,
-                converterStringTable: {
-                    configSeparatorColumn: {
-                        betweenText: "",
-                        replaceValue: "",
-                        searchValue: "",
-                        separator: ""
-                    },
-                    separatorColumn: "",
-                    separatorLine: ""
-                }
-            },
-            template: {
-                headerName: {
-                    "cep.final": "",
-                    "cep.initial": "",
-                    "cep.origin.final": "",
-                    "cep.origin.initial": "",
-                    "deadline+D": "",
-                    excess: ""
-                },
-                rateValue: {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                },
-                "cepOriginValue": {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                }
-            }
-        }
+        data.settings = _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false })
     }
 
     const addTable = (tableModel: ITableModel, saveOld = false) => {
@@ -187,17 +87,13 @@ function FarmRepository(): IFarmRepository {
         return _.cloneDeep(data.settings)
     }
 
-    // Log
-    const addLogs = (logs: TLog[]) => {
-        data.logs = [...data.logs, ...logs]
+    // Process
+    const updateProcess = (process: TFarmProcess[]) => {
+        data.process = _.cloneDeep(process)
     }
 
-    const addLog = (log: TLog) => {
-        data.logs.push(log)
-    }
-
-    const getLog = () => {
-        return _.cloneDeep(data.logs)
+    const getProcess = () => {
+        return _.cloneDeep(data.process)
     }
 
     return {
@@ -212,8 +108,7 @@ function FarmRepository(): IFarmRepository {
         getHeaders,
         updateSetting,
         getSettings,
-        addLog,
-        getLog,
-        addLogs,
+        getProcess,
+        updateProcess,
     }
 }

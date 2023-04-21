@@ -90,14 +90,15 @@ function MainControl() {
     }
 
     // Table
-    const setupFarm = ({ plants, settings }: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[], settings: ISettingsGeneral }, callback?: Function) => {
+    const setupFarm = ({ plants, settings, process }: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[], settings: ISettingsGeneral, process: TFarmProcess[] }, callback?: Function) => {
         farmControl.updateSetting({ settings })
+        farmControl.updateProcess({ process })
 
         uploadFilesPlants({ plants }, callback)
     }
 
-    const processRepoTable = ({ settings, modelTables }: { settings: ISettingsGeneral, modelTables: ITableModel[] }) => {
-        return farmControl.processFarm({ modelTables, settings }) || null
+    const processRepoTable = (props: { settings: ISettingsGeneral, modelTables: ITableModel[], process: TFarmProcess[] }) => {
+        return farmControl.processFarm(props) || null
     }
 
     const processFarm = () => {
@@ -106,7 +107,8 @@ function MainControl() {
                 { ..._.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]) },
                 { ..._.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]) }
             ],
-            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS
+            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
+            process: []
         })
 
         farmControl.setup(farm)
@@ -118,11 +120,11 @@ function MainControl() {
 
     // History
     const saveFarm = (name: string) => {
-        const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, logs: farmControl.getData().logs }, farmControl.getData().id)
+        const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, process: farmControl.getData().process }, farmControl.getData().id)
 
         if (!id) { return }
 
-        farmControl.setup({ id, tables: farmControl.getData().tables, settings: farmControl.getData().settings, logs: farmControl.getData().logs })
+        farmControl.setup({ id, tables: farmControl.getData().tables, settings: farmControl.getData().settings, process: farmControl.getData().process })
     }
 
     const loadFarm = (id: string) => {
@@ -131,7 +133,7 @@ function MainControl() {
         if (!farm.data) { return }
 
         farmControl.reset()
-        farmControl.setup({ id: farm.id, tables: farm.data.tables, settings: farm.data.settings, logs: farm.data.logs })
+        farmControl.setup({ id: farm.id, tables: farm.data.tables, settings: farm.data.settings, process: farm.data.process })
     }
 
     const clearFarm = () => {

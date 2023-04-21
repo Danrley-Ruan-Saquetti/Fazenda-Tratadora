@@ -63,7 +63,7 @@ interface ISettingsProcess {
         "criteria.selection": {
             join: string
         }
-        converterStringTable: ISettingsConverterStringTable
+        converterStringTable: ISettingsConverterStringTable,
     }
 }
 interface ISettingsGeneral extends ISettingsTable, ISettingsProcess, ISettingsTemplate { }

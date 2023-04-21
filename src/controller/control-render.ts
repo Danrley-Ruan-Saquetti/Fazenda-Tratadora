@@ -21,7 +21,7 @@ function RenderControl() {
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey)
             })
 
-            _item.name == "farm" && panelControl.newPanel({ name: _item.name, title: _item.title }, false)
+            _item.name == "feature" && panelControl.newPanel({ name: _item.name, title: _item.title }, false)
 
             ELEMENTS.sideBarList.appendChild(itemEl)
         })

@@ -27,7 +27,7 @@ const GLOBAL_SETTINGS: ISettingsGeneral = {
                 "replaceValue": "?",
                 "betweenText": "\""
             }
-        }
+        },
     },
     "template": {
         "rateValue": {
@@ -49,12 +49,64 @@ const GLOBAL_SETTINGS: ISettingsGeneral = {
     }
 }
 
+const GLOBAL_SETTINGS_RESET = {
+    table: {
+        "cep.final": "",
+        "cep.initial": "",
+        "selection.criteria": {
+            deadline: "",
+            price: ""
+        },
+        deadline: "",
+        excess: "",
+        rate: {
+            deadline: "",
+            price: ""
+        }
+    },
+    process: {
+        "criteria.selection": {
+            join: ""
+        },
+        "deadline+D": 0,
+        converterStringTable: {
+            configSeparatorColumn: {
+                betweenText: "",
+                replaceValue: "",
+                searchValue: "",
+                separator: ""
+            },
+            separatorColumn: "",
+            separatorLine: ""
+        },
+    },
+    template: {
+        headerName: {
+            "cep.final": "",
+            "cep.initial": "",
+            "cep.origin.final": "",
+            "cep.origin.initial": "",
+            "deadline+D": "",
+            excess: ""
+        },
+        rateValue: {
+            "cep.origin.final": "",
+            "cep.origin.initial": ""
+        },
+        "cepOriginValue": {
+            "cep.origin.final": "",
+            "cep.origin.initial": ""
+        }
+    }
+}
+
 const GLOBAL_HISTORY: IHistoryTable = []
 
 const GLOBAL_ROUTES: TItemRoute[] = [
     { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
     { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
     { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
+    { icon: "signpost-split", title: "Features", name: "feature", router: "routes/panel.feature.html", script: "FeatureScript" },
 ]
 
 const GLOBAL_ROUTES_ROUTER: TDependenceRouter = {

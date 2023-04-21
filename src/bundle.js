@@ -36,7 +36,7 @@ const GLOBAL_SETTINGS = {
                 "replaceValue": "?",
                 "betweenText": "\""
             }
-        }
+        },
     },
     "template": {
         "rateValue": {
@@ -57,11 +57,62 @@ const GLOBAL_SETTINGS = {
         }
     }
 };
+const GLOBAL_SETTINGS_RESET = {
+    table: {
+        "cep.final": "",
+        "cep.initial": "",
+        "selection.criteria": {
+            deadline: "",
+            price: ""
+        },
+        deadline: "",
+        excess: "",
+        rate: {
+            deadline: "",
+            price: ""
+        }
+    },
+    process: {
+        "criteria.selection": {
+            join: ""
+        },
+        "deadline+D": 0,
+        converterStringTable: {
+            configSeparatorColumn: {
+                betweenText: "",
+                replaceValue: "",
+                searchValue: "",
+                separator: ""
+            },
+            separatorColumn: "",
+            separatorLine: ""
+        },
+    },
+    template: {
+        headerName: {
+            "cep.final": "",
+            "cep.initial": "",
+            "cep.origin.final": "",
+            "cep.origin.initial": "",
+            "deadline+D": "",
+            excess: ""
+        },
+        rateValue: {
+            "cep.origin.final": "",
+            "cep.origin.initial": ""
+        },
+        "cepOriginValue": {
+            "cep.origin.final": "",
+            "cep.origin.initial": ""
+        }
+    }
+};
 const GLOBAL_HISTORY = [];
 const GLOBAL_ROUTES = [
     { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
     { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
     { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
+    { icon: "signpost-split", title: "Features", name: "feature", router: "routes/panel.feature.html", script: "FeatureScript" },
 ];
 const GLOBAL_ROUTES_ROUTER = {
     "routes/panel-history.html": `<button class="load-table">Load</button>
@@ -544,15 +595,12 @@ function FarmControl(farmRepository) {
         logs.push({ date: new Date(Date.now()), type: "success", message: `Create template rate "${name}" successfully` });
         return { modelTable: modelTable, logs };
     };
-    const processFarm = ({ modelTables, settings }) => {
+    const processFarm = ({ modelTables, settings, process }) => {
         const repoControl = FarmControl(FarmRepository());
-        repoControl.setup({ id: null, settings, tables: modelTables, logs: [] });
+        repoControl.setup({ id: null, settings, tables: modelTables, process });
         const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
         const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
         if (!modelTablePlantPrice || !modelTablePlantDeadline) {
-            !modelTablePlantDeadline && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: "Table deadline not defined" });
-            !modelTablePlantPrice && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: "Table price not defined" });
-            repoControl.addLog({ date: new Date(Date.now()), type: "info", message: `Process farm finished by force` });
             return repoControl.getData();
         }
         const headersPlantDeadline = [
@@ -581,25 +629,18 @@ function FarmControl(farmRepository) {
             ...getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
         ];
         const { modelTable: modelTableFarm, logs: logsCreateFarm } = createFarm({ headers: headersFarm, plant: modelTablePlantDeadline.table, name: "Fazenda" });
-        repoControl.addLogs(logsCreateFarm);
         repoControl.addTable({ tableModel: modelTableFarm });
         const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
-        repoControl.addLogs(logsInsertValues);
         const indexCepInitial = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
         const indexCepFinal = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.final"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
         if (indexCepInitial < 0 || indexCepFinal < 0) {
-            !indexCepInitial && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: `"${getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.initial"] })[0]?.header || "Cep initial"}" not found` });
-            !indexCepFinal && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: `"${getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.final"] })[0]?.header || "Cep final"}" not found` });
             return repoControl.getData();
         }
         tableControl.removeCharacter({ table: modelTableFarm.table, character: "-", options: { specific: { column: indexCepInitial }, excludes: { line: [0] } } });
         tableControl.removeCharacter({ table: modelTableFarm.table, character: "-", options: { specific: { column: indexCepFinal }, excludes: { line: [0] } } });
         const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, tableBase: { table: modelTablePlantDeadline.table, headers: headersPlantDeadline }, settings });
-        repoControl.addLogs(logsInsertValuesDMoreOne);
         modelTableFarm.table = tableControl.orderTable({ table: modelTableFarm.table, column: indexCepInitial });
-        repoControl.addLog({ date: new Date(Date.now()), type: "success", message: `Table farm ordered successfully` });
         const { logs: logsValidateContainedCEP } = validateContainedCEP({ table: { table: modelTableFarm.table, code: "farm", headers: headersFarm } });
-        repoControl.addLogs(logsValidateContainedCEP);
         const headersTemplateDeadline = [
             ...getHeaders({ tableModel: { table: modelTablePlantDeadline.table, code: "plant.deadline", headers: headersPlantDeadline }, types: ["cep.origin.initial", "cep.origin.final"] }),
             ...getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, types: ["cep.initial", "cep.final", "deadline+D"] }),
@@ -615,11 +656,8 @@ function FarmControl(farmRepository) {
             ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
         ];
         const { logs: logsInsertProcvValues } = insertProcvValues({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, tableBase: { table: modelTablePlantPrice.table, code: "plant.price", headers: headerPlantValuePriceToFarm }, headers: headerPlantValuePriceToFarm, settings });
-        repoControl.addLogs(logsInsertProcvValues);
         const { modelTable: modelTableTemplateDeadline, logs: logsTableTableTemplateDeadline } = createTemplate({ code: "template.deadline", headers: headersTemplateDeadline, tableBase: modelTableFarm.table, name: "Template Prazo", settings });
         const { modelTable: modelTableTemplatePrice, logs: logsTableTableTemplatePrice } = createTemplate({ code: "template.price", headers: headersTemplatePrice, tableBase: modelTableFarm.table, name: "Template Preço", settings });
-        repoControl.addLogs(logsTableTableTemplateDeadline);
-        repoControl.addLogs(logsTableTableTemplatePrice);
         const headersRate = [
             ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }),
             ...getHeaders({ tableModel: modelTablePlantPrice, types: ["rate"] }),
@@ -634,7 +672,6 @@ function FarmControl(farmRepository) {
             if (rateValues.length == 1) {
                 const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + rateValues[0], searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _G`;
                 const modelTable = { table: [], headers: [], code: "template.rate", name };
-                repoControl.addLog({ date: new Date(Date.now()), type: "success", message: `Create template rate "${name}" successfully` });
                 repoControl.addTable({ tableModel: modelTable, saveOld: true });
                 continue;
             }
@@ -645,7 +682,6 @@ function FarmControl(farmRepository) {
                 }
                 const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + _rateValue, searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _N`;
                 const { modelTable: modelTableTemplateRate, logs: logsCreateTemplateRate } = createTemplateRate({ tableBase: modelTableFarm.table, code: "template.rate", name, headers: [...headersTemplateRate, _headerRate], value: _rateValue, settings });
-                repoControl.addLogs(logsCreateTemplateRate);
                 if (!modelTableTemplateRate) {
                     continue;
                 }
@@ -655,7 +691,6 @@ function FarmControl(farmRepository) {
         repoControl.addTable({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm, name: "Fazenda" } });
         repoControl.addTable({ tableModel: modelTableTemplateDeadline });
         repoControl.addTable({ tableModel: modelTableTemplatePrice });
-        repoControl.addLog({ date: new Date(Date.now()), type: "info", message: `Process farm finished` });
         return repoControl.getData();
     };
     const insertValues = ({ tablePlant, table, headers }) => {
@@ -814,14 +849,11 @@ function FarmControl(farmRepository) {
     const getSettings = () => {
         return _.cloneDeep(farmRepository.getSettings());
     };
-    const addLogs = (props) => {
-        farmRepository.addLogs(props);
+    const updateProcess = (props) => {
+        farmRepository.updateProcess(props.process);
     };
-    const addLog = (props) => {
-        farmRepository.addLog(props);
-    };
-    const getLog = () => {
-        return _.cloneDeep(farmRepository.getLog());
+    const getProcess = () => {
+        return farmRepository.getProcess();
     };
     return {
         getData,
@@ -838,9 +870,8 @@ function FarmControl(farmRepository) {
         getHeaders,
         updateSetting,
         getSettings,
-        addLog,
-        addLogs,
-        getLog,
+        updateProcess,
+        getProcess,
     };
 }
 function FileControl(farmRepository) {
@@ -1154,12 +1185,13 @@ function MainControl() {
             tagDownload.setAttribute("download", `Fazenda - ${name ? `${name} ` : ``}${zipName}`);
         });
     };
-    const setupFarm = ({ plants, settings }, callback) => {
+    const setupFarm = ({ plants, settings, process }, callback) => {
         farmControl.updateSetting({ settings });
+        farmControl.updateProcess({ process });
         uploadFilesPlants({ plants }, callback);
     };
-    const processRepoTable = ({ settings, modelTables }) => {
-        return farmControl.processFarm({ modelTables, settings }) || null;
+    const processRepoTable = (props) => {
+        return farmControl.processFarm(props) || null;
     };
     const processFarm = () => {
         const farm = processRepoTable({
@@ -1167,18 +1199,19 @@ function MainControl() {
                 { ..._.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]) },
                 { ..._.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]) }
             ],
-            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS
+            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
+            process: []
         });
         farmControl.setup(farm);
         console.log("$Finish");
         return farm;
     };
     const saveFarm = (name) => {
-        const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, logs: farmControl.getData().logs }, farmControl.getData().id);
+        const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, process: farmControl.getData().process }, farmControl.getData().id);
         if (!id) {
             return;
         }
-        farmControl.setup({ id, tables: farmControl.getData().tables, settings: farmControl.getData().settings, logs: farmControl.getData().logs });
+        farmControl.setup({ id, tables: farmControl.getData().tables, settings: farmControl.getData().settings, process: farmControl.getData().process });
     };
     const loadFarm = (id) => {
         const farm = historyTableControl.getData({ id });
@@ -1186,7 +1219,7 @@ function MainControl() {
             return;
         }
         farmControl.reset();
-        farmControl.setup({ id: farm.id, tables: farm.data.tables, settings: farm.data.settings, logs: farm.data.logs });
+        farmControl.setup({ id: farm.id, tables: farm.data.tables, settings: farm.data.settings, process: farm.data.process });
     };
     const clearFarm = () => {
         farmControl.reset();
@@ -1473,7 +1506,7 @@ function RenderControl() {
             itemEl.addEventListener("click", (ev) => {
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
-            _item.name == "farm" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
+            _item.name == "feature" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
@@ -1827,120 +1860,20 @@ function TestControl() {
 }
 function FarmRepository() {
     const data = {
-        tables: [], id: null, settings: {
-            table: {
-                "cep.final": "",
-                "cep.initial": "",
-                "selection.criteria": {
-                    deadline: "",
-                    price: ""
-                },
-                deadline: "",
-                excess: "",
-                rate: {
-                    deadline: "",
-                    price: ""
-                }
-            },
-            process: {
-                "criteria.selection": {
-                    join: ""
-                },
-                "deadline+D": 0,
-                converterStringTable: {
-                    configSeparatorColumn: {
-                        betweenText: "",
-                        replaceValue: "",
-                        searchValue: "",
-                        separator: ""
-                    },
-                    separatorColumn: "",
-                    separatorLine: ""
-                }
-            },
-            template: {
-                headerName: {
-                    "cep.final": "",
-                    "cep.initial": "",
-                    "cep.origin.final": "",
-                    "cep.origin.initial": "",
-                    "deadline+D": "",
-                    excess: ""
-                },
-                rateValue: {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                },
-                "cepOriginValue": {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                }
-            },
-            isActive: false
-        },
-        logs: []
+        tables: [], id: null, settings: _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false }),
+        process: []
     };
     const setup = (props) => {
         data.tables = [...props.tables];
         data.id = props.id;
         data.settings = { ..._.cloneDeep(props.settings), isActive: true };
-        data.logs = [..._.cloneDeep(props.logs)];
+        data.process = [..._.cloneDeep(props.process)];
     };
     const reset = () => {
         data.tables.splice(0, data.tables.length);
-        data.logs.splice(0, data.logs.length);
+        data.process.splice(0, data.process.length);
         data.id = null;
-        data.settings = {
-            isActive: false,
-            table: {
-                "cep.final": "",
-                "cep.initial": "",
-                "selection.criteria": {
-                    deadline: "",
-                    price: ""
-                },
-                deadline: "",
-                excess: "",
-                rate: {
-                    deadline: "",
-                    price: ""
-                }
-            },
-            process: {
-                "criteria.selection": {
-                    join: ""
-                },
-                "deadline+D": 0,
-                converterStringTable: {
-                    configSeparatorColumn: {
-                        betweenText: "",
-                        replaceValue: "",
-                        searchValue: "",
-                        separator: ""
-                    },
-                    separatorColumn: "",
-                    separatorLine: ""
-                }
-            },
-            template: {
-                headerName: {
-                    "cep.final": "",
-                    "cep.initial": "",
-                    "cep.origin.final": "",
-                    "cep.origin.initial": "",
-                    "deadline+D": "",
-                    excess: ""
-                },
-                rateValue: {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                },
-                "cepOriginValue": {
-                    "cep.origin.final": "",
-                    "cep.origin.initial": ""
-                }
-            }
-        };
+        data.settings = _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false });
     };
     const addTable = (tableModel, saveOld = false) => {
         !saveOld && removeTable(tableModel);
@@ -1999,14 +1932,11 @@ function FarmRepository() {
     const getSettings = () => {
         return _.cloneDeep(data.settings);
     };
-    const addLogs = (logs) => {
-        data.logs = [...data.logs, ...logs];
+    const updateProcess = (process) => {
+        data.process = _.cloneDeep(process);
     };
-    const addLog = (log) => {
-        data.logs.push(log);
-    };
-    const getLog = () => {
-        return _.cloneDeep(data.logs);
+    const getProcess = () => {
+        return _.cloneDeep(data.process);
     };
     return {
         data,
@@ -2020,14 +1950,14 @@ function FarmRepository() {
         getHeaders,
         updateSetting,
         getSettings,
-        addLog,
-        getLog,
-        addLogs,
+        getProcess,
+        updateProcess,
     };
 }
 const GLOBAL_MODULE_SCRIPTS = {
     ["FarmScript"]: FarmScript,
     ["HistoryScript"]: HistoryScript,
+    ["FeatureScript"]: FeatureScript,
     ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; }
 };
 function FarmScript(idPanel) {
@@ -2165,6 +2095,223 @@ function FarmScript(idPanel) {
         mainControl.setupFarm({
             plants: bodyForm.plants,
             settings: bodyForm.settings,
+        }, () => {
+            mainControl.processFarm();
+            prepareForDownload();
+        });
+    };
+    const prepareForDownload = () => {
+        mainControl.prepareForDownload();
+    };
+    const downloadFiles = () => { };
+    const saveFarm = () => {
+        if (mainControl.getData().tables.length == 0) {
+            return;
+        }
+        const nameInput = `${ELEMENTS_FORM.nameFarm.value}`;
+        mainControl.saveFarm(`Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`);
+        renderControl.loadListFarms();
+    };
+    const clearHistory = () => {
+        mainControl.clearHistory();
+        renderControl.loadListFarms();
+    };
+    const clearFarm = () => {
+        mainControl.clearFarm();
+    };
+    const clearSettings = () => {
+        mainControl.clearSettings();
+    };
+    initComponents();
+    return {};
+}
+function FeatureScript(idPanel) {
+    const GLOBAL_SETTINGS = {
+        "table": {
+            "cep.initial": "",
+            "cep.final": "",
+            "deadline": "",
+            "excess": "",
+            "rate": {
+                "deadline": "",
+                "price": ""
+            },
+            "selection.criteria": {
+                "price": "",
+                "deadline": ""
+            }
+        },
+        "process": {
+            "deadline+D": 1,
+            "criteria.selection": {
+                "join": " "
+            },
+            "converterStringTable": {
+                "separatorLine": /\r?\n/,
+                "separatorColumn": ";",
+                "configSeparatorColumn": {
+                    "separator": ",",
+                    "searchValue": ",",
+                    "replaceValue": "?",
+                    "betweenText": "\""
+                }
+            },
+        },
+        "template": {
+            "rateValue": {
+                "cep.origin.initial": "1000000",
+                "cep.origin.final": "99999999"
+            },
+            "headerName": {
+                "cep.origin.initial": "Inicio  Origem",
+                "cep.origin.final": "Fim  Origem",
+                "cep.initial": "Inicio  Destino",
+                "cep.final": "Fim  Destino",
+                "deadline+D": "Dias",
+                "excess": "Excedente"
+            },
+            "cepOriginValue": {
+                "cep.origin.final": "",
+                "cep.origin.initial": ""
+            }
+        }
+    };
+    const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`);
+    if (!panel) {
+        return { error: { msg: "Panel not found" } };
+    }
+    const mainControl = MainControl();
+    const renderControl = RenderControl();
+    const ELEMENTS_FORM = {
+        plantDeadline: panel.querySelector("#input-file-plant-deadline"),
+        plantPrice: panel.querySelector("#input-file-plant-price"),
+        fileSettings: panel.querySelector("#input-file-settings"),
+        paramCepInitial: panel.querySelector("#param-cep-initial"),
+        paramCepFinal: panel.querySelector("#param-cep-final"),
+        paramCepOriginInitial: panel.querySelector("#param-cep-origin-initial"),
+        paramCepOriginFinal: panel.querySelector("#param-cep-origin-final"),
+        paramDeadline: panel.querySelector("#param-deadline"),
+        paramRateDeadline: panel.querySelector("#param-rate-deadline"),
+        paramRatePrice: panel.querySelector("#param-rate-price"),
+        paramSelectionCriteriaDeadline: panel.querySelector("#param-selection-criteria-deadline"),
+        paramSelectionCriteriaPrice: panel.querySelector("#param-selection-criteria-price"),
+        paramExcess: panel.querySelector("#param-excess"),
+        nameFarm: panel.querySelector("#param-name-farm"),
+    };
+    const PARAMS = {
+        "table": {
+            "cep.initial": "CEP INICIAL",
+            "cep.final": "CEP FINAL",
+            "deadline": "Prazo",
+            "excess": "Exce",
+            "rate": {
+                "deadline": "",
+                "price": ""
+            },
+            "selection.criteria": {
+                "price": "UF,REGIAO",
+                "deadline": "UF,REGIAO"
+            }
+        },
+        process: _.cloneDeep(GLOBAL_SETTINGS.process),
+        template: _.cloneDeep(GLOBAL_SETTINGS.template),
+    };
+    const initComponents = () => {
+        Setup();
+        renderControl.loadListFarms();
+        loadForm();
+        panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
+        panel.querySelector("#download-files")?.addEventListener("click", downloadFiles);
+        panel.querySelector("#save-farm")?.addEventListener("click", saveFarm);
+        panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel));
+        panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory);
+        panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm);
+        panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings);
+        ELEMENTS_FORM.fileSettings.addEventListener("change", uploadSettings);
+    };
+    const loadForm = () => {
+        ELEMENTS_FORM.paramCepInitial.value = PARAMS.table["cep.initial"];
+        ELEMENTS_FORM.paramCepFinal.value = PARAMS.table["cep.final"];
+        ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.template.cepOriginValue["cep.origin.initial"];
+        ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.template.cepOriginValue["cep.origin.final"];
+        ELEMENTS_FORM.paramDeadline.value = PARAMS.table.deadline;
+        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.table.rate.deadline;
+        ELEMENTS_FORM.paramRatePrice.value = PARAMS.table.rate.price;
+        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.table["selection.criteria"].deadline;
+        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.table["selection.criteria"].price;
+        ELEMENTS_FORM.paramExcess.value = PARAMS.table.excess;
+    };
+    const uploadSettings = () => {
+        const fileSettingsInput = ELEMENTS_FORM.fileSettings?.files ? ELEMENTS_FORM.fileSettings?.files[0] : null;
+        if (!fileSettingsInput) {
+            return;
+        }
+        const fileSettings = mainControl.createFile({ content: [fileSettingsInput], type: fileSettingsInput.type });
+        mainControl.getContentFile(fileSettings, (result) => {
+            const contentSettings = converterStringToJSON(result, ["separatorLine"]);
+            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_SETTINGS)) {
+                return console.log("Template incorrect");
+            }
+            Object.assign(PARAMS, contentSettings);
+            loadForm();
+        });
+    };
+    const getDataOfForm = () => {
+        const plantDeadline = ELEMENTS_FORM.plantDeadline?.files ? ELEMENTS_FORM.plantDeadline?.files[0] : null;
+        const plantPrice = ELEMENTS_FORM.plantPrice?.files ? ELEMENTS_FORM.plantPrice?.files[0] : null;
+        const paramCepInitial = `${ELEMENTS_FORM.paramCepInitial?.value}`;
+        const paramCepFinal = `${ELEMENTS_FORM.paramCepFinal?.value}`;
+        const paramCepOriginInitial = `${ELEMENTS_FORM.paramCepOriginInitial?.value}`;
+        const paramCepOriginFinal = `${ELEMENTS_FORM.paramCepOriginFinal?.value}`;
+        const paramDeadline = `${ELEMENTS_FORM.paramDeadline?.value}`;
+        const paramRateDeadline = `${ELEMENTS_FORM.paramRateDeadline?.value}`;
+        const paramRatePrice = `${ELEMENTS_FORM.paramRatePrice?.value}`;
+        const paramSelectionCriteriaDeadline = `${ELEMENTS_FORM.paramSelectionCriteriaDeadline?.value}`;
+        const paramSelectionCriteriaPrice = `${ELEMENTS_FORM.paramSelectionCriteriaPrice?.value}`;
+        const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`;
+        const dataPlants = {
+            plants: [
+                {
+                    code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
+                    headers: [
+                        { header: PARAMS.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: paramCepOriginInitial || PARAMS.template.cepOriginValue["cep.origin.initial"] },
+                        { header: PARAMS.template.headerName["cep.origin.final"], type: "cep.origin.final", value: paramCepOriginFinal || PARAMS.template.cepOriginValue["cep.origin.final"] },
+                        { header: paramCepFinal || PARAMS.table["cep.final"], type: "cep.final" },
+                        { header: paramCepInitial || PARAMS.table["cep.initial"], type: "cep.initial" },
+                        { header: paramDeadline || PARAMS.table.deadline, type: "deadline" },
+                        { header: paramSelectionCriteriaDeadline || PARAMS.table["selection.criteria"].deadline, type: "selection-criteria" },
+                        { header: paramRateDeadline || PARAMS.table.rate.deadline, type: "rate" },
+                    ],
+                    name: "Planta Prazo"
+                },
+                {
+                    code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
+                    headers: [
+                        { header: paramExcess || PARAMS.table.excess, type: "excess" },
+                        { header: paramSelectionCriteriaPrice || PARAMS.table["selection.criteria"].price, type: "selection-criteria" },
+                        { header: paramRatePrice || PARAMS.table.rate.price, type: "rate" },
+                    ],
+                    name: "Planta Preço"
+                },
+            ],
+            settings: PARAMS,
+            process: []
+        };
+        if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) {
+            console.log("$Teste");
+            return dataPlants;
+        }
+        return dataPlants;
+    };
+    const updateFilesPlant = () => {
+        const bodyForm = getDataOfForm();
+        if (!bodyForm) {
+            return;
+        }
+        mainControl.setupFarm({
+            plants: bodyForm.plants,
+            settings: bodyForm.settings,
+            process: bodyForm.process,
         }, () => {
             mainControl.processFarm();
             prepareForDownload();

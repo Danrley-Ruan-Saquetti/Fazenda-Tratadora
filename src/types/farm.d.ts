@@ -3,7 +3,7 @@ type TTableCode = "plant.price" | "plant.deadline" | "farm" | "template.price" |
 type THeaderCellType = "selection-criteria" | "selection-criteria.value" | "cep.initial" | "cep.final" | "cep.origin.initial" | "cep.origin.final" | "excess" | "deadline" | "deadline+D" | "rate" | "weight" | "extra"
 type THeader = { header: string, type: THeaderCellType, value?: string }
 interface ITableModel { table: TTable, code: TTableCode, headers: THeader[], name: string }
-interface IFarm { tables: ITableModel[], id: string | null, settings: ISettingsFarm, logs: TLog[] }
+interface IFarm { tables: ITableModel[], id: string | null, settings: ISettingsFarm, process: TFarmProcess[] }
 
 declare interface IFarmRepository {
     data: IFarm;
@@ -38,7 +38,6 @@ declare interface IFarmRepository {
     }) => THeader[];
     updateSetting: (settings: ISettingsGeneral) => void;
     getSettings: () => ISettingsFarm;
-    addLog: (log: TLog) => void;
-    addLogs: (logs: TLog[]) => void;
-    getLog: () => TLog[];
+    updateProcess: (process: TFarmProcess[]) => void;
+    getProcess: () => TFarmProcess[];
 };

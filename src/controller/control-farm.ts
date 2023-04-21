@@ -179,20 +179,15 @@ function FarmControl(farmRepository: IFarmRepository) {
         return { modelTable: modelTable, logs }
     }
 
-    const processFarm = ({ modelTables, settings }: { modelTables: ITableModel[], settings: ISettingsGeneral }) => {
+    const processFarm = ({ modelTables, settings, process }: { modelTables: ITableModel[], settings: ISettingsGeneral, process: TFarmProcess[] }) => {
         const repoControl = FarmControl(FarmRepository())
 
-        repoControl.setup({ id: null, settings, tables: modelTables, logs: [] })
+        repoControl.setup({ id: null, settings, tables: modelTables, process })
 
         const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0]
         const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0]
 
         if (!modelTablePlantPrice || !modelTablePlantDeadline) {
-            !modelTablePlantDeadline && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: "Table deadline not defined" })
-            !modelTablePlantPrice && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: "Table price not defined" })
-
-            repoControl.addLog({ date: new Date(Date.now()), type: "info", message: `Process farm finished by force` })
-
             return repoControl.getData()
         }
 
@@ -228,21 +223,14 @@ function FarmControl(farmRepository: IFarmRepository) {
 
         const { modelTable: modelTableFarm, logs: logsCreateFarm } = createFarm({ headers: headersFarm, plant: modelTablePlantDeadline.table, name: "Fazenda" })
 
-        repoControl.addLogs(logsCreateFarm)
-
         repoControl.addTable({ tableModel: modelTableFarm })
 
         const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm })
-
-        repoControl.addLogs(logsInsertValues)
 
         const indexCepInitial = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } })
         const indexCepFinal = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.final"] })[0]?.header, where: { array: modelTableFarm.table[0] } })
 
         if (indexCepInitial < 0 || indexCepFinal < 0) {
-            !indexCepInitial && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: `"${getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.initial"] })[0]?.header || "Cep initial"}" not found` })
-            !indexCepFinal && repoControl.addLog({ date: new Date(Date.now()), type: "error", message: `"${getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.final"] })[0]?.header || "Cep final"}" not found` })
-
             return repoControl.getData()
         }
 
@@ -251,15 +239,9 @@ function FarmControl(farmRepository: IFarmRepository) {
 
         const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, tableBase: { table: modelTablePlantDeadline.table, headers: headersPlantDeadline }, settings })
 
-        repoControl.addLogs(logsInsertValuesDMoreOne)
-
         modelTableFarm.table = tableControl.orderTable({ table: modelTableFarm.table, column: indexCepInitial })
 
-        repoControl.addLog({ date: new Date(Date.now()), type: "success", message: `Table farm ordered successfully` })
-
         const { logs: logsValidateContainedCEP } = validateContainedCEP({ table: { table: modelTableFarm.table, code: "farm", headers: headersFarm } })
-
-        repoControl.addLogs(logsValidateContainedCEP)
 
         const headersTemplateDeadline: THeader[] = [
             ...getHeaders({ tableModel: { table: modelTablePlantDeadline.table, code: "plant.deadline", headers: headersPlantDeadline }, types: ["cep.origin.initial", "cep.origin.final"] }),
@@ -279,13 +261,8 @@ function FarmControl(farmRepository: IFarmRepository) {
 
         const { logs: logsInsertProcvValues } = insertProcvValues({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, tableBase: { table: modelTablePlantPrice.table, code: "plant.price", headers: headerPlantValuePriceToFarm }, headers: headerPlantValuePriceToFarm, settings })
 
-        repoControl.addLogs(logsInsertProcvValues)
-
         const { modelTable: modelTableTemplateDeadline, logs: logsTableTableTemplateDeadline } = createTemplate({ code: "template.deadline", headers: headersTemplateDeadline, tableBase: modelTableFarm.table, name: "Template Prazo", settings })
         const { modelTable: modelTableTemplatePrice, logs: logsTableTableTemplatePrice } = createTemplate({ code: "template.price", headers: headersTemplatePrice, tableBase: modelTableFarm.table, name: "Template Preço", settings })
-
-        repoControl.addLogs(logsTableTableTemplateDeadline)
-        repoControl.addLogs(logsTableTableTemplatePrice)
 
         const headersRate = [
             ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }),
@@ -306,8 +283,6 @@ function FarmControl(farmRepository: IFarmRepository) {
 
                 const modelTable: ITableModel = { table: [], headers: [], code: "template.rate", name }
 
-                repoControl.addLog({ date: new Date(Date.now()), type: "success", message: `Create template rate "${name}" successfully` })
-
                 repoControl.addTable({ tableModel: modelTable, saveOld: true })
 
                 continue
@@ -322,8 +297,6 @@ function FarmControl(farmRepository: IFarmRepository) {
 
                 const { modelTable: modelTableTemplateRate, logs: logsCreateTemplateRate } = createTemplateRate({ tableBase: modelTableFarm.table, code: "template.rate", name, headers: [...headersTemplateRate, _headerRate], value: _rateValue, settings })
 
-                repoControl.addLogs(logsCreateTemplateRate)
-
                 if (!modelTableTemplateRate) { continue }
 
                 repoControl.addTable({ tableModel: modelTableTemplateRate, saveOld: true })
@@ -333,8 +306,6 @@ function FarmControl(farmRepository: IFarmRepository) {
         repoControl.addTable({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm, name: "Fazenda" } })
         repoControl.addTable({ tableModel: modelTableTemplateDeadline })
         repoControl.addTable({ tableModel: modelTableTemplatePrice })
-
-        repoControl.addLog({ date: new Date(Date.now()), type: "info", message: `Process farm finished` })
 
         return repoControl.getData()
     }
@@ -548,17 +519,13 @@ function FarmControl(farmRepository: IFarmRepository) {
         return _.cloneDeep(farmRepository.getSettings())
     }
 
-    // Log
-    const addLogs = (props: TLog[]) => {
-        farmRepository.addLogs(props)
+    // Process
+    const updateProcess = (props: { process: TFarmProcess[] }) => {
+        farmRepository.updateProcess(props.process)
     }
 
-    const addLog = (props: TLog) => {
-        farmRepository.addLog(props)
-    }
-
-    const getLog = () => {
-        return _.cloneDeep(farmRepository.getLog())
+    const getProcess = () => {
+        return farmRepository.getProcess()
     }
 
     return {
@@ -576,8 +543,7 @@ function FarmControl(farmRepository: IFarmRepository) {
         getHeaders,
         updateSetting,
         getSettings,
-        addLog,
-        addLogs,
-        getLog,
+        updateProcess,
+        getProcess,
     }
 }

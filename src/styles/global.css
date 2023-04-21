@@ -385,6 +385,22 @@ tr {
   background-color: #125517;
   color: white;
 }
+[panel] button[action=_view],
+[panel] .bt[action=_view] {
+  background-color: #426eff;
+  color: white;
+  transition: 0.2s;
+}
+[panel] button[action=_view]:hover,
+[panel] .bt[action=_view]:hover {
+  background-color: #0f47ff;
+  color: white;
+}
+[panel] button[action=_view]:active,
+[panel] .bt[action=_view]:active {
+  background-color: #0031d1;
+  color: white;
+}
 [panel] button [icon],
 [panel] .bt [icon] {
   margin-right: 0.5rem;

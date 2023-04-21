@@ -41,11 +41,16 @@ function PanelControl() {
 
             aba.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id))
 
-            aba.addEventListener("click", () => togglePanel(id))
+            aba.addEventListener("click", ({ altKey }) => {
+                if (altKey) { return removePanelModel(id) }
+
+                togglePanel(id)
+            })
 
             closePanel.addEventListener("click", () => removePanelModel(id))
-        })
 
+            abaList.appendChild(aba)
+        })
     }
 
     const loadPanel = (panel: HTMLElement, id: string, name: string, parent: HTMLElement, callback: (res: boolean) => void) => {
@@ -171,8 +176,6 @@ function PanelControl() {
         btClose.appendChild(iconEl)
         abaEl.appendChild(spanTitle)
         abaEl.appendChild(btClose)
-
-        abaList.appendChild(abaEl)
 
         return { el: abaEl, bt: btClose }
     }

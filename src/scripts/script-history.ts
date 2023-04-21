@@ -4,10 +4,9 @@ function HistoryScript(idPanel: string) {
     if (!panel) { return { error: { msg: "Panel not found" } } }
 
     const mainControl = MainControl()
-    const renderControl = RenderControl()
     const historyControl = HistoryTableControl()
 
-    const HEADERS_TABLE = [{ header: "id" }, { header: "parent" }, { header: "name" }, { header: "date" }]
+    const HEADERS_TABLE: ITableData[] = [{ header: "id", content: "#", id: true }, { header: "parent", content: "Pai" }, { header: "name", content: "Nome" }, { header: "date", content: "Data" }]
 
     const ELEMENTS = {
         tableHistory: panel.querySelector('[table="history"]') as HTMLElement,
@@ -15,23 +14,21 @@ function HistoryScript(idPanel: string) {
     }
 
     const initComponents = () => {
-        // ELEMENTS.btLoadTable.addEventListener("click", loadTableHistory)
+        const { onLoad } = tableComponent({ table: ELEMENTS.tableHistory, headers: HEADERS_TABLE }, (listSelected) => {
 
-        renderControl.loadHeaderTable(ELEMENTS.tableHistory, HEADERS_TABLE)
+        })
 
-        loadTableHistory()
+        ELEMENTS.btLoadTable.addEventListener("click", () => onLoad(getListHistory()))
+
+        onLoad(getListHistory())
     }
 
-    const loadTableHistory = () => {
+    const getListHistory = () => {
         const { history } = historyControl.getHistory()
-
-        const body = ELEMENTS.tableHistory.querySelector("[table-data]") as HTMLElement
-
-        body.innerHTML = ""
 
         const data = history.map(_farm => { return { name: _farm.data.name, date: _farm.date, id: _farm.id, parent: _farm.parent } })
 
-        renderControl.loadDataTable(body, HEADERS_TABLE, data)
+        return data
     }
 
     initComponents()

@@ -287,10 +287,143 @@ I;PA;PA I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;21
 I;AC;AC I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
 I;RR;RR I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
 I;RO;RO I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85`;
+function tableComponent({ table: tableEl, headers }, onSelection, colResizableProps = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64 }) {
+    const listSelected = [];
+    const insertColumnSelect = () => {
+        headers.unshift({ content: "<i class=\"bi-check2-square bt bt-select-all-data\" icon></i>", header: "_data-select", "data-select": "<input type=\"checkbox\"></input>" });
+    };
+    const updateListSelected = (id, isCtrl, saveOld = false) => {
+        const idAlreadyExist = listSelected.find(_id => { return _id == id; });
+        if (!isCtrl) {
+            listSelected.splice(0, listSelected.length);
+            if (!idAlreadyExist) {
+                listSelected.push(id);
+            }
+        }
+        else {
+            if (idAlreadyExist) {
+                const index = listSelected.indexOf(idAlreadyExist);
+                if (!saveOld) {
+                    index >= 0 && listSelected.splice(index, 1);
+                }
+            }
+            else {
+                listSelected.push(id);
+            }
+        }
+    };
+    const activeDataSelected = () => {
+        const linesSelected = tableEl.querySelectorAll("tr[data-id].selected");
+        linesSelected.forEach(_l => {
+            const input = _l.querySelector(`input[type="checkbox"]`);
+            if (input) {
+                input.checked = false;
+            }
+            _l.classList.remove("selected");
+        });
+        listSelected.forEach(id => {
+            const data = tableEl.querySelector(`tr[data-id="${id}"]`);
+            const input = data.querySelector(`input[type="checkbox"]`);
+            if (!data || !input) {
+                return;
+            }
+            input.checked = true;
+            data.classList.toggle("selected", true);
+        });
+    };
+    const selectAllData = () => {
+        const dataList = tableEl.querySelectorAll("tr[data-id]");
+        const saveOld = !(dataList.length == listSelected.length);
+        dataList.forEach(_data => {
+            const id = _data.getAttribute("data-id");
+            id && updateListSelected(id, true, saveOld);
+        });
+        activeDataSelected();
+        onSelection(listSelected);
+    };
+    const addEventSelect = (el, id) => {
+        el.addEventListener("click", ({ ctrlKey: isCtrl }) => {
+            updateListSelected(id, isCtrl);
+            activeDataSelected();
+            onSelection(listSelected);
+        });
+    };
+    const loadHeaderTable = () => {
+        const header = document.createElement("thead");
+        const body = document.createElement("tbody");
+        header.setAttribute("table-header", "");
+        body.setAttribute("table-data", "");
+        const lineHeader = document.createElement("tr");
+        headers.forEach(_header => {
+            const cell = document.createElement("th");
+            cell.innerHTML = _header.content;
+            if (_header["data-select"]) {
+                cell.setAttribute("data-table-select", "");
+                const inputSelectAll = cell.querySelector(".bt-select-all-data");
+                inputSelectAll && inputSelectAll.addEventListener("click", selectAllData);
+            }
+            lineHeader.appendChild(cell);
+        });
+        header.appendChild(lineHeader);
+        tableEl.appendChild(header);
+        tableEl.appendChild(body);
+    };
+    const loadDataTable = (data) => {
+        const body = tableEl.querySelector("[table-data]");
+        if (data.length == 0) {
+            const cell = document.createElement("th");
+            cell.setAttribute("colspan", `${headers.length}`);
+            cell.textContent = "Nenhum resultado encontrado";
+            return body.appendChild(cell);
+        }
+        body.innerHTML = "";
+        data.forEach(_data => {
+            const lineData = document.createElement("tr");
+            const cell = document.createElement("td");
+            if (headers[0]["data-select"])
+                cell.innerHTML = headers[0]["data-select"];
+            lineData.appendChild(cell);
+            const headerId = headers.find(_header => { return _header.id; });
+            lineData.setAttribute("data-id", headerId ? _data[`${headerId.header}`] : "");
+            headerId && addEventSelect(lineData, _data[`${headerId.header}`]);
+            headers.forEach(_header => {
+                if (_header["data-select"]) {
+                    return;
+                }
+                const cell = document.createElement("td");
+                cell.textContent = _data[`${_header.header}`];
+                lineData.appendChild(cell);
+            });
+            body.appendChild(lineData);
+        });
+    };
+    const colResizable = () => {
+        $(document).ready(function () {
+            $('[table]').colResizable({ ...colResizableProps });
+        });
+    };
+    const setup = () => {
+        insertColumnSelect();
+        loadHeaderTable();
+        colResizable();
+    };
+    setup();
+    return {
+        onLoad: loadDataTable
+    };
+}
 function FarmControl(farmRepository) {
     const fileControl = FileControl(farmRepository);
     const tableControl = TableControl();
     const settingControl = SettingControl(farmRepository);
+    const PROCESS = {
+        "insert-values": () => { },
+        "remove-character": () => { },
+        "deadline+D": () => { },
+        "contained-cep": () => { },
+        "procv": () => { },
+        "rate": () => { }
+    };
     const getHeadersWeight = ({ table }) => {
         const headersWeight = [];
         for (let j = 0; j < table[0].length; j++) {
@@ -498,12 +631,19 @@ function FarmControl(farmRepository) {
                 continue;
             }
             const rateValues = tableControl.getDistinctColumnValues({ table: modelTableFarm.table, columnIndex: indexHeader, excludes: { line: 0 } });
+            if (rateValues.length == 1) {
+                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + rateValues[0], searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _G`;
+                const modelTable = { table: [], headers: [], code: "template.rate", name };
+                repoControl.addLog({ date: new Date(Date.now()), type: "success", message: `Create template rate "${name}" successfully` });
+                repoControl.addTable({ tableModel: modelTable, saveOld: true });
+                continue;
+            }
             for (let c = 0; c < rateValues.length; c++) {
                 const _rateValue = rateValues[c];
                 if (!_rateValue || (isNumber(_rateValue) && Number(_rateValue) <= 0)) {
                     continue;
                 }
-                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + _rateValue, searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })}`;
+                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + _rateValue, searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _N`;
                 const { modelTable: modelTableTemplateRate, logs: logsCreateTemplateRate } = createTemplateRate({ tableBase: modelTableFarm.table, code: "template.rate", name, headers: [...headersTemplateRate, _headerRate], value: _rateValue, settings });
                 repoControl.addLogs(logsCreateTemplateRate);
                 if (!modelTableTemplateRate) {
@@ -1182,8 +1322,14 @@ function PanelControl() {
                 togglePanel(id);
             }
             aba.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
-            aba.addEventListener("click", () => togglePanel(id));
+            aba.addEventListener("click", ({ altKey }) => {
+                if (altKey) {
+                    return removePanelModel(id);
+                }
+                togglePanel(id);
+            });
             closePanel.addEventListener("click", () => removePanelModel(id));
+            abaList.appendChild(aba);
         });
     };
     const loadPanel = (panel, id, name, parent, callback) => {
@@ -1282,7 +1428,6 @@ function PanelControl() {
         btClose.appendChild(iconEl);
         abaEl.appendChild(spanTitle);
         abaEl.appendChild(btClose);
-        abaList.appendChild(abaEl);
         return { el: abaEl, bt: btClose };
     };
     const getAba = (id) => {
@@ -1328,7 +1473,7 @@ function RenderControl() {
             itemEl.addEventListener("click", (ev) => {
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
-            _item.name == "history" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
+            _item.name == "farm" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
@@ -1372,43 +1517,9 @@ function RenderControl() {
         itemEl.appendChild(span);
         return itemEl;
     };
-    const loadHeaderTable = (tableEl, headers) => {
-        const header = document.createElement("thead");
-        const body = document.createElement("tbody");
-        header.setAttribute("table-header", "");
-        body.setAttribute("table-data", "");
-        const lineHeader = document.createElement("tr");
-        headers.forEach(_header => {
-            const cell = document.createElement("th");
-            cell.textContent = _header.header;
-            lineHeader.appendChild(cell);
-        });
-        header.appendChild(lineHeader);
-        tableEl.appendChild(header);
-        tableEl.appendChild(body);
-    };
-    const loadDataTable = (body, headers, data) => {
-        if (data.length == 0) {
-            const cell = document.createElement("th");
-            cell.setAttribute("colspan", `${headers.length}`);
-            cell.textContent = "Nenhum resultado encontrado";
-            return body.appendChild(cell);
-        }
-        data.forEach(_data => {
-            const lineData = document.createElement("tr");
-            headers.forEach(_header => {
-                const cell = document.createElement("td");
-                cell.textContent = _data[`${_header.header}`];
-                lineData.appendChild(cell);
-            });
-            body.appendChild(lineData);
-        });
-    };
     return {
         initComponents,
         loadListFarms,
-        loadHeaderTable,
-        loadDataTable,
     };
 }
 function RouterControl() {
@@ -2090,23 +2201,22 @@ function HistoryScript(idPanel) {
         return { error: { msg: "Panel not found" } };
     }
     const mainControl = MainControl();
-    const renderControl = RenderControl();
     const historyControl = HistoryTableControl();
-    const HEADERS_TABLE = [{ header: "id" }, { header: "parent" }, { header: "name" }, { header: "date" }];
+    const HEADERS_TABLE = [{ header: "id", content: "#", id: true }, { header: "parent", content: "Pai" }, { header: "name", content: "Nome" }, { header: "date", content: "Data" }];
     const ELEMENTS = {
         tableHistory: panel.querySelector('[table="history"]'),
         btLoadTable: panel.querySelector('.load-table'),
     };
     const initComponents = () => {
-        renderControl.loadHeaderTable(ELEMENTS.tableHistory, HEADERS_TABLE);
-        loadTableHistory();
+        const { onLoad } = tableComponent({ table: ELEMENTS.tableHistory, headers: HEADERS_TABLE }, (listSelected) => {
+        });
+        ELEMENTS.btLoadTable.addEventListener("click", () => onLoad(getListHistory()));
+        onLoad(getListHistory());
     };
-    const loadTableHistory = () => {
+    const getListHistory = () => {
         const { history } = historyControl.getHistory();
-        const body = ELEMENTS.tableHistory.querySelector("[table-data]");
-        body.innerHTML = "";
         const data = history.map(_farm => { return { name: _farm.data.name, date: _farm.date, id: _farm.id, parent: _farm.parent }; });
-        renderControl.loadDataTable(body, HEADERS_TABLE, data);
+        return data;
     };
     initComponents();
     return {};

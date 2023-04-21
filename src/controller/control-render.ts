@@ -21,7 +21,7 @@ function RenderControl() {
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey)
             })
 
-            _item.name == "history" && panelControl.newPanel({ name: _item.name, title: _item.title }, false)
+            _item.name == "farm" && panelControl.newPanel({ name: _item.name, title: _item.title }, false)
 
             ELEMENTS.sideBarList.appendChild(itemEl)
         })
@@ -84,60 +84,8 @@ function RenderControl() {
         return itemEl
     }
 
-    // Table
-    const loadHeaderTable = (tableEl: HTMLElement, headers: { header: string }[]) => {
-        const header = document.createElement("thead")
-        const body = document.createElement("tbody")
-
-        header.setAttribute("table-header", "")
-        body.setAttribute("table-data", "")
-
-        const lineHeader = document.createElement("tr")
-
-        headers.forEach(_header => {
-            const cell = document.createElement("th")
-
-            cell.textContent = _header.header
-
-            lineHeader.appendChild(cell)
-        })
-
-        header.appendChild(lineHeader)
-
-        tableEl.appendChild(header)
-        tableEl.appendChild(body)
-    }
-
-    const loadDataTable = (body: HTMLElement, headers: { header: string }[], data: any[]) => {
-        if (data.length == 0) {
-            const cell = document.createElement("th")
-
-            cell.setAttribute("colspan", `${headers.length}`)
-
-            cell.textContent = "Nenhum resultado encontrado"
-
-            return body.appendChild(cell)
-        }
-
-        data.forEach(_data => {
-            const lineData = document.createElement("tr")
-
-            headers.forEach(_header => {
-                const cell = document.createElement("td")
-
-                cell.textContent = _data[`${_header.header}`]
-
-                lineData.appendChild(cell)
-            })
-
-            body.appendChild(lineData)
-        })
-    }
-
     return {
         initComponents,
         loadListFarms,
-        loadHeaderTable,
-        loadDataTable,
     }
 }

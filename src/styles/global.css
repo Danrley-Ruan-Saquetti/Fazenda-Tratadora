@@ -97,17 +97,18 @@ body > * {
   height: 100%;
 }
 
-[icon-parent], [panel] button, [aba] {
+[icon-parent], [panel] button,
+[panel] .bt, [aba] {
   display: flex;
   align-items: center;
 }
 
 [icon] {
   position: relative;
-  font-size: 2rem;
+  font-size: 1.5rem;
 }
 [icon]:before {
-  vertical-align: -0.4rem !important;
+  vertical-align: -0.3rem !important;
 }
 
 [model-window-parent] {
@@ -228,6 +229,9 @@ main > * {
 .side-bar [list] .item .item-title {
   font-size: 1.3rem;
 }
+.side-bar [icon] {
+  font-size: 2rem;
+}
 
 .panel {
   display: flex;
@@ -283,14 +287,14 @@ tr {
   height: 100%;
   width: 100%;
   overflow-y: auto;
-  overflow-x: auto;
 }
 
 [table] {
-  min-height: 100%;
-  min-width: 100%;
+  height: auto;
+  width: 100%;
   border-collapse: collapse;
   border: 1px solid #b6b6b6;
+  font-size: 1.25rem;
 }
 [table] tr:first-child,
 [table] tr:last-child {
@@ -302,19 +306,23 @@ tr {
 [table] [table-data] tr:nth-child(odd) {
   background-color: #f0f0f0;
 }
-[table] th {
-  resize: horizontal;
+[table] [table-data] tr:hover {
+  background-color: #dfdfdf !important;
 }
-[table] th::-webkit-resizer {
-  cursor: ew-resize;
+[table] [table-data] tr.selected {
+  background-color: #7ec9ff !important;
 }
 [table] th,
 [table] td {
   padding: 0.4rem 0.8rem;
+  min-width: 6.5rem;
   text-align: center;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+[table] [data-table-select] {
+  max-width: 2rem !important;
 }
 
 [button-container] {
@@ -323,46 +331,66 @@ tr {
   flex-wrap: wrap;
 }
 
-[panel] button {
+[panel] button,
+[panel] .bt {
   padding: 0.4rem 1.2rem;
   border-radius: 0.3rem;
+  cursor: pointer;
 }
-[panel] button[action=_confirm] {
-  background-color: #3535d4;
+[panel] button[action=_confirm],
+[panel] .bt[action=_confirm] {
+  background-color: #0076ca;
   color: white;
   transition: 0.2s;
 }
-[panel] button[action=_confirm]:hover {
-  background-color: #2626b0;
+[panel] button[action=_confirm]:hover,
+[panel] .bt[action=_confirm]:hover {
+  background-color: #005897;
   color: white;
 }
-[panel] button[action=_confirm]:active {
-  background-color: #181871;
+[panel] button[action=_confirm]:active,
+[panel] .bt[action=_confirm]:active {
+  background-color: #00345a;
   color: white;
 }
-[panel] button[action=_cancel] {
+[panel] button[action=_cancel],
+[panel] .bt[action=_cancel] {
   background-color: #cc3a3a;
   color: white;
   transition: 0.2s;
 }
-[panel] button[action=_cancel]:hover {
+[panel] button[action=_cancel]:hover,
+[panel] .bt[action=_cancel]:hover {
   background-color: #a82b2b;
   color: white;
 }
-[panel] button[action=_cancel]:active {
-  background-color: #6b1c1c;
+[panel] button[action=_cancel]:active,
+[panel] .bt[action=_cancel]:active {
+  background-color: #771f1f;
   color: white;
 }
-[panel] button[action=_new] {
+[panel] button[action=_new],
+[panel] .bt[action=_new] {
   background-color: #26b131;
   color: white;
   transition: 0.2s;
 }
-[panel] button[action=_new]:hover {
+[panel] button[action=_new]:hover,
+[panel] .bt[action=_new]:hover {
   background-color: #1d8725;
   color: white;
 }
-[panel] button[action=_new]:active {
-  background-color: #0f4814;
+[panel] button[action=_new]:active,
+[panel] .bt[action=_new]:active {
+  background-color: #125517;
   color: white;
+}
+[panel] button [icon],
+[panel] .bt [icon] {
+  margin-right: 0.5rem;
+  font-size: 1.4rem;
+}
+[panel] button [icon]::before,
+[panel] .bt [icon]::before {
+  vertical-align: -0.125em !important;
 }/*# sourceMappingURL=global.css.map */

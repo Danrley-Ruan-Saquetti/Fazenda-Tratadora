@@ -3,6 +3,15 @@ function FarmControl(farmRepository: IFarmRepository) {
     const tableControl = TableControl()
     const settingControl = SettingControl(farmRepository)
 
+    const PROCESS = {
+        "insert-values": () => { },
+        "remove-character": () => { },
+        "deadline+D": () => { },
+        "contained-cep": () => { },
+        "procv": () => { },
+        "rate": () => { }
+    }
+
     const getHeadersWeight = ({ table }: { table: TTable }) => {
         const headersWeight: THeader[] = []
 
@@ -292,12 +301,24 @@ function FarmControl(farmRepository: IFarmRepository) {
 
             const rateValues = tableControl.getDistinctColumnValues({ table: modelTableFarm.table, columnIndex: indexHeader, excludes: { line: 0 } })
 
+            if (rateValues.length == 1) {
+                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + rateValues[0], searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _G`
+
+                const modelTable: ITableModel = { table: [], headers: [], code: "template.rate", name }
+
+                repoControl.addLog({ date: new Date(Date.now()), type: "success", message: `Create template rate "${name}" successfully` })
+
+                repoControl.addTable({ tableModel: modelTable, saveOld: true })
+
+                continue
+            }
+
             for (let c = 0; c < rateValues.length; c++) {
                 const _rateValue = rateValues[c]
 
                 if (!_rateValue || (isNumber(_rateValue) && Number(_rateValue) <= 0)) { continue }
 
-                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + _rateValue, searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })}`
+                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + _rateValue, searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _N`
 
                 const { modelTable: modelTableTemplateRate, logs: logsCreateTemplateRate } = createTemplateRate({ tableBase: modelTableFarm.table, code: "template.rate", name, headers: [...headersTemplateRate, _headerRate], value: _rateValue, settings })
 

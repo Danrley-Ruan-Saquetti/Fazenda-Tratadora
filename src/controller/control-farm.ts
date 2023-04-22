@@ -225,6 +225,8 @@ function FarmControl(farmRepository: IFarmRepository) {
                 repoControl.updateTable({ table: modelTableFarm.table, code: "farm", headers: headersFarm })
             },
             "create-farm": () => {
+                PROCESS["process-plant"]()
+
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0]
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0]
 
@@ -252,6 +254,8 @@ function FarmControl(farmRepository: IFarmRepository) {
                 repoControl.addTable({ tableModel: modelTableFarm })
             },
             "insert-values": () => {
+                if (!process.find(_process => { return _process.type == "create-farm" })) { return }
+
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0]
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0]
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0]
@@ -281,7 +285,7 @@ function FarmControl(farmRepository: IFarmRepository) {
                 const characters = ["-"]
 
                 columns.forEach(_column => {
-                    const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: [_column] })[0]?.header, where: { array: modelTableFarm.table[0] } })
+                    const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: modelTableFarm, types: [_column] })[0]?.header, where: { array: modelTableFarm.table[0] } })
 
                     tableControl.removeCharacter({ table: modelTableFarm.table, characters, options: { specific: { column: indexColumn }, excludes: { line: [0] } } })
                 })
@@ -293,26 +297,64 @@ function FarmControl(farmRepository: IFarmRepository) {
 
                 if (!modelTableFarm) { return }
 
-                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, tableBase: { table: modelTableFarm.table, headers: modelTableFarm.headers }, settings })
+                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: modelTableFarm, tableBase: modelTableFarm, settings })
 
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table })
             },
-            "contained-cep": () => { },
-            "procv": () => { },
-            "rate": () => { }
+            "order-table": () => {
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0]
+
+                if (!modelTableFarm) { return }
+
+                const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } })
+
+                modelTableFarm.table = tableControl.orderTable({ table: modelTableFarm.table, column: indexColumn })
+
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table })
+            },
+            "contained-cep": () => {
+                PROCESS["order-table"]()
+
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0]
+
+                if (!modelTableFarm) { return }
+
+                const { logs: logsValidateContainedCEP } = validateContainedCEP({ table: modelTableFarm })
+
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table })
+            },
+            "procv": () => {
+                if (!process.find(_process => { return _process.type == "create-farm" })) { return }
+
+                // const headersTemplateDeadline: THeader[] = [
+                //     ...getHeaders({ tableModel: { table: modelTablePlantDeadline.table, code: "plant.deadline", headers: headersPlantDeadline }, types: ["cep.origin.initial", "cep.origin.final"] }),
+                //     ...getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, types: ["cep.initial", "cep.final", "deadline+D"] }),
+                // ]
+                // const headersTemplatePrice: THeader[] = [
+                //     ...getHeaders({ tableModel: { table: modelTablePlantDeadline.table, code: "plant.deadline", headers: headersPlantDeadline }, types: ["cep.origin.initial", "cep.origin.final"] }),
+                //     ...getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, types: ["cep.initial", "cep.final", "excess"] }),
+                //     ...getHeadersWeight({ table: [modelTableFarm.table[0]] }),
+                // ]
+
+                // const headersTemplateRate: THeader[] = [
+                //     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
+                //     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
+                //     ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
+                // ]
+
+                // const { logs: logsInsertProcvValues } = insertProcvValues({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, tableBase: { table: modelTablePlantPrice.table, code: "plant.price", headers: headerPlantValuePriceToFarm }, headers: headerPlantValuePriceToFarm, settings })
+
+            },
+            "rate": () => {
+
+            }
         }
 
-        if (process.find(_process => { return _process.type == "create-farm" })) {
-            PROCESS["process-plant"]()
-        } else {
+        if (!process.find(_process => { return _process.type == "create-farm" })) {
             PROCESS["prepare-environment"]()
         }
 
         process.forEach(_process => {
-            if (_process.type == "insert-values" || _process.type == "procv") {
-                if (!process.find(_process => { return _process.type == "create-farm" })) { return }
-            }
-
             PROCESS[_process.type]()
         })
 

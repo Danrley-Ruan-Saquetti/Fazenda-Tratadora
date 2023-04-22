@@ -108,20 +108,23 @@ const GLOBAL_SETTINGS_RESET = {
     }
 };
 const GLOBAL_HISTORY = [];
-const GLOBAL_ROUTES = [
-    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
-    { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
-    { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
-    { icon: "gear", title: "Configurações", name: "setting", router: "routes/panel-setting.html", script: "SettingScript" },
-    { icon: "signpost-split", title: "Features", name: "feature", router: "routes/panel.feature.html", script: "FeatureScript" },
+const GLOBAL_ROUTERS = [
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript" },
+    { icon: "ui-radios", title: "Histórico", name: "history", router: "routers/panel-history.html", script: "HistoryScript" },
+    { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript" },
+    { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript" },
+    { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript" },
+    { icon: "signpost-split", title: "Features", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
 ];
-const GLOBAL_ROUTES_ROUTER = {
-    "routes/panel-history.html": `<button class="load-table">Load</button>
+const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
+const GLOBAL_ROUTERS_ROUTER = {
+    "routers/panel.feature.html": GLOBAL_ROUTER_NOT_FOUND,
+    "routers/panel-history.html": `<button class="load-table">Load</button>
     <div class="table" table-parent>
         <table table="history"></table>
     </div>`,
-    "routes/panel-test.html": `<h1>Teste</h1>`,
-    "routes/panel-farm.html": `<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
+    "routers/panel-test.html": `<h1>Teste</h1>`,
+    "routers/panel-farm.html": `<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
     <input type="file" name="input-file-plant-price" id="input-file-plant-price">
     <label for="input-file-plant-deadline">Selecione o arquivo de Prazo</label>
     <input type="file" name="input-file-plant-deadline" id="input-file-plant-deadline">
@@ -156,9 +159,10 @@ const GLOBAL_ROUTES_ROUTER = {
     <button id="clear-ls">Limpar Histórico</button>
     <button id="clear-farm">Limpar Fazenda</button>
     <button id="clear-settings">Limpar Configurações</button>`,
-    "routes/panel-404.html": `<h1>Router not found</h1>`,
+    "routers/panel-404.html": GLOBAL_ROUTER_NOT_FOUND,
+    "routers/panel-guide.html": GLOBAL_ROUTER_NOT_FOUND,
+    "routers/panel-setting.html": GLOBAL_ROUTER_NOT_FOUND
 };
-const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 function Setup() {
     const historyTableControl = HistoryTableControl();
     const settingControl = SettingControl(FarmRepository());
@@ -340,38 +344,38 @@ I;AC;AC I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;
 I;RR;RR I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
 I;RO;RO I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85`;
 const plantFarmTest = `CEP INICIAL;CEP FINAL;Prazo;UF;REGIAO;Exce;0,25;0,5;0,75;1;2;3;4;5;6;7;8;9;10
+15109-000;15109-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+14940-000;14940-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+2912-000;2924-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15100-000;15101-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
 1001-000;1599-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+14400-000;14414-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
 2000-000;2811-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15129-000;15129-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15120-000;15120-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15000-000;15099-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15128-000;15128-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15116-000;15119-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15121-000;15124-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15125-000;15125-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+2925-000;2930-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+19870-000;19870-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15126-000;15127-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15102-000;15102-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15106-000;15107-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+19900-000;19919-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
 2817-000;2832-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15110-000;15110-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15115-000;15115-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15111-000;15114-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+2931-000;2958-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
 2840-000;2841-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
 2900-000;2911-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-2912-000;2924-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-2925-000;2930-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-2931-000;2958-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-14400-000;14414-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-14940-000;14940-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15000-000;15099-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15100-000;15101-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15102-000;15102-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15108-000;15108-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
 15103-000;15103-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
 15104-000;15104-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
 15105-000;15105-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15106-000;15107-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15108-000;15108-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15109-000;15109-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15110-000;15110-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15111-000;15114-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15115-000;15115-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15116-000;15119-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15120-000;15120-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15121-000;15124-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15125-000;15125-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15126-000;15127-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15128-000;15128-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15129-000;15129-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-19870-000;19870-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-19880-000;19880-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-19900-000;19919-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88`;
+19880-000;19880-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88`;
 function tableComponent({ table: tableEl, headers }, onSelection, colResizableProps = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64 }) {
     const listSelected = [];
     const insertColumnSelect = () => {
@@ -668,6 +672,7 @@ function FarmControl(farmRepository) {
                 repoControl.updateTable({ table: modelTableFarm.table, code: "farm", headers: headersFarm });
             },
             "create-farm": () => {
+                PROCESS["process-plant"]();
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
                 if (!modelTablePlantPrice || !modelTablePlantDeadline) {
@@ -691,6 +696,9 @@ function FarmControl(farmRepository) {
                 repoControl.addTable({ tableModel: modelTableFarm });
             },
             "insert-values": () => {
+                if (!process.find(_process => { return _process.type == "create-farm"; })) {
+                    return;
+                }
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
@@ -715,7 +723,7 @@ function FarmControl(farmRepository) {
                 const columns = ["cep.initial", "cep.final"];
                 const characters = ["-"];
                 columns.forEach(_column => {
-                    const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: [_column] })[0]?.header, where: { array: modelTableFarm.table[0] } });
+                    const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: modelTableFarm, types: [_column] })[0]?.header, where: { array: modelTableFarm.table[0] } });
                     tableControl.removeCharacter({ table: modelTableFarm.table, characters, options: { specific: { column: indexColumn }, excludes: { line: [0] } } });
                 });
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
@@ -725,25 +733,39 @@ function FarmControl(farmRepository) {
                 if (!modelTableFarm) {
                     return;
                 }
-                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, tableBase: { table: modelTableFarm.table, headers: modelTableFarm.headers }, settings });
+                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: modelTableFarm, tableBase: modelTableFarm, settings });
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
             },
-            "contained-cep": () => { },
-            "procv": () => { },
-            "rate": () => { }
-        };
-        if (process.find(_process => { return _process.type == "create-farm"; })) {
-            PROCESS["process-plant"]();
-        }
-        else {
-            PROCESS["prepare-environment"]();
-        }
-        process.forEach(_process => {
-            if (_process.type == "insert-values" || _process.type == "procv") {
+            "order-table": () => {
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                if (!modelTableFarm) {
+                    return;
+                }
+                const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
+                modelTableFarm.table = tableControl.orderTable({ table: modelTableFarm.table, column: indexColumn });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+            },
+            "contained-cep": () => {
+                PROCESS["order-table"]();
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                if (!modelTableFarm) {
+                    return;
+                }
+                const { logs: logsValidateContainedCEP } = validateContainedCEP({ table: modelTableFarm });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+            },
+            "procv": () => {
                 if (!process.find(_process => { return _process.type == "create-farm"; })) {
                     return;
                 }
+            },
+            "rate": () => {
             }
+        };
+        if (!process.find(_process => { return _process.type == "create-farm"; })) {
+            PROCESS["prepare-environment"]();
+        }
+        process.forEach(_process => {
             PROCESS[_process.type]();
         });
         return repoControl.getData();
@@ -1560,7 +1582,7 @@ function RenderControl() {
     };
     const initComponents = () => {
         panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList);
-        GLOBAL_ROUTES.forEach(_item => {
+        GLOBAL_ROUTERS.forEach(_item => {
             const itemEl = createItem(_item.title, _item.icon, _item.name);
             itemEl.addEventListener("click", (ev) => {
                 const panelAlreadyExist = panelControl.getPanelByName(_item.name);
@@ -1623,8 +1645,10 @@ function RouterControl() {
     const dependence = "production";
     const apiRouter = {
         "production": (router, callback) => {
-            const response = fetch(`${router}`).then(response => response.text()).then(response => {
-                return { data: response };
+            const response = fetch(`${router}`).then(res => {
+                return res.text();
+            }).then(res => {
+                return { data: res };
             }).catch(error => {
                 return { error: { msg: "Rout not found" } };
             });
@@ -1632,7 +1656,7 @@ function RouterControl() {
             return response;
         },
         "development": (router, callback) => {
-            const routerResponse = GLOBAL_ROUTES_ROUTER[`${router}`];
+            const routerResponse = GLOBAL_ROUTERS_ROUTER[`${router}`];
             if (routerResponse)
                 return callback({ data: routerResponse });
             callback({ error: { msg: "Rout not found" } });
@@ -1641,12 +1665,12 @@ function RouterControl() {
     const fetchRouter = (router, callback) => {
         apiRouter[dependence](router, ({ data, error }) => {
             if (!data || error)
-                return apiRouter[dependence]("routes/panel-404.html", callback);
+                return apiRouter[dependence]("routers/panel-404.html", callback);
             callback({ data });
         });
     };
     const getRouter = ({ router, name, script }) => {
-        return GLOBAL_ROUTES.find(_router => { return _router.router == router || _router.name == name || _router.script == script; }) || null;
+        return GLOBAL_ROUTERS.find(_router => { return _router.router == router || _router.name == name || _router.script == script; }) || null;
     };
     const query = ({ router }, callback) => {
         fetchRouter(`${router}`, callback);
@@ -1711,9 +1735,12 @@ function TableControl() {
                 table[i][j] = replaceText({ val: column, searchValue: replaceValue, replaceValue: configSeparatorColumn.searchValue });
             });
         });
-        return table;
+        return removeLinesEmpty({ table });
     };
-    function getIndex({ valueSearch, where, options, method = "filled" }) {
+    const removeLinesEmpty = ({ table }) => {
+        return table.filter(row => row.some(cell => cell));
+    };
+    const getIndex = ({ valueSearch, where, options, method = "filled" }) => {
         if (!valueSearch || !where) {
             return -1;
         }
@@ -1764,7 +1791,7 @@ function TableControl() {
             }
         }
         return -1;
-    }
+    };
     const copyTable = ({ tablePlant }) => {
         const tableCopied = [];
         for (let i = 0; i < tablePlant.length; i++) {
@@ -1852,7 +1879,7 @@ function TableControl() {
     };
     const orderTable = ({ column, table }) => {
         const headers = table[0];
-        const _table = table.slice(1);
+        const _table = table.splice(1, table.length);
         const _tableOrdered = _table.sort(function (a, b) {
             return Number(a[column]) - Number(b[column]);
         });
@@ -1868,6 +1895,7 @@ function TableControl() {
         addColumn,
         removeCharacter,
         orderTable,
+        removeLinesEmpty,
     };
 }
 function TestControl() {
@@ -2034,7 +2062,8 @@ const GLOBAL_MODULE_SCRIPTS = {
     ["HistoryScript"]: HistoryScript,
     ["FeatureScript"]: FeatureScript,
     ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
-    ["SettingScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; }
+    ["SettingScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
+    ["GuideScript"]: GuideScript
 };
 function FarmScript(idPanel) {
     const panel = document.querySelector(`[panel="farm"][id="${idPanel}"]`);
@@ -2386,6 +2415,13 @@ function FeatureScript(idPanel) {
         });
     };
     initComponents();
+    return {};
+}
+function GuideScript(idPanel) {
+    const panel = document.querySelector(`[panel="guide"][id="${idPanel}"]`);
+    if (!panel) {
+        return { error: { msg: "Panel not found" } };
+    }
     return {};
 }
 function HistoryScript(idPanel) {

@@ -1,1 +1,1 @@
-type TScript = "FarmScript" | "HistoryScript" | "TestScript" | "FeatureScript" | "SettingScript"
+type TScript = "FarmScript" | "HistoryScript" | "TestScript" | "FeatureScript" | "SettingScript" | "GuideScript"

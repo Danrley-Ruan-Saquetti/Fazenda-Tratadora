@@ -102,21 +102,25 @@ const GLOBAL_SETTINGS_RESET = {
 
 const GLOBAL_HISTORY: IHistoryTable = []
 
-const GLOBAL_ROUTES: TItemRoute[] = [
-    { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
-    { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
-    { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
-    { icon: "gear", title: "Configurações", name: "setting", router: "routes/panel-setting.html", script: "SettingScript" },
-    { icon: "signpost-split", title: "Features", name: "feature", router: "routes/panel.feature.html", script: "FeatureScript" },
+const GLOBAL_ROUTERS: TItemRoute[] = [
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript" },
+    { icon: "ui-radios", title: "Histórico", name: "history", router: "routers/panel-history.html", script: "HistoryScript" },
+    { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript" },
+    { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript" },
+    { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript" },
+    { icon: "signpost-split", title: "Features", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
 ]
 
-const GLOBAL_ROUTES_ROUTER: TDependenceRouter = {
-    "routes/panel-history.html": `<button class="load-table">Load</button>
+const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`
+
+const GLOBAL_ROUTERS_ROUTER: TDependenceRouter = {
+    "routers/panel.feature.html": GLOBAL_ROUTER_NOT_FOUND,
+    "routers/panel-history.html": `<button class="load-table">Load</button>
     <div class="table" table-parent>
         <table table="history"></table>
     </div>`,
-    "routes/panel-test.html": `<h1>Teste</h1>`,
-    "routes/panel-farm.html": `<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
+    "routers/panel-test.html": `<h1>Teste</h1>`,
+    "routers/panel-farm.html": `<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
     <input type="file" name="input-file-plant-price" id="input-file-plant-price">
     <label for="input-file-plant-deadline">Selecione o arquivo de Prazo</label>
     <input type="file" name="input-file-plant-deadline" id="input-file-plant-deadline">
@@ -151,7 +155,7 @@ const GLOBAL_ROUTES_ROUTER: TDependenceRouter = {
     <button id="clear-ls">Limpar Histórico</button>
     <button id="clear-farm">Limpar Fazenda</button>
     <button id="clear-settings">Limpar Configurações</button>`,
-    "routes/panel-404.html": `<h1>Router not found</h1>`,
+    "routers/panel-404.html": GLOBAL_ROUTER_NOT_FOUND,
+    "routers/panel-guide.html": GLOBAL_ROUTER_NOT_FOUND,
+    "routers/panel-setting.html": GLOBAL_ROUTER_NOT_FOUND
 }
-
-const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`

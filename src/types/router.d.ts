@@ -13,11 +13,14 @@ type TItemRoute = IRouter & {
     title: string
 }
 
-type TDefineRouter = "routes/panel-history.html" | "routes/panel-test.html" | "routes/panel-farm.html" | "routes/panel-404.html" | "routers/panel.feature.html" | "routes/panel-setting.html"
+type TDefineRouter = "routers/panel-history.html" | "routers/panel-test.html" | "routers/panel-farm.html" | "routers/panel-404.html" | "routers/panel.feature.html" | "routers/panel-setting.html" | "routers/panel-guide.html"
 
 type TDependenceRouter = {
-    "routes/panel-history.html": string
-    "routes/panel-test.html": string
-    "routes/panel-farm.html": string
-    "routes/panel-404.html": string
+    "routers/panel-history.html": string
+    "routers/panel-test.html": string
+    "routers/panel-farm.html": string
+    "routers/panel-guide.html": string
+    "routers/panel-setting.html": string
+    "routers/panel.feature.html": string
+    "routers/panel-404.html": string
 }

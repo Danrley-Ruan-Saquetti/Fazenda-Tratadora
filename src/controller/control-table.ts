@@ -33,10 +33,14 @@ function TableControl() {
             })
         })
 
-        return table
+        return removeLinesEmpty({ table })
     }
 
-    function getIndex({ valueSearch, where, options, method = "filled" }: { valueSearch: string, where: { table?: TTable, array?: string[], cell?: string }, method?: "some" | "filled", options?: { line?: number, column?: number } }) {
+    const removeLinesEmpty = ({ table }: { table: TTable }) => {
+        return table.filter(row => row.some(cell => cell))
+    }
+
+    const getIndex = ({ valueSearch, where, options, method = "filled" }: { valueSearch: string, where: { table?: TTable, array?: string[], cell?: string }, method?: "some" | "filled", options?: { line?: number, column?: number } }) => {
         if (!valueSearch || !where) { return -1 }
 
         if (where.table) {
@@ -188,7 +192,7 @@ function TableControl() {
     const orderTable = ({ column, table }: { table: TTable, column: number }) => {
         const headers = table[0]
 
-        const _table = table.slice(1)
+        const _table = table.splice(1, table.length)
 
         const _tableOrdered = _table.sort(function (a, b) {
             return Number(a[column]) - Number(b[column]);
@@ -208,5 +212,6 @@ function TableControl() {
         addColumn,
         removeCharacter,
         orderTable,
+        removeLinesEmpty,
     }
 }

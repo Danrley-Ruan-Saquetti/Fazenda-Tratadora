@@ -14,7 +14,7 @@ function RenderControl() {
     const initComponents = () => {
         panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList)
 
-        GLOBAL_ROUTES.forEach(_item => {
+        GLOBAL_ROUTERS.forEach(_item => {
             const itemEl = createItem(_item.title, _item.icon, _item.name)
 
             itemEl.addEventListener("click", (ev) => {

@@ -170,7 +170,7 @@ const GLOBAL_ROUTERS: TItemRoute[] = [
     { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript" },
     { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript" },
     { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript" },
-    { icon: "signpost-split", title: "Features", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
+    { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
 ]
 
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`

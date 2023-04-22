@@ -3,6 +3,8 @@ function FarmScript(idPanel: string) {
 
     if (!panel) { return { error: { msg: "Panel not found" } } }
 
+    let dependence: "development" | "production" = "production"
+
     const mainControl = MainControl()
     const renderControl = RenderControl()
 
@@ -89,45 +91,44 @@ function FarmScript(idPanel: string) {
         const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`
 
         const dataPlants: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[] } & ISettingsTemplate = {
-            plants:
-                [
-                    {
-                        code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
-                        headers: [
-                            { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
-                            { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
-                            { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
-                            { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
-                            { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
-                            { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
-                        ],
-                        name: "Fazenda"
-                    },
-                    // {
-                    //     code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
-                    //     headers: [
-                    //         { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
-                    //         { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
-                    //         { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
-                    //         { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
-                    //         { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
-                    //     ],
-                    //     name: "Planta Prazo"
-                    // },
-                    // {
-                    //     code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
-                    //     headers: [
-                    //         { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
-                    //         { header: paramSelectionCriteriaPrice || PARAMS.settings.table["selection.criteria"].price, type: "selection-criteria" },
-                    //         { header: paramRatePrice || PARAMS.settings.table.rate.price, type: "rate" },
-                    //     ],
-                    //     name: "Planta Preço"
-                    // },
-                ],
+            plants: [],
             ...PARAMS
         }
 
-        if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) { console.log("$Teste"); return dataPlants }
+        if ((dependence == "production" && plantFarm) || dependence == "development") dataPlants.plants.push({
+            code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
+            headers: [
+                { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
+                { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
+                { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
+                { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+                { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
+                { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
+            ],
+            name: "Fazenda"
+        })
+        if ((dependence == "production" && plantDeadline) || dependence == "development") dataPlants.plants.push({
+            code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
+            headers: [
+                { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
+                { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
+                { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
+                { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
+                { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+            ],
+            name: "Planta Prazo"
+        })
+        if ((dependence == "production" && plantPrice) || dependence == "development") dataPlants.plants.push({
+            code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
+            headers: [
+                { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
+                { header: paramSelectionCriteriaPrice || PARAMS.settings.table["selection.criteria"].price, type: "selection-criteria" },
+                { header: paramRatePrice || PARAMS.settings.table.rate.price, type: "rate" },
+            ],
+            name: "Planta Preço"
+        })
+
+        if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) { dependence == "development" && console.log("$Teste"); return dependence == "development" ? dataPlants : null }
 
         return dataPlants
     }

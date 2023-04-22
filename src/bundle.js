@@ -176,7 +176,7 @@ const GLOBAL_ROUTERS = [
     { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript" },
     { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript" },
     { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript" },
-    { icon: "signpost-split", title: "Features", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
+    { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
 ];
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 const GLOBAL_ROUTERS_ROUTER = {
@@ -2241,6 +2241,7 @@ function FarmScript(idPanel) {
     if (!panel) {
         return { error: { msg: "Panel not found" } };
     }
+    let dependence = "production";
     const mainControl = MainControl();
     const renderControl = RenderControl();
     const ELEMENTS_FORM = {
@@ -2315,25 +2316,47 @@ function FarmScript(idPanel) {
         const paramSelectionCriteriaPrice = `${ELEMENTS_FORM.paramSelectionCriteriaPrice?.value}`;
         const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`;
         const dataPlants = {
-            plants: [
-                {
-                    code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
-                    headers: [
-                        { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
-                        { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
-                        { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
-                        { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
-                        { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
-                        { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
-                    ],
-                    name: "Fazenda"
-                },
-            ],
+            plants: [],
             ...PARAMS
         };
+        if ((dependence == "production" && plantFarm) || dependence == "development")
+            dataPlants.plants.push({
+                code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
+                headers: [
+                    { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
+                    { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
+                    { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
+                    { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+                    { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
+                    { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
+                ],
+                name: "Fazenda"
+            });
+        if ((dependence == "production" && plantDeadline) || dependence == "development")
+            dataPlants.plants.push({
+                code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
+                headers: [
+                    { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
+                    { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
+                    { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
+                    { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
+                    { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+                ],
+                name: "Planta Prazo"
+            });
+        if ((dependence == "production" && plantPrice) || dependence == "development")
+            dataPlants.plants.push({
+                code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
+                headers: [
+                    { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
+                    { header: paramSelectionCriteriaPrice || PARAMS.settings.table["selection.criteria"].price, type: "selection-criteria" },
+                    { header: paramRatePrice || PARAMS.settings.table.rate.price, type: "rate" },
+                ],
+                name: "Planta Preço"
+            });
         if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) {
-            console.log("$Teste");
-            return dataPlants;
+            dependence == "development" && console.log("$Teste");
+            return dependence == "development" ? dataPlants : null;
         }
         return dataPlants;
     };

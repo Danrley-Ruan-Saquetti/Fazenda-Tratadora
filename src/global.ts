@@ -1,3 +1,65 @@
+const GLOBAL_TEMPLATE: ISettingsTemplate = {
+    "settings": {
+        "table": {
+            "cep.initial": "",
+            "cep.final": "",
+            "deadline": "",
+            "excess": "",
+            "rate": {
+                "deadline": "",
+                "price": ""
+            },
+            "selection.criteria": {
+                "price": "",
+                "deadline": ""
+            }
+        },
+        "process": {
+            "deadline+D": 1,
+            "criteria.selection": {
+                "join": " "
+            },
+            "converterStringTable": {
+                "separatorLine": /\r?\n/,
+                "separatorColumn": ";",
+                "configSeparatorColumn": {
+                    "separator": ",",
+                    "searchValue": ",",
+                    "replaceValue": "?",
+                    "betweenText": "\""
+                }
+            }
+        },
+        "template": {
+            "rateValue": {
+                "cep.origin.initial": "1000000",
+                "cep.origin.final": "99999999"
+            },
+            "headerName": {
+                "cep.origin.initial": "Inicio  Origem",
+                "cep.origin.final": "Fim  Origem",
+                "cep.initial": "Inicio  Destino",
+                "cep.final": "Fim  Destino",
+                "deadline+D": "Dias",
+                "excess": "Excedente"
+            },
+            "cepOriginValue": {
+                "cep.origin.final": "",
+                "cep.origin.initial": ""
+            }
+        }
+    },
+    "process": [
+        "create-farm",
+        "insert-values",
+        "deadline+D",
+        "contained-cep",
+        "procv",
+        "template",
+        "rate"
+    ]
+}
+
 const GLOBAL_SETTINGS: ISettingsGeneral = {
     "table": {
         "cep.initial": "",

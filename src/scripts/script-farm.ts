@@ -9,6 +9,7 @@ function FarmScript(idPanel: string) {
     const ELEMENTS_FORM = {
         plantDeadline: panel.querySelector("#input-file-plant-deadline") as HTMLInputElement,
         plantPrice: panel.querySelector("#input-file-plant-price") as HTMLInputElement,
+        plantFarm: panel.querySelector("#input-file-farm") as HTMLInputElement,
         fileSettings: panel.querySelector("#input-file-settings") as HTMLInputElement,
         paramCepInitial: panel.querySelector("#param-cep-initial") as HTMLInputElement,
         paramCepFinal: panel.querySelector("#param-cep-final") as HTMLInputElement,
@@ -23,28 +24,9 @@ function FarmScript(idPanel: string) {
         nameFarm: panel.querySelector("#param-name-farm") as HTMLInputElement,
     }
 
-    const PARAMS: ISettingsGeneral = {
-        "table": {
-            "cep.initial": "CEP INICIAL",
-            "cep.final": "CEP FINAL",
-            "deadline": "Prazo",
-            "excess": "Exce",
-            "rate": {
-                "deadline": "",
-                "price": ""
-            },
-            "selection.criteria": {
-                "price": "UF,REGIAO",
-                "deadline": "UF,REGIAO"
-            }
-        },
-        process: _.cloneDeep(GLOBAL_SETTINGS.process),
-        template: _.cloneDeep(GLOBAL_SETTINGS.template),
-    }
+    const PARAMS: ISettingsTemplate = _.cloneDeep(GLOBAL_TEMPLATE)
 
     const initComponents = () => {
-        Setup()
-
         renderControl.loadListFarms()
         loadForm()
 
@@ -59,16 +41,16 @@ function FarmScript(idPanel: string) {
     }
 
     const loadForm = () => {
-        ELEMENTS_FORM.paramCepInitial.value = PARAMS.table["cep.initial"]
-        ELEMENTS_FORM.paramCepFinal.value = PARAMS.table["cep.final"]
-        ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.template.cepOriginValue["cep.origin.initial"]
-        ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.template.cepOriginValue["cep.origin.final"]
-        ELEMENTS_FORM.paramDeadline.value = PARAMS.table.deadline
-        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.table.rate.deadline
-        ELEMENTS_FORM.paramRatePrice.value = PARAMS.table.rate.price
-        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.table["selection.criteria"].deadline
-        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.table["selection.criteria"].price
-        ELEMENTS_FORM.paramExcess.value = PARAMS.table.excess
+        ELEMENTS_FORM.paramCepInitial.value = PARAMS.settings.table["cep.initial"]
+        ELEMENTS_FORM.paramCepFinal.value = PARAMS.settings.table["cep.final"]
+        ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.settings.template.cepOriginValue["cep.origin.initial"]
+        ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.settings.template.cepOriginValue["cep.origin.final"]
+        ELEMENTS_FORM.paramDeadline.value = PARAMS.settings.table.deadline
+        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.settings.table.rate.deadline
+        ELEMENTS_FORM.paramRatePrice.value = PARAMS.settings.table.rate.price
+        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.settings.table["selection.criteria"].deadline
+        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.settings.table["selection.criteria"].price
+        ELEMENTS_FORM.paramExcess.value = PARAMS.settings.table.excess
     }
 
     const uploadSettings = () => {
@@ -79,9 +61,9 @@ function FarmScript(idPanel: string) {
         const fileSettings = mainControl.createFile({ content: [fileSettingsInput], type: fileSettingsInput.type })
 
         mainControl.getContentFile(fileSettings, (result) => {
-            const contentSettings = converterStringToJSON<ISettingsGeneral>(result, ["separatorLine"])
+            const contentSettings = converterStringToJSON<ISettingsTemplate>(result, ["separatorLine"])
 
-            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_SETTINGS)) {
+            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE)) {
                 return console.log("Template incorrect")
             }
 
@@ -92,6 +74,7 @@ function FarmScript(idPanel: string) {
     }
 
     const getDataOfForm = () => {
+        const plantFarm = ELEMENTS_FORM.plantFarm?.files ? ELEMENTS_FORM.plantFarm?.files[0] : null
         const plantDeadline = ELEMENTS_FORM.plantDeadline?.files ? ELEMENTS_FORM.plantDeadline?.files[0] : null
         const plantPrice = ELEMENTS_FORM.plantPrice?.files ? ELEMENTS_FORM.plantPrice?.files[0] : null
         const paramCepInitial = `${ELEMENTS_FORM.paramCepInitial?.value}`
@@ -105,33 +88,43 @@ function FarmScript(idPanel: string) {
         const paramSelectionCriteriaPrice = `${ELEMENTS_FORM.paramSelectionCriteriaPrice?.value}`
         const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`
 
-        const dataPlants: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[], settings: ISettingsGeneral } = {
+        const dataPlants: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[] } & ISettingsTemplate = {
             plants:
                 [
                     {
-                        code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
+                        code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
                         headers: [
-                            { header: PARAMS.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: paramCepOriginInitial || PARAMS.template.cepOriginValue["cep.origin.initial"] },
-                            { header: PARAMS.template.headerName["cep.origin.final"], type: "cep.origin.final", value: paramCepOriginFinal || PARAMS.template.cepOriginValue["cep.origin.final"] },
-                            { header: paramCepFinal || PARAMS.table["cep.final"], type: "cep.final" },
-                            { header: paramCepInitial || PARAMS.table["cep.initial"], type: "cep.initial" },
-                            { header: paramDeadline || PARAMS.table.deadline, type: "deadline" },
-                            { header: paramSelectionCriteriaDeadline || PARAMS.table["selection.criteria"].deadline, type: "selection-criteria" },
-                            { header: paramRateDeadline || PARAMS.table.rate.deadline, type: "rate" },
+                            { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
+                            { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
+                            { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
+                            { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+                            { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
+                            { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
                         ],
-                        name: "Planta Prazo"
+                        name: "Fazenda"
                     },
-                    {
-                        code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
-                        headers: [
-                            { header: paramExcess || PARAMS.table.excess, type: "excess" },
-                            { header: paramSelectionCriteriaPrice || PARAMS.table["selection.criteria"].price, type: "selection-criteria" },
-                            { header: paramRatePrice || PARAMS.table.rate.price, type: "rate" },
-                        ],
-                        name: "Planta Preço"
-                    },
+                    // {
+                    //     code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
+                    //     headers: [
+                    //         { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
+                    //         { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
+                    //         { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
+                    //         { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
+                    //         { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+                    //     ],
+                    //     name: "Planta Prazo"
+                    // },
+                    // {
+                    //     code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
+                    //     headers: [
+                    //         { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
+                    //         { header: paramSelectionCriteriaPrice || PARAMS.settings.table["selection.criteria"].price, type: "selection-criteria" },
+                    //         { header: paramRatePrice || PARAMS.settings.table.rate.price, type: "rate" },
+                    //     ],
+                    //     name: "Planta Preço"
+                    // },
                 ],
-            settings: PARAMS
+            ...PARAMS
         }
 
         if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) { console.log("$Teste"); return dataPlants }
@@ -147,6 +140,7 @@ function FarmScript(idPanel: string) {
         mainControl.setupFarm({
             plants: bodyForm.plants,
             settings: bodyForm.settings,
+            process: bodyForm.process,
         }, () => {
             mainControl.processFarm()
             prepareForDownload()

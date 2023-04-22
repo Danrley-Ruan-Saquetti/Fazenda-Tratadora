@@ -2,11 +2,73 @@
 function App() {
     const renderControl = RenderControl();
     const initComponents = () => {
+        Setup();
         renderControl.initComponents();
     };
     return initComponents();
 }
 window.onload = App;
+const GLOBAL_TEMPLATE = {
+    "settings": {
+        "table": {
+            "cep.initial": "",
+            "cep.final": "",
+            "deadline": "",
+            "excess": "",
+            "rate": {
+                "deadline": "",
+                "price": ""
+            },
+            "selection.criteria": {
+                "price": "",
+                "deadline": ""
+            }
+        },
+        "process": {
+            "deadline+D": 1,
+            "criteria.selection": {
+                "join": " "
+            },
+            "converterStringTable": {
+                "separatorLine": /\r?\n/,
+                "separatorColumn": ";",
+                "configSeparatorColumn": {
+                    "separator": ",",
+                    "searchValue": ",",
+                    "replaceValue": "?",
+                    "betweenText": "\""
+                }
+            }
+        },
+        "template": {
+            "rateValue": {
+                "cep.origin.initial": "1000000",
+                "cep.origin.final": "99999999"
+            },
+            "headerName": {
+                "cep.origin.initial": "Inicio  Origem",
+                "cep.origin.final": "Fim  Origem",
+                "cep.initial": "Inicio  Destino",
+                "cep.final": "Fim  Destino",
+                "deadline+D": "Dias",
+                "excess": "Excedente"
+            },
+            "cepOriginValue": {
+                "cep.origin.final": "",
+                "cep.origin.initial": ""
+            }
+        }
+    },
+    "process": [
+        "create-farm",
+        "insert-values",
+        "deadline+D",
+        "contained-cep",
+        "procv",
+        "template",
+        "rate"
+    ]
+};
 const GLOBAL_SETTINGS = {
     "table": {
         "cep.initial": "",
@@ -174,37 +236,37 @@ function Setup() {
     }
 }
 const plantDeadlineTest = `CEP INICIAL;CEP FINAL;X;X;Prazo;D+1;UF;REGIAO;CS
-1001000;1599999;x;598999;1;2;SP;C;SP C
-2000000;2811999;400001;811999;1;2;SP;C;SP C
-2817000;2832999;5001;15999;1;2;SP;C;SP C
-2840000;2841999;7001;1999;1;2;SP;C;SP C
-2900000;2911999;58001;11999;1;2;SP;C;SP C
-2912000;2924999;1;12999;1;2;SP;C;SP C
-2925000;2930999;1;5999;1;2;SP;C;SP C
-2931000;2958999;1;27999;1;2;SP;C;SP C
-14400000;14414999;239001;14999;1;2;SP;C;SP C
-14940000;14940999;525001;999;3;4;SP;I;SP I
-15000000;15099999;59001;99999;1;2;SP;C;SP C
-15100000;15101999;1;1999;2;3;SP;I;SP I
-15102000;15102999;1;999;5;6;SP;C;SP C
-15103000;15103999;1;999;2;3;SP;I;SP I
-15104000;15104999;1;999;5;6;SP;C;SP C
-15105000;15105999;1;999;5;6;SP;I;SP I
-15106000;15107999;1;1999;7;8;SP;I;SP I
-15108000;15108999;1;999;5;6;SP;I;SP I
-15109000;15109999;1;999;7;8;SP;I;SP I
-15110000;15110999;1;999;5;6;SP;I;SP I
 15111000;15114999;1;3999;7;8;SP;I;SP I
 15115000;15115999;1;999;5;6;SP;C;SP C
 15116000;15119999;1;3999;7;8;SP;I;SP I
+2925000;2930999;1;5999;1;2;SP;C;SP C
+2931000;2958999;1;27999;1;2;SP;C;SP C
+14400000;14414999;239001;14999;1;2;SP;C;SP C
+1001000;1599999;x;598999;1;2;SP;C;SP C
 15120000;15120999;1;999;5;6;SP;I;SP I
 15121000;15124999;1;3999;7;8;SP;I;SP I
 15125000;15125999;1;999;5;6;SP;I;SP I
+2900000;2911999;58001;11999;1;2;SP;C;SP C
+2912000;2924999;1;12999;1;2;SP;C;SP C
+2000000;2811999;400001;811999;1;2;SP;C;SP C
+2817000;2832999;5001;15999;1;2;SP;C;SP C
+2840000;2841999;7001;1999;1;2;SP;C;SP C
 15126000;15127999;1;1999;7;8;SP;I;SP I
 15128000;15128999;1;999;5;6;SP;I;SP I
 15129000;15129999;1;999;7;8;SP;I;SP I
 19870000;19870999;4001;999;5;6;SP;I;SP I
 19880000;19880999;9001;999;3;4;SP;I;SP I
+14940000;14940999;525001;999;3;4;SP;I;SP I
+15100000;15101999;1;1999;2;3;SP;I;SP I
+15102000;15102999;1;999;5;6;SP;C;SP C
+15110000;15110999;1;999;5;6;SP;I;SP I
+15103000;15103999;1;999;2;3;SP;I;SP I
+15000000;15099999;59001;99999;1;2;SP;C;SP C
+15104000;15104999;1;999;5;6;SP;C;SP C
+15105000;15105999;1;999;5;6;SP;I;SP I
+15106000;15107999;1;1999;7;8;SP;I;SP I
+15108000;15108999;1;999;5;6;SP;I;SP I
+15109000;15109999;1;999;7;8;SP;I;SP I
 19900000;19919999;19001;19999;3;4;SP;I;SP I`;
 const plantPriceTest = `REGIAO;UF;CS;Exce;0,25;0,5;0,75;1;2;3;4;5;6;7;8;9;10
 C;PR;PR C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
@@ -632,25 +694,22 @@ function FarmControl(farmRepository) {
             "process-plant": () => {
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
-                if (!modelTablePlantPrice || !modelTablePlantDeadline) {
-                    return;
-                }
-                const headersPlantDeadline = [
+                const headersPlantDeadline = modelTablePlantDeadline ? [
                     ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final", "deadline", "excess", "rate", "selection-criteria"] }),
-                ];
-                const headersPlantPrice = [
+                ] : [];
+                const headersPlantPrice = modelTablePlantPrice ? [
                     ...repoControl.getHeaders({ tableModel: modelTablePlantPrice }),
                     ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] }),
-                ];
-                repoControl.updateHeaders({ code: "plant.price", headers: headersPlantPrice });
-                repoControl.updateHeaders({ code: "plant.deadline", headers: headersPlantDeadline });
+                ] : [];
+                modelTablePlantPrice && repoControl.updateHeaders({ code: "plant.price", headers: headersPlantPrice });
+                modelTablePlantDeadline && repoControl.updateHeaders({ code: "plant.deadline", headers: headersPlantDeadline });
             },
             "prepare-environment": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
                     return;
                 }
-                const isProcessDeadline = process.find(_process => { return _process.type == "deadline+D"; });
+                const isProcessDeadline = repoControl.getProcess({ types: ["deadline+D"] })[0];
                 const headerDeadline = repoControl.getHeaders({ code: "farm", types: ["deadline"] })[0];
                 const headersFarm = isProcessDeadline ? [
                     ...repoControl.getHeaders({ code: "farm", types: ["cep.initial", "cep.final", "deadline"] }),
@@ -672,31 +731,34 @@ function FarmControl(farmRepository) {
                 repoControl.updateTable({ table: modelTableFarm.table, code: "farm", headers: headersFarm });
             },
             "create-farm": () => {
-                PROCESS["process-plant"]();
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
                 if (!modelTablePlantPrice || !modelTablePlantDeadline) {
                     return;
                 }
-                const isProcessDeadline = process.find(_process => { return _process.type == "deadline+D"; });
+                const isProcessDeadline = repoControl.getProcess({ types: ["deadline+D"] })[0];
+                const isProcessProcv = repoControl.getProcess({ types: ["procv"] })[0];
                 const headerDeadline = repoControl.getHeaders({ code: "plant.deadline", types: ["deadline"] })[0];
-                const headersFarm = isProcessDeadline ? [
+                let headersFarm = isProcessDeadline ? [
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
                     { header: `${headerDeadline ? headerDeadline.header : "D"}+${settings.process["deadline+D"]}`, type: "deadline+D" },
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "rate"] }),
-                    ...repoControl.getHeaders({ code: "plant.price", types: ["excess", "rate"] }),
-                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
                 ] : [
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "rate"] }),
-                    ...repoControl.getHeaders({ code: "plant.price", types: ["excess", "rate"] }),
-                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
                 ];
+                if (isProcessProcv) {
+                    headersFarm = [
+                        ...headersFarm,
+                        ...repoControl.getHeaders({ code: "plant.price", types: ["excess", "rate"] }),
+                        ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                    ];
+                }
                 const { modelTable: modelTableFarm, logs: logsCreateFarm } = createFarm({ headers: headersFarm, plant: modelTablePlantDeadline.table, name: "Fazenda" });
                 repoControl.addTable({ tableModel: modelTableFarm });
             },
             "insert-values": () => {
-                if (!process.find(_process => { return _process.type == "create-farm"; })) {
+                if (!repoControl.getProcess({ types: ["create-farm"] })) {
                     return;
                 }
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
@@ -755,14 +817,115 @@ function FarmControl(farmRepository) {
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
             },
             "procv": () => {
-                if (!process.find(_process => { return _process.type == "create-farm"; })) {
+                if (repoControl.getProcess({ types: ["create-farm", "insert-values"] }).length != 2) {
                     return;
+                }
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
+                if (!modelTableFarm || !modelTablePlantPrice) {
+                    return;
+                }
+                const headerPlantValuePriceToFarm = [
+                    ...getHeaders({ tableModel: modelTablePlantPrice, types: ["excess", "rate", "selection-criteria"] }),
+                    ...getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                ];
+                const { logs: logsInsertProcvValues } = insertProcvValues({ tableModel: modelTableFarm, tableBase: { table: modelTablePlantPrice.table, code: "plant.price", headers: headerPlantValuePriceToFarm }, headers: headerPlantValuePriceToFarm, settings });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+            },
+            "template": () => {
+                if (!repoControl.getProcess({ types: ["create-farm"] })[0]) {
+                    return;
+                }
+                const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                if (!modelTableFarm) {
+                    return;
+                }
+                const modelTemplates = [];
+                const isProcessProcv = repoControl.getProcess({ types: ["procv"] })[0];
+                const headersTemplateDeadline = [
+                    { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.cepOriginValue["cep.origin.initial"] },
+                    { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.cepOriginValue["cep.origin.final"] },
+                    ...repoControl.getHeaders({ tableModel: modelTableFarm, types: ["cep.initial", "cep.final", "deadline+D"] }),
+                ];
+                const headersTemplatePrice = isProcessProcv ? [
+                    { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.cepOriginValue["cep.origin.initial"] },
+                    { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.cepOriginValue["cep.origin.final"] },
+                    ...repoControl.getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: modelTableFarm.headers }, types: ["cep.initial", "cep.final", "excess"] }),
+                    ...repoControl.getHeadersWeight({ table: [modelTableFarm.table[0]] }),
+                ] : [];
+                if (repoControl.getProcess({ types: ["insert-values"] })[0]) {
+                    modelTemplates.push({ code: "template.deadline", headers: headersTemplateDeadline, table: modelTableFarm.table, name: "Template Prazo" });
+                    if (isProcessProcv) {
+                        modelTemplates.push({ code: "template.price", headers: headersTemplatePrice, table: modelTableFarm.table, name: "Template Preço" });
+                    }
+                }
+                for (let i = 0; i < modelTemplates.length; i++) {
+                    const { modelTable: modelTableTemplate, logs: logsTableTableTemplate } = createTemplate({ ...modelTemplates[i], settings, tableBase: modelTableFarm.table });
+                    repoControl.addTable({ tableModel: modelTableTemplate });
                 }
             },
             "rate": () => {
+                if (repoControl.getData().tables.length == 0) {
+                    return;
+                }
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
+                const modelHeadersRate = [];
+                if (repoControl.getProcess({ types: ["create-farm"] })[0]) {
+                    if (modelTableFarm) {
+                        modelHeadersRate.push({ table: modelTableFarm.table, headers: repoControl.getHeaders({ tableModel: modelTableFarm, types: ["rate"] }) });
+                    }
+                    else if (modelTablePlantDeadline) {
+                        modelHeadersRate.push({ table: modelTablePlantDeadline.table, headers: repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }) });
+                    }
+                }
+                else {
+                    if (modelTablePlantDeadline) {
+                        modelHeadersRate.push({ table: modelTablePlantDeadline.table, headers: repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }) });
+                    }
+                }
+                const headersTemplateRate = modelTableFarm || modelTablePlantDeadline ? [
+                    { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
+                    { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
+                    ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
+                ] : [
+                    { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
+                    { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
+                ];
+                for (let c = 0; c < modelHeadersRate.length; c++) {
+                    const _modelHeaderRate = modelHeadersRate[c];
+                    for (let d = 0; d < _modelHeaderRate.headers.length; d++) {
+                        const _headerRate = _modelHeaderRate.headers[d];
+                        const indexHeader = tableControl.getIndex({ valueSearch: _headerRate.header, where: { array: _modelHeaderRate.table[0] } });
+                        if (indexHeader < 0) {
+                            continue;
+                        }
+                        const rateValues = tableControl.getDistinctColumnValues({ table: _modelHeaderRate.table, columnIndex: indexHeader, excludes: { line: 0 } });
+                        if (rateValues.length == 1) {
+                            const name = `Template Taxa - ${_headerRate.header + ": " + rateValues[0]} _G`;
+                            const modelTable = { table: [], headers: [], code: "template.rate", name };
+                            repoControl.addTable({ tableModel: modelTable, saveOld: true });
+                            continue;
+                        }
+                        for (let e = 0; e < rateValues.length; e++) {
+                            const _rateValue = rateValues[e];
+                            if (!_rateValue || (isNumber(_rateValue) && Number(_rateValue) <= 0)) {
+                                continue;
+                            }
+                            const name = `Template Taxa - ${_headerRate.header + ": " + rateValues[e]} _N`;
+                            const { modelTable: modelTableTemplateRate, logs: logsCreateTemplateRate } = createTemplateRate({ tableBase: _modelHeaderRate.table, code: "template.rate", name, headers: [...headersTemplateRate, _headerRate], value: _rateValue, settings });
+                            if (!modelTableTemplateRate) {
+                                continue;
+                            }
+                            repoControl.addTable({ tableModel: modelTableTemplateRate, saveOld: true });
+                        }
+                    }
+                }
             }
         };
-        if (!process.find(_process => { return _process.type == "create-farm"; })) {
+        PROCESS["process-plant"]();
+        if (!repoControl.getProcess({ types: ["create-farm"] })[0]) {
             PROCESS["prepare-environment"]();
         }
         process.forEach(_process => {
@@ -929,8 +1092,8 @@ function FarmControl(farmRepository) {
     const updateProcess = (props) => {
         farmRepository.updateProcess(props.process);
     };
-    const getProcess = () => {
-        return farmRepository.getProcess();
+    const getProcess = (props) => {
+        return farmRepository.getProcess(props);
     };
     return {
         getData,
@@ -1263,7 +1426,8 @@ function MainControl() {
             tagDownload.setAttribute("download", `Fazenda - ${name ? `${name} ` : ``}${zipName}`);
         });
     };
-    const setupFarm = ({ plants, settings, process }, callback) => {
+    const setupFarm = ({ plants, settings, process: processSelection }, callback) => {
+        const process = processSelection.map(_process => { return { type: _process, logs: [] }; });
         farmControl.updateSetting({ settings });
         farmControl.updateProcess({ process });
         uploadFilesPlants({ plants }, callback);
@@ -1275,7 +1439,10 @@ function MainControl() {
         const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]);
         const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]);
         const plantFarm = _.cloneDeep(farmControl.getTable({ code: "farm" })[0]);
-        const plants = plantDeadline && plantPrice ? [plantDeadline, plantPrice] : plantFarm ? [plantFarm] : [];
+        const plants = [];
+        plantDeadline && plants.push(plantDeadline);
+        plantPrice && plants.push(plantPrice);
+        plantFarm && plants.push(plantFarm);
         const farm = processRepoTable({
             modelTables: plants,
             settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
@@ -1592,7 +1759,6 @@ function RenderControl() {
                 }
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
-            _item.name == "feature" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
@@ -1965,7 +2131,9 @@ function FarmRepository() {
         process: []
     };
     const setup = (props) => {
-        data.tables = [...props.tables];
+        props.tables.forEach(_modelTable => {
+            addTable(_modelTable, _modelTable.code == "template.rate");
+        });
         data.id = props.id;
         data.settings = { ..._.cloneDeep(props.settings), isActive: true };
         data.process = [..._.cloneDeep(props.process)];
@@ -2038,7 +2206,10 @@ function FarmRepository() {
     const updateProcess = (process) => {
         data.process = _.cloneDeep(process);
     };
-    const getProcess = () => {
+    const getProcess = ({ types } = { types: [] }) => {
+        if (types.length > 0) {
+            return _.cloneDeep(data.process).filter(_process => { return types.find(_type => { return _process.type == _type; }); });
+        }
         return _.cloneDeep(data.process);
     };
     return {
@@ -2075,6 +2246,7 @@ function FarmScript(idPanel) {
     const ELEMENTS_FORM = {
         plantDeadline: panel.querySelector("#input-file-plant-deadline"),
         plantPrice: panel.querySelector("#input-file-plant-price"),
+        plantFarm: panel.querySelector("#input-file-farm"),
         fileSettings: panel.querySelector("#input-file-settings"),
         paramCepInitial: panel.querySelector("#param-cep-initial"),
         paramCepFinal: panel.querySelector("#param-cep-final"),
@@ -2088,26 +2260,8 @@ function FarmScript(idPanel) {
         paramExcess: panel.querySelector("#param-excess"),
         nameFarm: panel.querySelector("#param-name-farm"),
     };
-    const PARAMS = {
-        "table": {
-            "cep.initial": "CEP INICIAL",
-            "cep.final": "CEP FINAL",
-            "deadline": "Prazo",
-            "excess": "Exce",
-            "rate": {
-                "deadline": "",
-                "price": ""
-            },
-            "selection.criteria": {
-                "price": "UF,REGIAO",
-                "deadline": "UF,REGIAO"
-            }
-        },
-        process: _.cloneDeep(GLOBAL_SETTINGS.process),
-        template: _.cloneDeep(GLOBAL_SETTINGS.template),
-    };
+    const PARAMS = _.cloneDeep(GLOBAL_TEMPLATE);
     const initComponents = () => {
-        Setup();
         renderControl.loadListFarms();
         loadForm();
         panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
@@ -2120,16 +2274,16 @@ function FarmScript(idPanel) {
         ELEMENTS_FORM.fileSettings.addEventListener("change", uploadSettings);
     };
     const loadForm = () => {
-        ELEMENTS_FORM.paramCepInitial.value = PARAMS.table["cep.initial"];
-        ELEMENTS_FORM.paramCepFinal.value = PARAMS.table["cep.final"];
-        ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.template.cepOriginValue["cep.origin.initial"];
-        ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.template.cepOriginValue["cep.origin.final"];
-        ELEMENTS_FORM.paramDeadline.value = PARAMS.table.deadline;
-        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.table.rate.deadline;
-        ELEMENTS_FORM.paramRatePrice.value = PARAMS.table.rate.price;
-        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.table["selection.criteria"].deadline;
-        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.table["selection.criteria"].price;
-        ELEMENTS_FORM.paramExcess.value = PARAMS.table.excess;
+        ELEMENTS_FORM.paramCepInitial.value = PARAMS.settings.table["cep.initial"];
+        ELEMENTS_FORM.paramCepFinal.value = PARAMS.settings.table["cep.final"];
+        ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.settings.template.cepOriginValue["cep.origin.initial"];
+        ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.settings.template.cepOriginValue["cep.origin.final"];
+        ELEMENTS_FORM.paramDeadline.value = PARAMS.settings.table.deadline;
+        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.settings.table.rate.deadline;
+        ELEMENTS_FORM.paramRatePrice.value = PARAMS.settings.table.rate.price;
+        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.settings.table["selection.criteria"].deadline;
+        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.settings.table["selection.criteria"].price;
+        ELEMENTS_FORM.paramExcess.value = PARAMS.settings.table.excess;
     };
     const uploadSettings = () => {
         const fileSettingsInput = ELEMENTS_FORM.fileSettings?.files ? ELEMENTS_FORM.fileSettings?.files[0] : null;
@@ -2139,7 +2293,7 @@ function FarmScript(idPanel) {
         const fileSettings = mainControl.createFile({ content: [fileSettingsInput], type: fileSettingsInput.type });
         mainControl.getContentFile(fileSettings, (result) => {
             const contentSettings = converterStringToJSON(result, ["separatorLine"]);
-            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_SETTINGS)) {
+            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE)) {
                 return console.log("Template incorrect");
             }
             Object.assign(PARAMS, contentSettings);
@@ -2147,6 +2301,7 @@ function FarmScript(idPanel) {
         });
     };
     const getDataOfForm = () => {
+        const plantFarm = ELEMENTS_FORM.plantFarm?.files ? ELEMENTS_FORM.plantFarm?.files[0] : null;
         const plantDeadline = ELEMENTS_FORM.plantDeadline?.files ? ELEMENTS_FORM.plantDeadline?.files[0] : null;
         const plantPrice = ELEMENTS_FORM.plantPrice?.files ? ELEMENTS_FORM.plantPrice?.files[0] : null;
         const paramCepInitial = `${ELEMENTS_FORM.paramCepInitial?.value}`;
@@ -2162,29 +2317,19 @@ function FarmScript(idPanel) {
         const dataPlants = {
             plants: [
                 {
-                    code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
+                    code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
                     headers: [
-                        { header: PARAMS.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: paramCepOriginInitial || PARAMS.template.cepOriginValue["cep.origin.initial"] },
-                        { header: PARAMS.template.headerName["cep.origin.final"], type: "cep.origin.final", value: paramCepOriginFinal || PARAMS.template.cepOriginValue["cep.origin.final"] },
-                        { header: paramCepFinal || PARAMS.table["cep.final"], type: "cep.final" },
-                        { header: paramCepInitial || PARAMS.table["cep.initial"], type: "cep.initial" },
-                        { header: paramDeadline || PARAMS.table.deadline, type: "deadline" },
-                        { header: paramSelectionCriteriaDeadline || PARAMS.table["selection.criteria"].deadline, type: "selection-criteria" },
-                        { header: paramRateDeadline || PARAMS.table.rate.deadline, type: "rate" },
+                        { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
+                        { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
+                        { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
+                        { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+                        { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
+                        { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
                     ],
-                    name: "Planta Prazo"
-                },
-                {
-                    code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
-                    headers: [
-                        { header: paramExcess || PARAMS.table.excess, type: "excess" },
-                        { header: paramSelectionCriteriaPrice || PARAMS.table["selection.criteria"].price, type: "selection-criteria" },
-                        { header: paramRatePrice || PARAMS.table.rate.price, type: "rate" },
-                    ],
-                    name: "Planta Preço"
+                    name: "Fazenda"
                 },
             ],
-            settings: PARAMS
+            ...PARAMS
         };
         if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) {
             console.log("$Teste");
@@ -2200,6 +2345,7 @@ function FarmScript(idPanel) {
         mainControl.setupFarm({
             plants: bodyForm.plants,
             settings: bodyForm.settings,
+            process: bodyForm.process,
         }, () => {
             mainControl.processFarm();
             prepareForDownload();
@@ -2231,188 +2377,11 @@ function FarmScript(idPanel) {
     return {};
 }
 function FeatureScript(idPanel) {
-    const GLOBAL_SETTINGS = {
-        "table": {
-            "cep.initial": "",
-            "cep.final": "",
-            "deadline": "",
-            "excess": "",
-            "rate": {
-                "deadline": "",
-                "price": ""
-            },
-            "selection.criteria": {
-                "price": "",
-                "deadline": ""
-            }
-        },
-        "process": {
-            "deadline+D": 1,
-            "criteria.selection": {
-                "join": " "
-            },
-            "converterStringTable": {
-                "separatorLine": /\r?\n/,
-                "separatorColumn": ";",
-                "configSeparatorColumn": {
-                    "separator": ",",
-                    "searchValue": ",",
-                    "replaceValue": "?",
-                    "betweenText": "\""
-                }
-            },
-        },
-        "template": {
-            "rateValue": {
-                "cep.origin.initial": "1000000",
-                "cep.origin.final": "99999999"
-            },
-            "headerName": {
-                "cep.origin.initial": "Inicio  Origem",
-                "cep.origin.final": "Fim  Origem",
-                "cep.initial": "Inicio  Destino",
-                "cep.final": "Fim  Destino",
-                "deadline+D": "Dias",
-                "excess": "Excedente"
-            },
-            "cepOriginValue": {
-                "cep.origin.final": "",
-                "cep.origin.initial": ""
-            }
-        }
-    };
     const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`);
     if (!panel) {
         return { error: { msg: "Panel not found" } };
     }
-    const mainControl = MainControl();
-    const renderControl = RenderControl();
-    const ELEMENTS_FORM = {
-        plantDeadline: panel.querySelector("#input-file-plant-deadline"),
-        plantPrice: panel.querySelector("#input-file-plant-price"),
-        plantFarm: panel.querySelector("#input-file-farm"),
-        fileSettings: panel.querySelector("#input-file-settings"),
-        paramCepInitial: panel.querySelector("#param-cep-initial"),
-        paramCepFinal: panel.querySelector("#param-cep-final"),
-        paramCepOriginInitial: panel.querySelector("#param-cep-origin-initial"),
-        paramCepOriginFinal: panel.querySelector("#param-cep-origin-final"),
-        paramDeadline: panel.querySelector("#param-deadline"),
-        paramRateDeadline: panel.querySelector("#param-rate-deadline"),
-        paramRatePrice: panel.querySelector("#param-rate-price"),
-        paramSelectionCriteriaDeadline: panel.querySelector("#param-selection-criteria-deadline"),
-        paramSelectionCriteriaPrice: panel.querySelector("#param-selection-criteria-price"),
-        paramExcess: panel.querySelector("#param-excess"),
-    };
-    const PARAMS = {
-        "table": {
-            "cep.initial": "CEP INICIAL",
-            "cep.final": "CEP FINAL",
-            "deadline": "Prazo",
-            "excess": "Exce",
-            "rate": {
-                "deadline": "",
-                "price": ""
-            },
-            "selection.criteria": {
-                "price": "UF,REGIAO",
-                "deadline": "UF,REGIAO"
-            }
-        },
-        process: _.cloneDeep(GLOBAL_SETTINGS.process),
-        template: _.cloneDeep(GLOBAL_SETTINGS.template),
-    };
     const initComponents = () => {
-        Setup();
-        renderControl.loadListFarms();
-        loadForm();
-        panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
-        panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel));
-        ELEMENTS_FORM.fileSettings.addEventListener("change", uploadSettings);
-    };
-    const loadForm = () => {
-        ELEMENTS_FORM.paramCepInitial.value = PARAMS.table["cep.initial"];
-        ELEMENTS_FORM.paramCepFinal.value = PARAMS.table["cep.final"];
-        ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.template.cepOriginValue["cep.origin.initial"];
-        ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.template.cepOriginValue["cep.origin.final"];
-        ELEMENTS_FORM.paramDeadline.value = PARAMS.table.deadline;
-        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.table.rate.deadline;
-        ELEMENTS_FORM.paramRatePrice.value = PARAMS.table.rate.price;
-        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.table["selection.criteria"].deadline;
-        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.table["selection.criteria"].price;
-        ELEMENTS_FORM.paramExcess.value = PARAMS.table.excess;
-    };
-    const uploadSettings = () => {
-        const fileSettingsInput = ELEMENTS_FORM.fileSettings?.files ? ELEMENTS_FORM.fileSettings?.files[0] : null;
-        if (!fileSettingsInput) {
-            return;
-        }
-        const fileSettings = mainControl.createFile({ content: [fileSettingsInput], type: fileSettingsInput.type });
-        mainControl.getContentFile(fileSettings, (result) => {
-            const contentSettings = converterStringToJSON(result, ["separatorLine"]);
-            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_SETTINGS)) {
-                return console.log("Template incorrect");
-            }
-            Object.assign(PARAMS, contentSettings);
-            loadForm();
-        });
-    };
-    const getDataOfForm = () => {
-        const plantFarm = ELEMENTS_FORM.plantFarm?.files ? ELEMENTS_FORM.plantFarm?.files[0] : null;
-        const plantDeadline = ELEMENTS_FORM.plantDeadline?.files ? ELEMENTS_FORM.plantDeadline?.files[0] : null;
-        const plantPrice = ELEMENTS_FORM.plantPrice?.files ? ELEMENTS_FORM.plantPrice?.files[0] : null;
-        const paramCepInitial = `${ELEMENTS_FORM.paramCepInitial?.value}`;
-        const paramCepFinal = `${ELEMENTS_FORM.paramCepFinal?.value}`;
-        const paramCepOriginInitial = `${ELEMENTS_FORM.paramCepOriginInitial?.value}`;
-        const paramCepOriginFinal = `${ELEMENTS_FORM.paramCepOriginFinal?.value}`;
-        const paramDeadline = `${ELEMENTS_FORM.paramDeadline?.value}`;
-        const paramRateDeadline = `${ELEMENTS_FORM.paramRateDeadline?.value}`;
-        const paramRatePrice = `${ELEMENTS_FORM.paramRatePrice?.value}`;
-        const paramSelectionCriteriaDeadline = `${ELEMENTS_FORM.paramSelectionCriteriaDeadline?.value}`;
-        const paramSelectionCriteriaPrice = `${ELEMENTS_FORM.paramSelectionCriteriaPrice?.value}`;
-        const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`;
-        const dataPlants = {
-            plants: [
-                {
-                    code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
-                    headers: [
-                        { header: paramCepFinal || PARAMS.table["cep.final"], type: "cep.final" },
-                        { header: paramCepInitial || PARAMS.table["cep.initial"], type: "cep.initial" },
-                        { header: paramDeadline || PARAMS.table.deadline, type: "deadline" },
-                        { header: paramRateDeadline || PARAMS.table.rate.deadline, type: "rate" },
-                        { header: paramExcess || PARAMS.table.excess, type: "excess" },
-                        { header: paramSelectionCriteriaDeadline || PARAMS.table["selection.criteria"].deadline, type: "selection-criteria" },
-                    ],
-                    name: "Fazenda"
-                },
-            ],
-            settings: PARAMS,
-            process: [
-                { type: "insert-values", logs: [] },
-                { type: "remove-character", logs: [] },
-                { type: "deadline+D", logs: [] },
-                { type: "contained-cep", logs: [] },
-                { type: "procv", logs: [] },
-                { type: "rate", logs: [] },
-            ]
-        };
-        if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) {
-            console.log("$Teste");
-            return dataPlants;
-        }
-        return dataPlants;
-    };
-    const updateFilesPlant = () => {
-        const bodyForm = getDataOfForm();
-        if (!bodyForm) {
-            return;
-        }
-        mainControl.setupFarm({
-            plants: bodyForm.plants,
-            settings: bodyForm.settings,
-            process: bodyForm.process,
-        }, () => {
-            mainControl.processFarm();
-        });
     };
     initComponents();
     return {};

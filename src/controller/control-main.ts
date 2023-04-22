@@ -90,7 +90,9 @@ function MainControl() {
     }
 
     // Table
-    const setupFarm = ({ plants, settings, process }: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[], settings: ISettingsGeneral, process: TFarmProcess[] }, callback?: Function) => {
+    const setupFarm = ({ plants, settings, process: processSelection }: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[], settings: ISettingsGeneral, process: TFarmProcessTypeSelection[] }, callback?: Function) => {
+        const process = processSelection.map(_process => { return { type: _process, logs: [] } })
+
         farmControl.updateSetting({ settings })
         farmControl.updateProcess({ process })
 
@@ -106,7 +108,11 @@ function MainControl() {
         const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0])
         const plantFarm = _.cloneDeep(farmControl.getTable({ code: "farm" })[0])
 
-        const plants = plantDeadline && plantPrice ? [plantDeadline, plantPrice] : plantFarm ? [plantFarm] : []
+        const plants: ITableModel[] = []
+
+        plantDeadline && plants.push(plantDeadline)
+        plantPrice && plants.push(plantPrice)
+        plantFarm && plants.push(plantFarm)
 
         const farm = processRepoTable({
             modelTables: plants,

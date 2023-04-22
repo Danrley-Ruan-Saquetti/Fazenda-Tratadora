@@ -44,30 +44,27 @@ interface ISettingsHeadersTable {
         deadline: string
     }
 }
-
 interface ISettingsTable {
     table: ISettingsHeadersTable
 }
-
-interface ISettingsTemplate {
+interface ISettingsTableTemplate {
     template: {
         rateValue: ISettingsTemplateRateValue
         headerName: ISettingsTemplateHeaderName
         cepOriginValue: ISettingsTemplateCepOriginValue
     }
 }
-
-interface ISettingsProcess {
+interface ISettingsProcessConfig {
     process: {
         "deadline+D": number,
-        "criteria.selection": {
-            join: string
-        }
+        "criteria.selection": { join: string }
         converterStringTable: ISettingsConverterStringTable,
     }
 }
-interface ISettingsGeneral extends ISettingsTable, ISettingsProcess, ISettingsTemplate { }
-interface ISettingsAdvanced extends ISettingsProcess, ISettingsTemplate { }
-interface ISettingsFarm extends ISettingsGeneral {
-    isActive?: Boolean
+interface ISettingsProcess {
+    process: TFarmProcessTypeSelection[]
 }
+interface ISettingsGeneral extends ISettingsTable, ISettingsProcessConfig, ISettingsTableTemplate { }
+interface ISettingsAdvanced extends ISettingsProcessConfig, ISettingsTableTemplate { }
+interface ISettingsFarm extends ISettingsGeneral { isActive?: Boolean }
+interface ISettingsTemplate extends ISettingsProcess { settings: ISettingsGeneral }

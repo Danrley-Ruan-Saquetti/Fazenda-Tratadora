@@ -39,5 +39,5 @@ declare interface IFarmRepository {
     updateSetting: (settings: ISettingsGeneral) => void;
     getSettings: () => ISettingsFarm;
     updateProcess: (process: TFarmProcess[]) => void;
-    getProcess: () => TFarmProcess[];
+    getProcess: ({ types }: { types: TFarmProcessType[] } = { types =[] }) => TFarmProcess[];
 };

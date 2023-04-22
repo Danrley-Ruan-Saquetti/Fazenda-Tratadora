@@ -6,7 +6,9 @@ function FarmRepository(): IFarmRepository {
 
     // Table
     const setup = (props: IFarm) => {
-        data.tables = [...props.tables]
+        props.tables.forEach(_modelTable => {
+            addTable(_modelTable, _modelTable.code == "template.rate")
+        })
         data.id = props.id
         data.settings = { ..._.cloneDeep(props.settings), isActive: true }
         data.process = [..._.cloneDeep(props.process)]
@@ -94,7 +96,11 @@ function FarmRepository(): IFarmRepository {
         data.process = _.cloneDeep(process)
     }
 
-    const getProcess = () => {
+    const getProcess = ({ types }: { types: TFarmProcessType[] } = { types: [] }) => {
+        if (types.length > 0) {
+            return _.cloneDeep(data.process).filter(_process => { return types.find(_type => { return _process.type == _type }) })
+        }
+
         return _.cloneDeep(data.process)
     }
 

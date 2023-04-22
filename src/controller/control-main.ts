@@ -102,13 +102,16 @@ function MainControl() {
     }
 
     const processFarm = () => {
+        const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0])
+        const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0])
+        const plantFarm = _.cloneDeep(farmControl.getTable({ code: "farm" })[0])
+
+        const plants = plantDeadline && plantPrice ? [plantDeadline, plantPrice] : plantFarm ? [plantFarm] : []
+
         const farm = processRepoTable({
-            modelTables: [
-                { ..._.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]) },
-                { ..._.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]) }
-            ],
+            modelTables: plants,
             settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
-            process: []
+            process: farmControl.getProcess()
         })
 
         farmControl.setup(farm)

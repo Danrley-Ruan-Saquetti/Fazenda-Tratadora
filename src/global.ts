@@ -106,6 +106,7 @@ const GLOBAL_ROUTES: TItemRoute[] = [
     { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
     { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
     { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
+    { icon: "gear", title: "Configurações", name: "setting", router: "routes/panel-setting.html", script: "SettingScript" },
     { icon: "signpost-split", title: "Features", name: "feature", router: "routes/panel.feature.html", script: "FeatureScript" },
 ]
 

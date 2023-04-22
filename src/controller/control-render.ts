@@ -18,6 +18,14 @@ function RenderControl() {
             const itemEl = createItem(_item.title, _item.icon, _item.name)
 
             itemEl.addEventListener("click", (ev) => {
+                const panelAlreadyExist = panelControl.getPanelByName(_item.name)
+
+                if (!ev.ctrlKey && panelAlreadyExist) {
+                    const id = panelAlreadyExist.getAttribute("id")
+
+                    return id && panelControl.togglePanel(id)
+                }
+
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey)
             })
 

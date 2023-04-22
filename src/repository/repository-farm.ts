@@ -44,12 +44,14 @@ function FarmRepository(): IFarmRepository {
         return true
     }
 
-    const updateTable = ({ code, headers: newHeaders, table: newTable }: { table: TTable, code: TTableCode, headers: THeader[] }) => {
+    const updateTable = ({ code, headers: newHeaders, table: newTable }: { table: TTable, code: TTableCode, headers?: THeader[] }) => {
         const modelTable = getTable({ code })[0]
 
         if (!modelTable) { return false }
 
-        data.tables[modelTable.index].headers = newHeaders
+        if (newHeaders) {
+            data.tables[modelTable.index].headers = newHeaders
+        }
         data.tables[modelTable.index].table = newTable
 
         return true

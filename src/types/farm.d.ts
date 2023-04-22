@@ -25,7 +25,7 @@ declare interface IFarmRepository {
     updateTable: ({ code, headers: newHeaders, table: newTable }: {
         table: TTable;
         code: TTableCode;
-        headers: THeader[];
+        headers?: THeader[];
     }) => boolean;
     updateHeaders: ({ code, headers: newHeaders }: {
         code: TTableCode;

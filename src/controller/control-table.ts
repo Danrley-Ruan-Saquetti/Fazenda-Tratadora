@@ -140,13 +140,17 @@ function TableControl() {
         }
     }
 
-    const removeCharacter = ({ character, table, options }: { table: TTable, character: string, options?: { specific: { line?: number, column?: number }, excludes?: { line?: number[], column?: number[] } } }) => {
+    const removeCharacter = ({ characters, table, options }: { table: TTable, characters: string[], options?: { specific: { line?: number, column?: number }, excludes?: { line?: number[], column?: number[] } } }) => {
         if (options && options.specific) {
             if (typeof options.specific.line != "undefined") {
                 for (let j = 0; j < table[options.specific.line].length; j++) {
                     if (options.excludes && options.excludes.column && options.excludes.column.indexOf(j) >= 0) { continue }
 
-                    table[options.specific.line][j] = replaceText({ val: table[options.specific.line][j], searchValue: character, replaceValue: "" })
+                    for (let k = 0; k < characters.length; k++) {
+                        const character = characters[k]
+
+                        table[options.specific.line][j] = replaceText({ val: table[options.specific.line][j], searchValue: character, replaceValue: "" })
+                    }
                 }
                 return true
             }
@@ -154,7 +158,11 @@ function TableControl() {
                 for (let i = 0; i < table.length; i++) {
                     if (options.excludes && options.excludes.line && options.excludes.line.indexOf(i) >= 0) { continue }
 
-                    table[i][options.specific.column] = replaceText({ val: table[i][options.specific.column], searchValue: character, replaceValue: "" })
+                    for (let k = 0; k < characters.length; k++) {
+                        const character = characters[k]
+
+                        table[i][options.specific.column] = replaceText({ val: table[i][options.specific.column], searchValue: character, replaceValue: "" })
+                    }
                 }
             }
 
@@ -167,7 +175,11 @@ function TableControl() {
             for (let j = 0; j < table[i].length; j++) {
                 if (options && options.excludes && options.excludes.column && options.excludes.column.indexOf(j) >= 0) { continue }
 
-                table[i][j] = replaceText({ val: table[i][j], searchValue: character, replaceValue: "" })
+                for (let k = 0; k < characters.length; k++) {
+                    const character = characters[k]
+
+                    table[i][j] = replaceText({ val: table[i][j], searchValue: character, replaceValue: "" })
+                }
             }
         }
         return true

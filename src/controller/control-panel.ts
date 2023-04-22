@@ -209,5 +209,7 @@ function PanelControl() {
     return {
         initComponents,
         newPanel,
+        togglePanel,
+        getPanelByName,
     }
 }

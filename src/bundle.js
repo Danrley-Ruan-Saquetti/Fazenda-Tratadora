@@ -112,6 +112,7 @@ const GLOBAL_ROUTES = [
     { icon: "house-door", title: "Fazenda", name: "farm", router: "routes/panel-farm.html", script: "FarmScript" },
     { icon: "ui-radios", title: "Histórico", name: "history", router: "routes/panel-history.html", script: "HistoryScript" },
     { icon: "calculator", title: "Testes", name: "test", router: "routes/panel-test.html", script: "TestScript" },
+    { icon: "gear", title: "Configurações", name: "setting", router: "routes/panel-setting.html", script: "SettingScript" },
     { icon: "signpost-split", title: "Features", name: "feature", router: "routes/panel.feature.html", script: "FeatureScript" },
 ];
 const GLOBAL_ROUTES_ROUTER = {
@@ -338,6 +339,39 @@ I;PA;PA I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;21
 I;AC;AC I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
 I;RR;RR I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
 I;RO;RO I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85`;
+const plantFarmTest = `CEP INICIAL;CEP FINAL;Prazo;UF;REGIAO;Exce;0,25;0,5;0,75;1;2;3;4;5;6;7;8;9;10
+1001-000;1599-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2000-000;2811-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2817-000;2832-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2840-000;2841-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2900-000;2911-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2912-000;2924-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2925-000;2930-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2931-000;2958-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+14400-000;14414-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+14940-000;14940-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15000-000;15099-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15100-000;15101-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15102-000;15102-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15103-000;15103-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15104-000;15104-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15105-000;15105-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15106-000;15107-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15108-000;15108-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15109-000;15109-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15110-000;15110-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15111-000;15114-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15115-000;15115-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15116-000;15119-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15120-000;15120-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15121-000;15124-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15125-000;15125-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15126-000;15127-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15128-000;15128-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15129-000;15129-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+19870-000;19870-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+19880-000;19880-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+19900-000;19919-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88`;
 function tableComponent({ table: tableEl, headers }, onSelection, colResizableProps = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64 }) {
     const listSelected = [];
     const insertColumnSelect = () => {
@@ -467,14 +501,6 @@ function FarmControl(farmRepository) {
     const fileControl = FileControl(farmRepository);
     const tableControl = TableControl();
     const settingControl = SettingControl(farmRepository);
-    const PROCESS = {
-        "insert-values": () => { },
-        "remove-character": () => { },
-        "deadline+D": () => { },
-        "contained-cep": () => { },
-        "procv": () => { },
-        "rate": () => { }
-    };
     const getHeadersWeight = ({ table }) => {
         const headersWeight = [];
         for (let j = 0; j < table[0].length; j++) {
@@ -598,99 +624,128 @@ function FarmControl(farmRepository) {
     const processFarm = ({ modelTables, settings, process }) => {
         const repoControl = FarmControl(FarmRepository());
         repoControl.setup({ id: null, settings, tables: modelTables, process });
-        const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
-        const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
-        if (!modelTablePlantPrice || !modelTablePlantDeadline) {
-            return repoControl.getData();
-        }
-        const headersPlantDeadline = [
-            ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.origin.initial", "cep.origin.final", "cep.initial", "cep.final", "deadline", "excess", "rate", "selection-criteria"] }),
-        ];
-        const headersPlantPrice = [
-            ...getHeaders({ tableModel: modelTablePlantPrice }),
-            ...getHeadersWeight({ table: [modelTablePlantPrice.table[0]] }),
-        ];
-        repoControl.updateHeaders({ code: "plant.price", headers: headersPlantPrice });
-        const headerDeadline = getHeaders({ tableModel: modelTablePlantDeadline, types: ["deadline"] })[0];
-        const headerPlantValueDeadlineToFarm = [
-            ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.origin.initial", "cep.origin.final", "cep.initial", "cep.final"] }),
-            { header: headerDeadline ? headerDeadline.header + "+" + settings.process["deadline+D"] : "D+" + settings.process["deadline+D"], type: "deadline+D" },
-            ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["selection-criteria", "excess", "rate"] }),
-        ];
-        const headerPlantValuePriceToFarm = [
-            ...getHeaders({ tableModel: modelTablePlantPrice, types: ["excess", "rate", "selection-criteria"] }),
-            ...getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
-        ];
-        const headersFarm = [
-            ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] }),
-            { header: headerDeadline ? headerDeadline.header + "+" + settings.process["deadline+D"] : "D+" + settings.process["deadline+D"], type: "deadline+D" },
-            ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["selection-criteria", "excess", "rate"] }),
-            ...getHeaders({ tableModel: modelTablePlantPrice, types: ["excess", "rate"] }),
-            ...getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
-        ];
-        const { modelTable: modelTableFarm, logs: logsCreateFarm } = createFarm({ headers: headersFarm, plant: modelTablePlantDeadline.table, name: "Fazenda" });
-        repoControl.addTable({ tableModel: modelTableFarm });
-        const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
-        const indexCepInitial = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
-        const indexCepFinal = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, types: ["cep.final"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
-        if (indexCepInitial < 0 || indexCepFinal < 0) {
-            return repoControl.getData();
-        }
-        tableControl.removeCharacter({ table: modelTableFarm.table, character: "-", options: { specific: { column: indexCepInitial }, excludes: { line: [0] } } });
-        tableControl.removeCharacter({ table: modelTableFarm.table, character: "-", options: { specific: { column: indexCepFinal }, excludes: { line: [0] } } });
-        const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: { table: modelTableFarm.table, headers: headersFarm }, tableBase: { table: modelTablePlantDeadline.table, headers: headersPlantDeadline }, settings });
-        modelTableFarm.table = tableControl.orderTable({ table: modelTableFarm.table, column: indexCepInitial });
-        const { logs: logsValidateContainedCEP } = validateContainedCEP({ table: { table: modelTableFarm.table, code: "farm", headers: headersFarm } });
-        const headersTemplateDeadline = [
-            ...getHeaders({ tableModel: { table: modelTablePlantDeadline.table, code: "plant.deadline", headers: headersPlantDeadline }, types: ["cep.origin.initial", "cep.origin.final"] }),
-            ...getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, types: ["cep.initial", "cep.final", "deadline+D"] }),
-        ];
-        const headersTemplatePrice = [
-            ...getHeaders({ tableModel: { table: modelTablePlantDeadline.table, code: "plant.deadline", headers: headersPlantDeadline }, types: ["cep.origin.initial", "cep.origin.final"] }),
-            ...getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, types: ["cep.initial", "cep.final", "excess"] }),
-            ...getHeadersWeight({ table: [modelTableFarm.table[0]] }),
-        ];
-        const headersTemplateRate = [
-            { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
-            { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
-            ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
-        ];
-        const { logs: logsInsertProcvValues } = insertProcvValues({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm }, tableBase: { table: modelTablePlantPrice.table, code: "plant.price", headers: headerPlantValuePriceToFarm }, headers: headerPlantValuePriceToFarm, settings });
-        const { modelTable: modelTableTemplateDeadline, logs: logsTableTableTemplateDeadline } = createTemplate({ code: "template.deadline", headers: headersTemplateDeadline, tableBase: modelTableFarm.table, name: "Template Prazo", settings });
-        const { modelTable: modelTableTemplatePrice, logs: logsTableTableTemplatePrice } = createTemplate({ code: "template.price", headers: headersTemplatePrice, tableBase: modelTableFarm.table, name: "Template Preço", settings });
-        const headersRate = [
-            ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }),
-            ...getHeaders({ tableModel: modelTablePlantPrice, types: ["rate"] }),
-        ];
-        for (let c = 0; c < headersRate.length; c++) {
-            const _headerRate = headersRate[c];
-            const indexHeader = tableControl.getIndex({ valueSearch: _headerRate.header, where: { array: modelTableFarm.table[0] } });
-            if (indexHeader < 0) {
-                continue;
-            }
-            const rateValues = tableControl.getDistinctColumnValues({ table: modelTableFarm.table, columnIndex: indexHeader, excludes: { line: 0 } });
-            if (rateValues.length == 1) {
-                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + rateValues[0], searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _G`;
-                const modelTable = { table: [], headers: [], code: "template.rate", name };
-                repoControl.addTable({ tableModel: modelTable, saveOld: true });
-                continue;
-            }
-            for (let c = 0; c < rateValues.length; c++) {
-                const _rateValue = rateValues[c];
-                if (!_rateValue || (isNumber(_rateValue) && Number(_rateValue) <= 0)) {
-                    continue;
+        const PROCESS = {
+            "process-plant": () => {
+                const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
+                const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
+                if (!modelTablePlantPrice || !modelTablePlantDeadline) {
+                    return;
                 }
-                const name = `Template Taxa - ${replaceText({ val: replaceText({ val: _headerRate.header + " " + _rateValue, searchValue: `"`, replaceValue: "" }), searchValue: `/`, replaceValue: "" })} _N`;
-                const { modelTable: modelTableTemplateRate, logs: logsCreateTemplateRate } = createTemplateRate({ tableBase: modelTableFarm.table, code: "template.rate", name, headers: [...headersTemplateRate, _headerRate], value: _rateValue, settings });
-                if (!modelTableTemplateRate) {
-                    continue;
+                const headersPlantDeadline = [
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final", "deadline", "excess", "rate", "selection-criteria"] }),
+                ];
+                const headersPlantPrice = [
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantPrice }),
+                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] }),
+                ];
+                repoControl.updateHeaders({ code: "plant.price", headers: headersPlantPrice });
+                repoControl.updateHeaders({ code: "plant.deadline", headers: headersPlantDeadline });
+            },
+            "prepare-environment": () => {
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                if (!modelTableFarm) {
+                    return;
                 }
-                repoControl.addTable({ tableModel: modelTableTemplateRate, saveOld: true });
-            }
+                const isProcessDeadline = process.find(_process => { return _process.type == "deadline+D"; });
+                const headerDeadline = repoControl.getHeaders({ code: "farm", types: ["deadline"] })[0];
+                const headersFarm = isProcessDeadline ? [
+                    ...repoControl.getHeaders({ code: "farm", types: ["cep.initial", "cep.final", "deadline"] }),
+                    { header: `${headerDeadline.header}+${settings.process["deadline+D"]}`, type: "deadline+D" },
+                    ...repoControl.getHeaders({ code: "farm", types: ["selection-criteria", "excess", "rate", "extra"] }),
+                    ...repoControl.getHeadersWeight({ table: [modelTableFarm.table[0]] })
+                ] : [
+                    ...repoControl.getHeaders({ code: "farm", types: ["cep.initial", "cep.final", "deadline"] }),
+                    ...repoControl.getHeaders({ code: "farm", types: ["selection-criteria", "excess", "rate", "extra"] }),
+                    ...repoControl.getHeadersWeight({ table: [modelTableFarm.table[0]] })
+                ];
+                if (isProcessDeadline) {
+                    const indexHeaderDeadline = tableControl.getIndex({ valueSearch: headerDeadline.header, where: { array: modelTableFarm.table[0] } });
+                    if (indexHeaderDeadline < 0) {
+                        return;
+                    }
+                    tableControl.addColumn({ table: modelTableFarm.table, header: `${headerDeadline.header}+${settings.process["deadline+D"]}`, index: indexHeaderDeadline + 1 });
+                }
+                repoControl.updateTable({ table: modelTableFarm.table, code: "farm", headers: headersFarm });
+            },
+            "create-farm": () => {
+                const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
+                const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
+                if (!modelTablePlantPrice || !modelTablePlantDeadline) {
+                    return;
+                }
+                const isProcessDeadline = process.find(_process => { return _process.type == "deadline+D"; });
+                const headerDeadline = repoControl.getHeaders({ code: "plant.deadline", types: ["deadline"] })[0];
+                const headersFarm = isProcessDeadline ? [
+                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
+                    { header: `${headerDeadline ? headerDeadline.header : "D"}+${settings.process["deadline+D"]}`, type: "deadline+D" },
+                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "rate"] }),
+                    ...repoControl.getHeaders({ code: "plant.price", types: ["excess", "rate"] }),
+                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                ] : [
+                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
+                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "rate"] }),
+                    ...repoControl.getHeaders({ code: "plant.price", types: ["excess", "rate"] }),
+                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                ];
+                const { modelTable: modelTableFarm, logs: logsCreateFarm } = createFarm({ headers: headersFarm, plant: modelTablePlantDeadline.table, name: "Fazenda" });
+                repoControl.addTable({ tableModel: modelTableFarm });
+            },
+            "insert-values": () => {
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
+                const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
+                if (!modelTableFarm || !modelTablePlantDeadline || !modelTablePlantPrice) {
+                    return;
+                }
+                const headerDeadline = repoControl.getHeaders({ code: "plant.deadline", types: ["deadline"] })[0];
+                const headerPlantValueDeadlineToFarm = [
+                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
+                    { header: `${headerDeadline ? headerDeadline.header : "D"}+${settings.process["deadline+D"]}`, type: "deadline+D" },
+                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "excess", "rate"] }),
+                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                ];
+                insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+            },
+            "remove-character": () => {
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                if (!modelTableFarm) {
+                    return;
+                }
+                const columns = ["cep.initial", "cep.final"];
+                const characters = ["-"];
+                columns.forEach(_column => {
+                    const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: [_column] })[0]?.header, where: { array: modelTableFarm.table[0] } });
+                    tableControl.removeCharacter({ table: modelTableFarm.table, characters, options: { specific: { column: indexColumn }, excludes: { line: [0] } } });
+                });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+            },
+            "deadline+D": () => {
+                const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
+                if (!modelTableFarm) {
+                    return;
+                }
+                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, tableBase: { table: modelTableFarm.table, headers: modelTableFarm.headers }, settings });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+            },
+            "contained-cep": () => { },
+            "procv": () => { },
+            "rate": () => { }
+        };
+        if (process.find(_process => { return _process.type == "create-farm"; })) {
+            PROCESS["process-plant"]();
         }
-        repoControl.addTable({ tableModel: { table: modelTableFarm.table, code: "farm", headers: headersFarm, name: "Fazenda" } });
-        repoControl.addTable({ tableModel: modelTableTemplateDeadline });
-        repoControl.addTable({ tableModel: modelTableTemplatePrice });
+        else {
+            PROCESS["prepare-environment"]();
+        }
+        process.forEach(_process => {
+            if (_process.type == "insert-values" || _process.type == "procv") {
+                if (!process.find(_process => { return _process.type == "create-farm"; })) {
+                    return;
+                }
+            }
+            PROCESS[_process.type]();
+        });
         return repoControl.getData();
     };
     const insertValues = ({ tablePlant, table, headers }) => {
@@ -824,7 +879,7 @@ function FarmControl(farmRepository) {
     };
     function getHeaders({ tableModel, code, types = [] }) {
         if (code) {
-            return _.cloneDeep(farmRepository.getHeaders({ code }));
+            return _.cloneDeep(farmRepository.getHeaders({ code, types }));
         }
         if (!tableModel) {
             return [];
@@ -872,6 +927,7 @@ function FarmControl(farmRepository) {
         getSettings,
         updateProcess,
         getProcess,
+        getHeadersWeight,
     };
 }
 function FileControl(farmRepository) {
@@ -1194,13 +1250,14 @@ function MainControl() {
         return farmControl.processFarm(props) || null;
     };
     const processFarm = () => {
+        const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]);
+        const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]);
+        const plantFarm = _.cloneDeep(farmControl.getTable({ code: "farm" })[0]);
+        const plants = plantDeadline && plantPrice ? [plantDeadline, plantPrice] : plantFarm ? [plantFarm] : [];
         const farm = processRepoTable({
-            modelTables: [
-                { ..._.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]) },
-                { ..._.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]) }
-            ],
+            modelTables: plants,
             settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
-            process: []
+            process: farmControl.getProcess()
         });
         farmControl.setup(farm);
         console.log("$Finish");
@@ -1486,6 +1543,8 @@ function PanelControl() {
     return {
         initComponents,
         newPanel,
+        togglePanel,
+        getPanelByName,
     };
 }
 function RenderControl() {
@@ -1504,6 +1563,11 @@ function RenderControl() {
         GLOBAL_ROUTES.forEach(_item => {
             const itemEl = createItem(_item.title, _item.icon, _item.name);
             itemEl.addEventListener("click", (ev) => {
+                const panelAlreadyExist = panelControl.getPanelByName(_item.name);
+                if (!ev.ctrlKey && panelAlreadyExist) {
+                    const id = panelAlreadyExist.getAttribute("id");
+                    return id && panelControl.togglePanel(id);
+                }
                 panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
             });
             _item.name == "feature" && panelControl.newPanel({ name: _item.name, title: _item.title }, false);
@@ -1743,14 +1807,17 @@ function TableControl() {
                 table[i].push(value);
         }
     };
-    const removeCharacter = ({ character, table, options }) => {
+    const removeCharacter = ({ characters, table, options }) => {
         if (options && options.specific) {
             if (typeof options.specific.line != "undefined") {
                 for (let j = 0; j < table[options.specific.line].length; j++) {
                     if (options.excludes && options.excludes.column && options.excludes.column.indexOf(j) >= 0) {
                         continue;
                     }
-                    table[options.specific.line][j] = replaceText({ val: table[options.specific.line][j], searchValue: character, replaceValue: "" });
+                    for (let k = 0; k < characters.length; k++) {
+                        const character = characters[k];
+                        table[options.specific.line][j] = replaceText({ val: table[options.specific.line][j], searchValue: character, replaceValue: "" });
+                    }
                 }
                 return true;
             }
@@ -1759,7 +1826,10 @@ function TableControl() {
                     if (options.excludes && options.excludes.line && options.excludes.line.indexOf(i) >= 0) {
                         continue;
                     }
-                    table[i][options.specific.column] = replaceText({ val: table[i][options.specific.column], searchValue: character, replaceValue: "" });
+                    for (let k = 0; k < characters.length; k++) {
+                        const character = characters[k];
+                        table[i][options.specific.column] = replaceText({ val: table[i][options.specific.column], searchValue: character, replaceValue: "" });
+                    }
                 }
             }
             return true;
@@ -1772,7 +1842,10 @@ function TableControl() {
                 if (options && options.excludes && options.excludes.column && options.excludes.column.indexOf(j) >= 0) {
                     continue;
                 }
-                table[i][j] = replaceText({ val: table[i][j], searchValue: character, replaceValue: "" });
+                for (let k = 0; k < characters.length; k++) {
+                    const character = characters[k];
+                    table[i][j] = replaceText({ val: table[i][j], searchValue: character, replaceValue: "" });
+                }
             }
         }
         return true;
@@ -1900,7 +1973,9 @@ function FarmRepository() {
         if (!modelTable) {
             return false;
         }
-        data.tables[modelTable.index].headers = newHeaders;
+        if (newHeaders) {
+            data.tables[modelTable.index].headers = newHeaders;
+        }
         data.tables[modelTable.index].table = newTable;
         return true;
     };
@@ -1958,7 +2033,8 @@ const GLOBAL_MODULE_SCRIPTS = {
     ["FarmScript"]: FarmScript,
     ["HistoryScript"]: HistoryScript,
     ["FeatureScript"]: FeatureScript,
-    ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; }
+    ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
+    ["SettingScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; }
 };
 function FarmScript(idPanel) {
     const panel = document.querySelector(`[panel="farm"][id="${idPanel}"]`);
@@ -2185,6 +2261,7 @@ function FeatureScript(idPanel) {
     const ELEMENTS_FORM = {
         plantDeadline: panel.querySelector("#input-file-plant-deadline"),
         plantPrice: panel.querySelector("#input-file-plant-price"),
+        plantFarm: panel.querySelector("#input-file-farm"),
         fileSettings: panel.querySelector("#input-file-settings"),
         paramCepInitial: panel.querySelector("#param-cep-initial"),
         paramCepFinal: panel.querySelector("#param-cep-final"),
@@ -2196,7 +2273,6 @@ function FeatureScript(idPanel) {
         paramSelectionCriteriaDeadline: panel.querySelector("#param-selection-criteria-deadline"),
         paramSelectionCriteriaPrice: panel.querySelector("#param-selection-criteria-price"),
         paramExcess: panel.querySelector("#param-excess"),
-        nameFarm: panel.querySelector("#param-name-farm"),
     };
     const PARAMS = {
         "table": {
@@ -2221,12 +2297,7 @@ function FeatureScript(idPanel) {
         renderControl.loadListFarms();
         loadForm();
         panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
-        panel.querySelector("#download-files")?.addEventListener("click", downloadFiles);
-        panel.querySelector("#save-farm")?.addEventListener("click", saveFarm);
         panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel));
-        panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory);
-        panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm);
-        panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings);
         ELEMENTS_FORM.fileSettings.addEventListener("change", uploadSettings);
     };
     const loadForm = () => {
@@ -2257,6 +2328,7 @@ function FeatureScript(idPanel) {
         });
     };
     const getDataOfForm = () => {
+        const plantFarm = ELEMENTS_FORM.plantFarm?.files ? ELEMENTS_FORM.plantFarm?.files[0] : null;
         const plantDeadline = ELEMENTS_FORM.plantDeadline?.files ? ELEMENTS_FORM.plantDeadline?.files[0] : null;
         const plantPrice = ELEMENTS_FORM.plantPrice?.files ? ELEMENTS_FORM.plantPrice?.files[0] : null;
         const paramCepInitial = `${ELEMENTS_FORM.paramCepInitial?.value}`;
@@ -2272,30 +2344,27 @@ function FeatureScript(idPanel) {
         const dataPlants = {
             plants: [
                 {
-                    code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
+                    code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
                     headers: [
-                        { header: PARAMS.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: paramCepOriginInitial || PARAMS.template.cepOriginValue["cep.origin.initial"] },
-                        { header: PARAMS.template.headerName["cep.origin.final"], type: "cep.origin.final", value: paramCepOriginFinal || PARAMS.template.cepOriginValue["cep.origin.final"] },
                         { header: paramCepFinal || PARAMS.table["cep.final"], type: "cep.final" },
                         { header: paramCepInitial || PARAMS.table["cep.initial"], type: "cep.initial" },
                         { header: paramDeadline || PARAMS.table.deadline, type: "deadline" },
-                        { header: paramSelectionCriteriaDeadline || PARAMS.table["selection.criteria"].deadline, type: "selection-criteria" },
                         { header: paramRateDeadline || PARAMS.table.rate.deadline, type: "rate" },
-                    ],
-                    name: "Planta Prazo"
-                },
-                {
-                    code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
-                    headers: [
                         { header: paramExcess || PARAMS.table.excess, type: "excess" },
-                        { header: paramSelectionCriteriaPrice || PARAMS.table["selection.criteria"].price, type: "selection-criteria" },
-                        { header: paramRatePrice || PARAMS.table.rate.price, type: "rate" },
+                        { header: paramSelectionCriteriaDeadline || PARAMS.table["selection.criteria"].deadline, type: "selection-criteria" },
                     ],
-                    name: "Planta Preço"
+                    name: "Fazenda"
                 },
             ],
             settings: PARAMS,
-            process: []
+            process: [
+                { type: "insert-values", logs: [] },
+                { type: "remove-character", logs: [] },
+                { type: "deadline+D", logs: [] },
+                { type: "contained-cep", logs: [] },
+                { type: "procv", logs: [] },
+                { type: "rate", logs: [] },
+            ]
         };
         if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) {
             console.log("$Teste");
@@ -2314,30 +2383,7 @@ function FeatureScript(idPanel) {
             process: bodyForm.process,
         }, () => {
             mainControl.processFarm();
-            prepareForDownload();
         });
-    };
-    const prepareForDownload = () => {
-        mainControl.prepareForDownload();
-    };
-    const downloadFiles = () => { };
-    const saveFarm = () => {
-        if (mainControl.getData().tables.length == 0) {
-            return;
-        }
-        const nameInput = `${ELEMENTS_FORM.nameFarm.value}`;
-        mainControl.saveFarm(`Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`);
-        renderControl.loadListFarms();
-    };
-    const clearHistory = () => {
-        mainControl.clearHistory();
-        renderControl.loadListFarms();
-    };
-    const clearFarm = () => {
-        mainControl.clearFarm();
-    };
-    const clearSettings = () => {
-        mainControl.clearSettings();
     };
     initComponents();
     return {};

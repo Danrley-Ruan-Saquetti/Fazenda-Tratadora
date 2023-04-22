@@ -1,5 +1,7 @@
-type TFarmProcessType = "insert-values" | "remove-character" | "deadline+D" | "contained-cep" | "procv" | "rate"
+type TFarmProcessType = "process-plant" | "prepare-environment" | "create-farm" | "insert-values" | "remove-character" | "deadline+D" | "contained-cep" | "procv" | "rate"
 
-type TProcessSituation = "canceled" | "interrupted" | "finalized"
+type TFarmProcessTypeSelection = "create-farm" | "insert-values" | "deadline+D" | "contained-cep" | "procv" | "rate"
 
-type TFarmProcess = { type: TFarmProcess, logs: TLog[], situation: TProcessSituation }
+type TProcessSituation = "canceled" | "interrupted" | "finalized" | ""
+
+type TFarmProcess = { type: TFarmProcessType, logs: TLog[], situation?: TProcessSituation }

@@ -2,7 +2,7 @@ type TFarmProcessType = "process-plant" | "prepare-environment" | "create-farm" 
 
 type TFarmProcessTypeSelection = "create-farm" | "insert-values" | "deadline+D" | "contained-cep" | "procv" | "template" | "rate"
 
-type TProcessSituation = "canceled" | "interrupted" | "finalized" | ""
+type TProcessSituation = "canceled" | "interrupted" | "finalized"
 
 type TFarmProcess = { type: TFarmProcessType, logs: TLog[], situation?: TProcessSituation }
 type TFarmProcessSelection = { type: TFarmProcessTypeSelection, logs: TLog[], situation?: TProcessSituation }

@@ -804,11 +804,12 @@ function FarmControl(farmRepository) {
                 ] : [];
                 modelTablePlantPrice && repoControl.updateHeaders({ code: "plant.price", headers: headersPlantPrice });
                 modelTablePlantDeadline && repoControl.updateHeaders({ code: "plant.deadline", headers: headersPlantDeadline });
+                return { result: null };
             },
             "prepare-environment": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
-                    return;
+                    return { result: null };
                 }
                 const isProcessDeadline = repoControl.getProcess({ types: ["deadline+D"] })[0];
                 const headerDeadline = repoControl.getHeaders({ code: "farm", types: ["deadline"] })[0];
@@ -825,17 +826,18 @@ function FarmControl(farmRepository) {
                 if (isProcessDeadline) {
                     const indexHeaderDeadline = tableControl.getIndex({ valueSearch: headerDeadline.header, where: { array: modelTableFarm.table[0] } });
                     if (indexHeaderDeadline < 0) {
-                        return;
+                        return { result: null };
                     }
                     tableControl.addColumn({ table: modelTableFarm.table, header: `${headerDeadline.header}+${settings.process["deadline+D"]}`, index: indexHeaderDeadline + 1 });
                 }
                 repoControl.updateTable({ table: modelTableFarm.table, code: "farm", headers: headersFarm });
+                return { result: null };
             },
             "create-farm": () => {
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
                 if (!modelTablePlantPrice || !modelTablePlantDeadline) {
-                    return;
+                    return { result: null };
                 }
                 const isProcessDeadline = repoControl.getProcess({ types: ["deadline+D"] })[0];
                 const isProcessProcv = repoControl.getProcess({ types: ["procv"] })[0];
@@ -856,17 +858,19 @@ function FarmControl(farmRepository) {
                     ];
                 }
                 const { modelTable: modelTableFarm, logs: logsCreateFarm } = createFarm({ headers: headersFarm, plant: modelTablePlantDeadline.table, name: "Fazenda" });
+                const processResult = { logs: logsCreateFarm, type: "create-farm", situation: "finalized" };
                 repoControl.addTable({ tableModel: modelTableFarm });
+                return { result: processResult };
             },
             "insert-values": () => {
                 if (!repoControl.getProcess({ types: ["create-farm"] })) {
-                    return;
+                    return { result: null };
                 }
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
                 if (!modelTableFarm || !modelTablePlantDeadline || !modelTablePlantPrice) {
-                    return;
+                    return { result: null };
                 }
                 const headerDeadline = repoControl.getHeaders({ code: "plant.deadline", types: ["deadline"] })[0];
                 const headerPlantValueDeadlineToFarm = [
@@ -875,72 +879,86 @@ function FarmControl(farmRepository) {
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "excess", "rate"] }),
                     ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
                 ];
-                insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
+                const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
+                const processResult = { logs: logsInsertValues, type: "insert-values", situation: "finalized" };
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+                return { result: processResult };
             },
             "remove-character": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
-                    return;
+                    return { result: null };
                 }
                 const columns = ["cep.initial", "cep.final"];
                 const characters = ["-"];
+                const processResult = { logs: [], type: "insert-values" };
                 columns.forEach(_column => {
-                    const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: modelTableFarm, types: [_column] })[0]?.header, where: { array: modelTableFarm.table[0] } });
-                    tableControl.removeCharacter({ table: modelTableFarm.table, characters, options: { specific: { column: indexColumn }, excludes: { line: [0] } } });
+                    const header = repoControl.getHeaders({ tableModel: modelTableFarm, types: [_column] })[0];
+                    const indexColumn = tableControl.getIndex({ valueSearch: header?.header, where: { array: modelTableFarm.table[0] } });
+                    const successRemove = tableControl.removeCharacter({ table: modelTableFarm.table, characters, options: { specific: { column: indexColumn }, excludes: { line: [0] } } });
+                    processResult.logs.push({ type: successRemove ? "success" : "alert", message: `${successRemove ? `Success in removing the characters${header ? ` in header ${header.header}` : ``}` : `Unable to remove character`}` });
                 });
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+                processResult.situation = "finalized";
+                return { result: processResult };
             },
             "deadline+D": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
-                    return;
+                    return { result: null };
                 }
                 const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: modelTableFarm, tableBase: modelTableFarm, settings });
+                const processResult = { logs: logsInsertValuesDMoreOne, type: "deadline+D", situation: "finalized" };
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+                return { result: processResult };
             },
             "order-table": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
-                    return;
+                    return { result: null };
                 }
-                const indexColumn = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
+                const indexColumn = tableControl.getIndex({ valueSearch: repoControl.getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
                 modelTableFarm.table = tableControl.orderTable({ table: modelTableFarm.table, column: indexColumn });
+                const processResult = { logs: [{ type: "success", message: `Table farm ordered with successfully` }], type: "order-table", situation: "finalized" };
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+                return { result: processResult };
             },
             "contained-cep": () => {
                 PROCESS["order-table"]();
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
-                    return;
+                    return { result: null };
                 }
                 const { logs: logsValidateContainedCEP } = validateContainedCEP({ table: modelTableFarm });
+                const processResult = { logs: logsValidateContainedCEP, type: "contained-cep", situation: "finalized" };
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+                return { result: processResult };
             },
             "procv": () => {
                 if (repoControl.getProcess({ types: ["create-farm", "insert-values"] }).length != 2) {
-                    return;
+                    return { result: null };
                 }
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
                 if (!modelTableFarm || !modelTablePlantPrice) {
-                    return;
+                    return { result: null };
                 }
                 const headerPlantValuePriceToFarm = [
-                    ...getHeaders({ tableModel: modelTablePlantPrice, types: ["excess", "rate", "selection-criteria"] }),
-                    ...getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantPrice, types: ["excess", "rate", "selection-criteria"] }),
+                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
                 ];
                 const { logs: logsInsertProcvValues } = insertProcvValues({ tableModel: modelTableFarm, tableBase: { table: modelTablePlantPrice.table, code: "plant.price", headers: headerPlantValuePriceToFarm }, headers: headerPlantValuePriceToFarm, settings });
+                const processResult = { logs: logsInsertProcvValues, type: "procv", situation: "finalized" };
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+                return { result: processResult };
             },
             "template": () => {
                 if (!repoControl.getProcess({ types: ["create-farm"] })[0]) {
-                    return;
+                    return { result: null };
                 }
-                const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
-                    return;
+                    return { result: null };
                 }
                 const modelTemplates = [];
                 const isProcessProcv = repoControl.getProcess({ types: ["procv"] })[0];
@@ -961,14 +979,21 @@ function FarmControl(farmRepository) {
                         modelTemplates.push({ code: "template.price", headers: headersTemplatePrice, table: modelTableFarm.table, name: "Template Preço" });
                     }
                 }
+                const processResult = { logs: [], type: "template" };
                 for (let i = 0; i < modelTemplates.length; i++) {
                     const { modelTable: modelTableTemplate, logs: logsTableTableTemplate } = createTemplate({ ...modelTemplates[i], settings, tableBase: modelTableFarm.table });
+                    processResult.logs = [
+                        ...processResult.logs,
+                        ...logsTableTableTemplate
+                    ];
                     repoControl.addTable({ tableModel: modelTableTemplate });
                 }
+                processResult.situation = "finalized";
+                return { result: processResult };
             },
             "rate": () => {
                 if (repoControl.getData().tables.length == 0) {
-                    return;
+                    return { result: null };
                 }
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0];
@@ -989,11 +1014,12 @@ function FarmControl(farmRepository) {
                 const headersTemplateRate = modelTableFarm || modelTablePlantDeadline ? [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
-                    ...getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
                 ] : [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
                 ];
+                const processResult = { logs: [], type: "rate" };
                 for (let c = 0; c < modelHeadersRate.length; c++) {
                     const _modelHeaderRate = modelHeadersRate[c];
                     for (let d = 0; d < _modelHeaderRate.headers.length; d++) {
@@ -1016,6 +1042,10 @@ function FarmControl(farmRepository) {
                             }
                             const name = `Template Taxa - ${_headerRate.header + ": " + rateValues[e]} _N`;
                             const { modelTable: modelTableTemplateRate, logs: logsCreateTemplateRate } = createTemplateRate({ tableBase: _modelHeaderRate.table, code: "template.rate", name, headers: [...headersTemplateRate, _headerRate], value: _rateValue, settings });
+                            processResult.logs = [
+                                ...processResult.logs,
+                                ...logsCreateTemplateRate
+                            ];
                             if (!modelTableTemplateRate) {
                                 continue;
                             }
@@ -1023,6 +1053,8 @@ function FarmControl(farmRepository) {
                         }
                     }
                 }
+                processResult.situation = "finalized";
+                return { result: processResult };
             }
         };
         PROCESS["process-plant"]();
@@ -1030,7 +1062,15 @@ function FarmControl(farmRepository) {
             PROCESS["prepare-environment"]();
         }
         process.forEach(_process => {
-            PROCESS[_process.type]();
+            const result = PROCESS[_process.type]();
+            if (result.result) {
+                repoControl.updateProcess({
+                    process: [
+                        ...repoControl.getProcess(),
+                        result.result
+                    ]
+                });
+            }
         });
         return repoControl.getData();
     };
@@ -1197,6 +1237,7 @@ function FarmControl(farmRepository) {
         return farmRepository.getProcess(props);
     };
     return {
+        createFarm,
         getData,
         uploadFilesPlants,
         getSelectionCriteria,
@@ -1214,6 +1255,12 @@ function FarmControl(farmRepository) {
         updateProcess,
         getProcess,
         getHeadersWeight,
+        insertValues,
+        insertProcvValues,
+        createTemplate,
+        createTemplateRate,
+        validateContainedCEP,
+        insertValuesDMoreOne
     };
 }
 function FileControl(farmRepository) {

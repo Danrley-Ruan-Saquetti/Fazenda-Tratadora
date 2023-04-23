@@ -115,7 +115,3 @@ function deepEqual(obj1: any, obj2: any) {
 
     return true
 }
-
-function Log(log: any) {
-    console.log(log)
-}

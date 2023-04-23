@@ -1,3 +1,5 @@
+let isConnected = true
+
 function App() {
     const renderControl = RenderControl()
 
@@ -7,7 +9,7 @@ function App() {
         renderControl.initComponents()
     }
 
-    return initComponents()
+    return isConnected && initComponents()
 }
 
 window.onload = App

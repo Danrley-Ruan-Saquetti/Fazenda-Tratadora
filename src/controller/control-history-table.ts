@@ -1,13 +1,13 @@
 function HistoryTableControl() {
-    const controlLocalStorage = ControlLocalStorage()
+    const controlDB = ControlDataBase()
     const KEY = "history"
 
     const setup = (value?: IHistoryTable) => {
-        controlLocalStorage.updateItem(KEY, value)
+        controlDB.updateItem(KEY, value)
     }
 
     const addHistory = (data: TypeDataHistory, parent: string | null = null) => {
-        const history: IHistoryTable = controlLocalStorage.getItem<IHistoryTable>(KEY) || [...GLOBAL_HISTORY]
+        const history: IHistoryTable = controlDB.getItem<IHistoryTable>(KEY) || [...GLOBAL_HISTORY]
 
         if (!history) { return { id: null } }
 
@@ -15,17 +15,19 @@ function HistoryTableControl() {
 
         history.push(dataModel)
 
-        controlLocalStorage.updateItem(KEY, history)
+        console.log(history)
+
+        controlDB.updateItem(KEY, history)
 
         return { id: dataModel.id }
     }
 
     const clearHistory = () => {
-        controlLocalStorage.removeItem(KEY)
+        controlDB.removeItem(KEY)
     }
 
     const getData = ({ id }: { id?: string }) => {
-        const history: IHistoryTable | null = controlLocalStorage.getItem<IHistoryTable>(KEY)
+        const history: IHistoryTable | null = controlDB.getItem<IHistoryTable>(KEY)
 
         if (!history || !id) { return { data: null, index: null, id: null, parent: null, date: null } }
 
@@ -39,7 +41,7 @@ function HistoryTableControl() {
     }
 
     const getHistory = () => {
-        const history: IHistoryTable = controlLocalStorage.getItem<IHistoryTable>(KEY, ["separatorLine"]) || GLOBAL_HISTORY
+        const history: IHistoryTable = controlDB.getItem<IHistoryTable>(KEY, ["separatorLine"]) || GLOBAL_HISTORY
 
         return { history }
     }

@@ -1,11 +1,12 @@
 "use strict";
+let isConnected = true;
 function App() {
     const renderControl = RenderControl();
     const initComponents = () => {
         Setup();
         renderControl.initComponents();
     };
-    return initComponents();
+    return isConnected && initComponents();
 }
 window.onload = App;
 const GLOBAL_TEMPLATE = {
@@ -438,7 +439,7 @@ const plantFarmTest = `CEP INICIAL;CEP FINAL;Prazo;UF;REGIAO;Exce;0,25;0,5;0,75;
 15104-000;15104-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
 15105-000;15105-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
 19880-000;19880-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88`;
-function tableComponent({ table: tableEl, headers }, onSelection, colResizableProps = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64 }) {
+function tableComponent({ table: tableEl, headers }, onSelection, colResizableProps = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64, onResize: () => { } }) {
     const listSelected = [];
     const insertColumnSelect = () => {
         headers.unshift({ content: "<i class=\"bi-check2-square bt bt-select-all-data\" icon></i>", header: "_data-select", "data-select": "<input type=\"checkbox\"></input>" });
@@ -550,7 +551,12 @@ function tableComponent({ table: tableEl, headers }, onSelection, colResizablePr
     };
     const colResizable = () => {
         $(document).ready(function () {
-            $('[table]').colResizable({ ...colResizableProps });
+            $('[table]').colResizable({
+                ...colResizableProps, onResize: function () {
+                    $('[table] th:nth-child(1)').css('max-width', '1.75rem');
+                    colResizableProps.onResize();
+                }
+            });
         });
     };
     const setup = () => {
@@ -561,6 +567,101 @@ function tableComponent({ table: tableEl, headers }, onSelection, colResizablePr
     setup();
     return {
         onLoad: loadDataTable
+    };
+}
+const dataLocal = (function () {
+    const storage = [];
+    let length = storage.length;
+    const clear = () => {
+        storage.splice(0, storage.length);
+        length = storage.length;
+    };
+    const getItem = (key) => { return storage.find(d => { return d.key == key; })?.value; };
+    const removeItem = (key) => {
+        const index = (function () {
+            for (let i = 0; i < storage.length; i++) {
+                const element = storage[i];
+                if (element.key == key) {
+                    return i;
+                }
+            }
+            return -1;
+        }());
+        if (index < 0) {
+            return;
+        }
+        storage.splice(index, 1);
+        length = storage.length;
+    };
+    const setItem = (key, value) => {
+        removeItem(key);
+        storage.push({ key, value });
+        length = storage.length;
+    };
+    const key = (i) => {
+        return storage[i].value;
+    };
+    return {
+        clear,
+        getItem,
+        removeItem,
+        setItem,
+        length: length,
+        key
+    };
+}());
+const dependencies = {
+    production: localStorage,
+    development: dataLocal
+};
+const ls = dependencies["production"];
+function ControlDataBase() {
+    const createItem = (key, value) => {
+        try {
+            removeItem(key);
+            ls.setItem(key, converterJSONToString(value) || "");
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    };
+    const updateItem = (key, value) => {
+        try {
+            removeItem(key);
+            createItem(key, value);
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    };
+    const removeItem = (key, clear = false) => {
+        try {
+            !clear ? ls.removeItem(key) : ls.clear();
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    };
+    const getItem = (key, keysRegExp) => {
+        try {
+            const value = ls.getItem(key);
+            if (!value) {
+                return null;
+            }
+            return converterStringToJSON(value, keysRegExp);
+        }
+        catch (err) {
+            return null;
+        }
+    };
+    return {
+        createItem,
+        updateItem,
+        removeItem,
+        getItem,
     };
 }
 function FarmControl(farmRepository) {
@@ -1160,26 +1261,27 @@ function FileControl(farmRepository) {
     };
 }
 function HistoryTableControl() {
-    const controlLocalStorage = ControlLocalStorage();
+    const controlDB = ControlDataBase();
     const KEY = "history";
     const setup = (value) => {
-        controlLocalStorage.updateItem(KEY, value);
+        controlDB.updateItem(KEY, value);
     };
     const addHistory = (data, parent = null) => {
-        const history = controlLocalStorage.getItem(KEY) || [...GLOBAL_HISTORY];
+        const history = controlDB.getItem(KEY) || [...GLOBAL_HISTORY];
         if (!history) {
             return { id: null };
         }
         const dataModel = { data, id: generatedId(), parent: parent || null, date: new Date(Date.now()) };
         history.push(dataModel);
-        controlLocalStorage.updateItem(KEY, history);
+        console.log(history);
+        controlDB.updateItem(KEY, history);
         return { id: dataModel.id };
     };
     const clearHistory = () => {
-        controlLocalStorage.removeItem(KEY);
+        controlDB.removeItem(KEY);
     };
     const getData = ({ id }) => {
-        const history = controlLocalStorage.getItem(KEY);
+        const history = controlDB.getItem(KEY);
         if (!history || !id) {
             return { data: null, index: null, id: null, parent: null, date: null };
         }
@@ -1192,7 +1294,7 @@ function HistoryTableControl() {
         return { data: null, index: null, id: null, parent: null, date: null };
     };
     const getHistory = () => {
-        const history = controlLocalStorage.getItem(KEY, ["separatorLine"]) || GLOBAL_HISTORY;
+        const history = controlDB.getItem(KEY, ["separatorLine"]) || GLOBAL_HISTORY;
         return { history };
     };
     const getPreviousVersion = (parent) => {
@@ -1263,101 +1365,6 @@ function HistoryTableControl() {
         getData,
         clearHistory,
         setup,
-    };
-}
-const storageLocal = (function () {
-    const storage = [];
-    let length = storage.length;
-    const clear = () => {
-        storage.splice(0, storage.length);
-        length = storage.length;
-    };
-    const getItem = (key) => { return storage.find(d => { return d.key == key; })?.value; };
-    const removeItem = (key) => {
-        const index = (function () {
-            for (let i = 0; i < storage.length; i++) {
-                const element = storage[i];
-                if (element.key == key) {
-                    return i;
-                }
-            }
-            return -1;
-        }());
-        if (index < 0) {
-            return;
-        }
-        storage.splice(index, 1);
-        length = storage.length;
-    };
-    const setItem = (key, value) => {
-        removeItem(key);
-        storage.push({ key, value });
-        length = storage.length;
-    };
-    const key = (i) => {
-        return storage[i].value;
-    };
-    return {
-        clear,
-        getItem,
-        removeItem,
-        setItem,
-        length: length,
-        key
-    };
-}());
-const dependencies = {
-    production: localStorage,
-    development: storageLocal
-};
-const ls = dependencies["production"];
-function ControlLocalStorage() {
-    const createItem = (key, value) => {
-        try {
-            removeItem(key);
-            ls.setItem(key, converterJSONToString(value) || "");
-            return true;
-        }
-        catch (err) {
-            return false;
-        }
-    };
-    const updateItem = (key, value) => {
-        try {
-            removeItem(key);
-            createItem(key, value);
-            return true;
-        }
-        catch (err) {
-            return false;
-        }
-    };
-    const removeItem = (key, clear = false) => {
-        try {
-            !clear ? ls.removeItem(key) : ls.clear();
-            return true;
-        }
-        catch (err) {
-            return false;
-        }
-    };
-    const getItem = (key, keysRegExp) => {
-        try {
-            const value = ls.getItem(key);
-            if (!value) {
-                return null;
-            }
-            return converterStringToJSON(value, keysRegExp);
-        }
-        catch (err) {
-            return null;
-        }
-    };
-    return {
-        createItem,
-        updateItem,
-        removeItem,
-        getItem,
     };
 }
 function MainControl() {
@@ -1847,24 +1854,24 @@ function RouterControl() {
     };
 }
 function SettingControl(farmRepository) {
-    const controlLocalStorage = ControlLocalStorage();
+    const controlDB = ControlDataBase();
     const KEY = "setting";
     const updateSettings = (settings) => {
-        controlLocalStorage.updateItem(KEY, settings);
+        controlDB.updateItem(KEY, settings);
     };
     const clearSettings = () => {
-        controlLocalStorage.removeItem(KEY);
+        controlDB.removeItem(KEY);
     };
     const getSettings = (where = { farm: false, storage: false, global: false }) => {
         if (where.storage)
-            return { settings: controlLocalStorage.getItem(KEY, ["separatorLine"]) || GLOBAL_SETTINGS };
+            return { settings: controlDB.getItem(KEY, ["separatorLine"]) || GLOBAL_SETTINGS };
         if (where.farm) {
             const set = _.cloneDeep(farmRepository.getSettings());
             return { settings: set.isActive ? set : GLOBAL_SETTINGS };
         }
         if (where.global)
             return { settings: _.cloneDeep(GLOBAL_SETTINGS) };
-        return { settings: controlLocalStorage.getItem(KEY, ["separatorLine"]) || _.cloneDeep(GLOBAL_SETTINGS) || _.cloneDeep(farmRepository.getSettings()) };
+        return { settings: controlDB.getItem(KEY, ["separatorLine"]) || _.cloneDeep(GLOBAL_SETTINGS) || _.cloneDeep(farmRepository.getSettings()) };
     };
     return {
         updateSettings,
@@ -2354,10 +2361,6 @@ function FarmScript(idPanel) {
                 ],
                 name: "Planta Preço"
             });
-        if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) {
-            dependence == "development" && console.log("$Teste");
-            return dependence == "development" ? dataPlants : null;
-        }
         return dataPlants;
     };
     const updateFilesPlant = () => {
@@ -2557,7 +2560,4 @@ function deepEqual(obj1, obj2) {
         }
     }
     return true;
-}
-function Log(log) {
-    console.log(log);
 }

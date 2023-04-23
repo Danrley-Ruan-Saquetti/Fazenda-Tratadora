@@ -128,8 +128,6 @@ function FarmScript(idPanel: string) {
             name: "Planta Preço"
         })
 
-        if (!plantDeadline || !plantPrice || !paramCepInitial || !paramCepFinal || !paramCepOriginInitial || !paramCepOriginFinal || !paramDeadline || !paramSelectionCriteriaDeadline || !paramSelectionCriteriaPrice || !paramExcess) { dependence == "development" && console.log("$Teste"); return dependence == "development" ? dataPlants : null }
-
         return dataPlants
     }
 

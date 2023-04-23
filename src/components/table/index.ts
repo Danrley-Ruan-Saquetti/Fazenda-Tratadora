@@ -1,4 +1,4 @@
-function tableComponent({ table: tableEl, headers }: { table: HTMLElement, headers: ITableData[] }, onSelection: (listSelected: string[]) => void, colResizableProps: { liveDrag?: Boolean, resizeMode?: string, minWidth?: number, headerOnly?: Boolean, hoverCursor?: string, dragCursor?: string } = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64 }) {
+function tableComponent({ table: tableEl, headers }: { table: HTMLElement, headers: ITableData[] }, onSelection: (listSelected: string[]) => void, colResizableProps: { liveDrag?: Boolean, resizeMode?: string, minWidth?: number, headerOnly?: Boolean, hoverCursor?: string, dragCursor?: string, onResize: () => void } = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64, onResize: () => { } }) {
     const listSelected: string[] = []
 
     const insertColumnSelect = () => {
@@ -151,7 +151,12 @@ function tableComponent({ table: tableEl, headers }: { table: HTMLElement, heade
 
     const colResizable = () => {
         $(document).ready(function () {
-            $('[table]').colResizable({ ...colResizableProps })
+            $('[table]').colResizable({
+                ...colResizableProps, onResize: function () {
+                    $('[table] th:nth-child(1)').css('max-width', '1.75rem')
+                    colResizableProps.onResize()
+                }
+            })
         })
     }
 

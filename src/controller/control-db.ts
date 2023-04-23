@@ -1,4 +1,4 @@
-const storageLocal: Storage = (function () {
+const dataLocal: Storage = (function () {
     const storage: { key: string, value: any }[] = []
 
     let length = storage.length
@@ -53,12 +53,12 @@ const storageLocal: Storage = (function () {
 
 const dependencies = {
     production: localStorage,
-    development: storageLocal
+    development: dataLocal
 }
 
 const ls: Storage = dependencies["production"]
 
-function ControlLocalStorage() {
+function ControlDataBase() {
     const createItem = (key: string, value: any) => {
         try {
             removeItem(key)

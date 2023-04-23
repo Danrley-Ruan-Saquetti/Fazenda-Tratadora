@@ -29,7 +29,13 @@ function PanelControl() {
         })
     }
 
-    const newPanel = ({ name, title }: { name: TRouterName, title: string }, isCtrl: boolean) => {
+    const newPanel = ({ name, title, __dev, active }: { name: TRouterName, title: string, __dev?: boolean, active: boolean }, isCtrl: boolean) => {
+        if (GLOBAL_DEPENDENCE != "development") {
+            if (__dev) { return }
+
+            if (!active) { return }
+        }
+
         if (!isCtrl && getPanelByName(name)) { return }
 
         const id = generatedId()

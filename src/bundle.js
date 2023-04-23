@@ -1,12 +1,16 @@
 "use strict";
-let isConnected = true;
 function App() {
+    if (GLOBAL_DEPENDENCE == "production") {
+        const res = prompt("KEY");
+        if (res !== "panoramasistemas")
+            return;
+    }
     const renderControl = RenderControl();
     const initComponents = () => {
         Setup();
         renderControl.initComponents();
     };
-    return isConnected && initComponents();
+    return initComponents();
 }
 window.onload = App;
 const GLOBAL_TEMPLATE = {
@@ -170,14 +174,15 @@ const GLOBAL_SETTINGS_RESET = {
         }
     }
 };
+const GLOBAL_DEPENDENCE = "production";
 const GLOBAL_HISTORY = [];
 const GLOBAL_ROUTERS = [
-    { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript" },
-    { icon: "ui-radios", title: "Histórico", name: "history", router: "routers/panel-history.html", script: "HistoryScript" },
-    { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript" },
-    { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript" },
-    { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript" },
-    { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript", active: true },
+    { icon: "ui-radios", title: "Histórico", name: "history", router: "routers/panel-history.html", script: "HistoryScript", active: true },
+    { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript", active: false },
+    { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript", active: false },
+    { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript", active: false },
+    { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript", __dev: true, active: false }
 ];
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 const GLOBAL_ROUTERS_ROUTER = {
@@ -1644,7 +1649,15 @@ function PanelControl() {
             callback(panelEl);
         });
     };
-    const newPanel = ({ name, title }, isCtrl) => {
+    const newPanel = ({ name, title, __dev, active }, isCtrl) => {
+        if (GLOBAL_DEPENDENCE != "development") {
+            if (__dev) {
+                return;
+            }
+            if (!active) {
+                return;
+            }
+        }
         if (!isCtrl && getPanelByName(name)) {
             return;
         }
@@ -1804,46 +1817,27 @@ function RenderControl() {
     const initComponents = () => {
         panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList);
         GLOBAL_ROUTERS.forEach(_item => {
-            const itemEl = createItem(_item.title, _item.icon, _item.name);
+            if (GLOBAL_DEPENDENCE != "development") {
+                if (_item.__dev) {
+                    return;
+                }
+                if (!_item.active) {
+                    return;
+                }
+            }
+            const itemEl = createItem(_item.title, _item.icon, _item.name, _item.active);
             itemEl.addEventListener("click", (ev) => {
                 const panelAlreadyExist = panelControl.getPanelByName(_item.name);
                 if (!ev.ctrlKey && panelAlreadyExist) {
                     const id = panelAlreadyExist.getAttribute("id");
                     return id && panelControl.togglePanel(id);
                 }
-                panelControl.newPanel({ name: _item.name, title: _item.title }, ev.ctrlKey);
+                panelControl.newPanel(_item, ev.ctrlKey);
             });
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
-    const loadListFarms = () => {
-        const { history } = historyTableControl.getHistory();
-        if (ELEMENTS.listFarms) {
-            ELEMENTS.listFarms.textContent = "";
-        }
-        history && history.forEach(_farm => {
-            const div = document.createElement("div");
-            const span = document.createElement("span");
-            const btDownload = document.createElement("a");
-            const btLoad = document.createElement("button");
-            btLoad.textContent = "Carregar";
-            btLoad.onclick = () => {
-                mainControl.loadFarm(_farm.id);
-                mainControl.prepareForDownload();
-            };
-            mainControl.createURLDownload((url, zipName) => {
-                btDownload.setAttribute("href", url);
-                btDownload.setAttribute("download", `Teste Histórico - ${_farm.id} ${_farm.data.name} ${zipName}`);
-            }, _farm.data.tables.map(_f => { return { file: _f.table, name: _f.name }; }));
-            btDownload.textContent = "Download";
-            span.textContent = _farm.id + ": " + _farm.date + (_farm.parent ? " Parent: " + _farm.parent : "");
-            div.appendChild(span);
-            div.appendChild(btDownload);
-            div.appendChild(btLoad);
-            ELEMENTS.listFarms?.appendChild(div);
-        });
-    };
-    const createItem = (title, icon, name) => {
+    const createItem = (title, icon, name, active) => {
         const itemEl = document.createElement("div");
         const span = document.createElement("span");
         const iconEl = createIcon(icon);
@@ -1854,15 +1848,17 @@ function RenderControl() {
         span.textContent = title;
         itemEl.appendChild(iconEl);
         itemEl.appendChild(span);
+        if (!active) {
+            const iconDisabledEl = createIcon("eye-slash");
+            itemEl.appendChild(iconDisabledEl);
+        }
         return itemEl;
     };
     return {
         initComponents,
-        loadListFarms,
     };
 }
 function RouterControl() {
-    const dependence = "production";
     const apiRouter = {
         "production": (router, callback) => {
             const response = fetch(`${router}`).then(res => {
@@ -1883,9 +1879,9 @@ function RouterControl() {
         },
     };
     const fetchRouter = (router, callback) => {
-        apiRouter[dependence](router, ({ data, error }) => {
+        apiRouter[GLOBAL_DEPENDENCE](router, ({ data, error }) => {
             if (!data || error)
-                return apiRouter[dependence]("routers/panel-404.html", callback);
+                return apiRouter[GLOBAL_DEPENDENCE]("routers/panel-404.html", callback);
             callback({ data });
         });
     };
@@ -2287,7 +2283,7 @@ const GLOBAL_MODULE_SCRIPTS = {
     ["HistoryScript"]: HistoryScript,
     ["FeatureScript"]: FeatureScript,
     ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
-    ["SettingScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
+    ["SettingScript"]: (id) => { return { error: { msg: 'Router "Setting" not found' } }; },
     ["GuideScript"]: GuideScript
 };
 function FarmScript(idPanel) {
@@ -2295,7 +2291,6 @@ function FarmScript(idPanel) {
     if (!panel) {
         return { error: { msg: "Panel not found" } };
     }
-    let dependence = "production";
     const mainControl = MainControl();
     const renderControl = RenderControl();
     const ELEMENTS_FORM = {
@@ -2317,7 +2312,6 @@ function FarmScript(idPanel) {
     };
     const PARAMS = _.cloneDeep(GLOBAL_TEMPLATE);
     const initComponents = () => {
-        renderControl.loadListFarms();
         loadForm();
         panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
         panel.querySelector("#download-files")?.addEventListener("click", downloadFiles);
@@ -2373,7 +2367,7 @@ function FarmScript(idPanel) {
             plants: [],
             ...PARAMS
         };
-        if ((dependence == "production" && plantFarm) || dependence == "development")
+        if ((GLOBAL_DEPENDENCE == "production" && plantFarm) || GLOBAL_DEPENDENCE == "development")
             dataPlants.plants.push({
                 code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
                 headers: [
@@ -2386,7 +2380,7 @@ function FarmScript(idPanel) {
                 ],
                 name: "Fazenda"
             });
-        if ((dependence == "production" && plantDeadline) || dependence == "development")
+        if ((GLOBAL_DEPENDENCE == "production" && plantDeadline) || GLOBAL_DEPENDENCE == "development")
             dataPlants.plants.push({
                 code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
                 headers: [
@@ -2398,7 +2392,7 @@ function FarmScript(idPanel) {
                 ],
                 name: "Planta Prazo"
             });
-        if ((dependence == "production" && plantPrice) || dependence == "development")
+        if ((GLOBAL_DEPENDENCE == "production" && plantPrice) || GLOBAL_DEPENDENCE == "development")
             dataPlants.plants.push({
                 code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
                 headers: [
@@ -2434,11 +2428,9 @@ function FarmScript(idPanel) {
         }
         const nameInput = `${ELEMENTS_FORM.nameFarm.value}`;
         mainControl.saveFarm(`Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`);
-        renderControl.loadListFarms();
     };
     const clearHistory = () => {
         mainControl.clearHistory();
-        renderControl.loadListFarms();
     };
     const clearFarm = () => {
         mainControl.clearFarm();

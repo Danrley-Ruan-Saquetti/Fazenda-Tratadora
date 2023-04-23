@@ -1,4 +1,6 @@
-type TRouter = string
+type TDefineRouter = "routers/panel-history.html" | "routers/panel-test.html" | "routers/panel-farm.html" | "routers/panel-404.html" | "routers/panel.feature.html" | "routers/panel-setting.html" | "routers/panel-guide.html"
+
+type TRouter = TDefineRouter
 type TRouterScript = string
 type TRouterName = string
 
@@ -6,14 +8,14 @@ interface IRouter {
     name: TRouterName
     router: TRouter
     script: TScript
+    active: boolean
+    __dev?: boolean
 }
 
 type TItemRoute = IRouter & {
     icon: string
     title: string
 }
-
-type TDefineRouter = "routers/panel-history.html" | "routers/panel-test.html" | "routers/panel-farm.html" | "routers/panel-404.html" | "routers/panel.feature.html" | "routers/panel-setting.html" | "routers/panel-guide.html"
 
 type TDependenceRouter = {
     "routers/panel-history.html": string

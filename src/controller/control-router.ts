@@ -1,6 +1,4 @@
 function RouterControl() {
-    const dependence: "development" | "production" = "production"
-
     const apiRouter = {
         "production": (router: TRouter, callback: ICallback) => {
             const response = fetch(`${router}`).then(res => {
@@ -15,7 +13,7 @@ function RouterControl() {
 
             return response
         },
-        "development": (router: TDefineRouter, callback: ICallback) => {
+        "development": (router: TRouter, callback: ICallback) => {
             const routerResponse: string = GLOBAL_ROUTERS_ROUTER[`${router}`]
 
             if (routerResponse) return callback({ data: routerResponse })
@@ -25,8 +23,8 @@ function RouterControl() {
     }
 
     const fetchRouter = (router: TRouter, callback: ICallback) => {
-        apiRouter[dependence](router, ({ data, error }) => {
-            if (!data || error) return apiRouter[dependence]("routers/panel-404.html", callback)
+        apiRouter[GLOBAL_DEPENDENCE](router, ({ data, error }) => {
+            if (!data || error) return apiRouter[GLOBAL_DEPENDENCE]("routers/panel-404.html", callback)
 
             callback({ data })
         })

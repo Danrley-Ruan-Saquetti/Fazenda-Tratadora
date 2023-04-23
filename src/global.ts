@@ -162,15 +162,17 @@ const GLOBAL_SETTINGS_RESET = {
     }
 }
 
+const GLOBAL_DEPENDENCE: TDependence = "production"
+
 const GLOBAL_HISTORY: IHistoryTable = []
 
 const GLOBAL_ROUTERS: TItemRoute[] = [
-    { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript" },
-    { icon: "ui-radios", title: "Histórico", name: "history", router: "routers/panel-history.html", script: "HistoryScript" },
-    { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript" },
-    { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript" },
-    { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript" },
-    { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript" },
+    { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript", active: true },
+    { icon: "ui-radios", title: "Histórico", name: "history", router: "routers/panel-history.html", script: "HistoryScript", active: true },
+    { icon: "calculator", title: "Testes", name: "test", router: "routers/panel-test.html", script: "TestScript", active: false },
+    { icon: "journal-bookmark", title: "Guide", name: "guide", router: "routers/panel-guide.html", script: "GuideScript", active: false },
+    { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript", active: false },
+    { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript", __dev: true, active: false }
 ]
 
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`

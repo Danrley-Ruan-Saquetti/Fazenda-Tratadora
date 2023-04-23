@@ -3,8 +3,6 @@ function FarmScript(idPanel: string) {
 
     if (!panel) { return { error: { msg: "Panel not found" } } }
 
-    let dependence: "development" | "production" = "production"
-
     const mainControl = MainControl()
     const renderControl = RenderControl()
 
@@ -29,7 +27,6 @@ function FarmScript(idPanel: string) {
     const PARAMS: ISettingsTemplate = _.cloneDeep(GLOBAL_TEMPLATE)
 
     const initComponents = () => {
-        renderControl.loadListFarms()
         loadForm()
 
         panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant)
@@ -95,7 +92,7 @@ function FarmScript(idPanel: string) {
             ...PARAMS
         }
 
-        if ((dependence == "production" && plantFarm) || dependence == "development") dataPlants.plants.push({
+        if ((GLOBAL_DEPENDENCE == "production" && plantFarm) || GLOBAL_DEPENDENCE == "development") dataPlants.plants.push({
             code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
             headers: [
                 { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
@@ -107,7 +104,7 @@ function FarmScript(idPanel: string) {
             ],
             name: "Fazenda"
         })
-        if ((dependence == "production" && plantDeadline) || dependence == "development") dataPlants.plants.push({
+        if ((GLOBAL_DEPENDENCE == "production" && plantDeadline) || GLOBAL_DEPENDENCE == "development") dataPlants.plants.push({
             code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
             headers: [
                 { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
@@ -118,7 +115,7 @@ function FarmScript(idPanel: string) {
             ],
             name: "Planta Prazo"
         })
-        if ((dependence == "production" && plantPrice) || dependence == "development") dataPlants.plants.push({
+        if ((GLOBAL_DEPENDENCE == "production" && plantPrice) || GLOBAL_DEPENDENCE == "development") dataPlants.plants.push({
             code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
             headers: [
                 { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
@@ -158,12 +155,10 @@ function FarmScript(idPanel: string) {
         const nameInput = `${ELEMENTS_FORM.nameFarm.value}`
 
         mainControl.saveFarm(`Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`)
-        renderControl.loadListFarms()
     }
 
     const clearHistory = () => {
         mainControl.clearHistory()
-        renderControl.loadListFarms()
     }
 
     const clearFarm = () => {

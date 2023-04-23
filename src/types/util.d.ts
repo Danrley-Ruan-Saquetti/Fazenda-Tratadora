@@ -3,3 +3,5 @@ declare const _ = {
 }
 
 type ICallback = (response: { error?: { msg: string }, data?: string }) => void
+
+type TDependence = "production" | "development"

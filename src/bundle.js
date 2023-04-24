@@ -256,7 +256,7 @@ const GLOBAL_SETTINGS_RESET = {
     }
 };
 const isDev = ControlDataBase().getItem("dev.edition") || false;
-const GLOBAL_DEPENDENCE = isDev ? 'development' : "production";
+const GLOBAL_DEPENDENCE = !isDev ? "production" : "development";
 ControlDataBase().updateItem("dev.edition", false);
 const GLOBAL_HISTORY = [];
 const GLOBAL_ROUTERS = [

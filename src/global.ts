@@ -164,7 +164,7 @@ const GLOBAL_SETTINGS_RESET = {
 
 const isDev = ControlDataBase().getItem<Boolean>("dev.edition") || false
 
-const GLOBAL_DEPENDENCE: TDependence = isDev ? 'development' : "production"
+const GLOBAL_DEPENDENCE: TDependence = !isDev ? "production" : "development"
 
 ControlDataBase().updateItem("dev.edition", false)
 

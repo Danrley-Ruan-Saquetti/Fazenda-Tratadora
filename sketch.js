@@ -256,7 +256,7 @@ const GLOBAL_SETTINGS_RESET = {
     }
 };
 const isDev = ControlDataBase().getItem("dev.edition") || false;
-const GLOBAL_DEPENDENCE = !isDev ? "production" : "development";
+const GLOBAL_DEPENDENCE = isDev ? 'development' : "production";
 ControlDataBase().updateItem("dev.edition", false);
 const GLOBAL_HISTORY = [];
 const GLOBAL_ROUTERS = [
@@ -988,16 +988,18 @@ function FarmControl(farmRepository) {
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.cepOriginValue["cep.origin.final"] },
                     ...repoControl.getHeaders({ tableModel: modelTableFarm, types: ["cep.initial", "cep.final", "deadline+D"] }),
                 ];
-                const headersTemplatePrice = isProcessProcv ? [
+                const headersTemplatePrice = [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.cepOriginValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.cepOriginValue["cep.origin.final"] },
                     ...repoControl.getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: modelTableFarm.headers }, types: ["cep.initial", "cep.final", "excess"] }),
                     ...repoControl.getHeadersWeight({ table: [modelTableFarm.table[0]] }),
-                ] : [];
+                ];
+                modelTemplates.push({ code: "template.deadline", headers: headersTemplateDeadline, table: modelTableFarm.table, name: "Template Prazo" });
+                modelTemplates.push({ code: "template.price", headers: headersTemplatePrice, table: modelTableFarm.table, name: "Template Preço" });
                 if (repoControl.getProcess({ types: ["insert-values"] })[0]) {
-                    modelTemplates.push({ code: "template.deadline", headers: headersTemplateDeadline, table: modelTableFarm.table, name: "Template Prazo" });
+                    
                     if (isProcessProcv) {
-                        modelTemplates.push({ code: "template.price", headers: headersTemplatePrice, table: modelTableFarm.table, name: "Template Preço" });
+                        
                     }
                 }
                 const processResult = { logs: [], type: "template" };
@@ -1009,6 +1011,7 @@ function FarmControl(farmRepository) {
                     ];
                     repoControl.addTable({ tableModel: modelTableTemplate });
                 }
+                console.log(processResult)
                 processResult.situation = "finalized";
                 return { result: processResult };
             },
@@ -1032,10 +1035,11 @@ function FarmControl(farmRepository) {
                         modelHeadersRate.push({ table: modelTablePlantDeadline.table, headers: repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }) });
                     }
                 }
+                modelHeadersRate.push({ table: modelTableFarm.table, headers: repoControl.getHeaders({ tableModel: modelTableFarm, types: ["rate"] }) });
                 const headersTemplateRate = modelTableFarm || modelTablePlantDeadline ? [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
-                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
+                    ...repoControl.getHeaders({ tableModel: modelTableFarm || modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
                 ] : [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },

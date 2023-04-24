@@ -6,31 +6,35 @@ $bt-actions: ( _confirm: $main-color, _cancel: #cc3a3a, _new: #26b131, _view: #4
     flex-wrap: wrap;
 }
 
+button,
+.bt {
+    @extend [icon-parent];
+    border-radius: $border-radius;
+    cursor: pointer;
+    @each $key,
+    $value in $bt-actions {
+        &[action="#{$key}"] {
+            background-color: $value;
+            color: get-text-color($value);
+            transition: $transition-time-fast;
+            &:hover {
+                $value: darken($value, 10%);
+                background-color: $value;
+                color: get-text-color($value);
+            }
+            &:active {
+                $value: darken($value, 12%);
+                background-color: $value;
+                color: get-text-color($value);
+            }
+        }
+    }
+}
+
 [panel] {
     button,
     .bt {
-        @extend [icon-parent];
         padding: $padding-3 $padding-1;
-        border-radius: $border-radius;
-        cursor: pointer;
-        @each $key,
-        $value in $bt-actions {
-            &[action="#{$key}"] {
-                background-color: $value;
-                color: get-text-color($value);
-                transition: $transition-time-fast;
-                &:hover {
-                    $value: darken($value, 10%);
-                    background-color: $value;
-                    color: get-text-color($value);
-                }
-                &:active {
-                    $value: darken($value, 12%);
-                    background-color: $value;
-                    color: get-text-color($value);
-                }
-            }
-        }
         [icon] {
             margin-right: .5rem;
             font-size: 1.4rem;

@@ -92,6 +92,7 @@ function ControlDataBase() {
         try {
             const value = ls.getItem(key)
 
+
             if (!value) { return null }
 
             return converterStringToJSON(value, keysRegExp)

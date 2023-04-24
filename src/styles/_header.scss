@@ -11,4 +11,9 @@ header {
         font-weight: 300;
         font-size: 1.2rem;
     }
+    .profile {
+        button {
+            color: get-text-color($main-color, $text-color-secondary);
+        }
+    }
 }

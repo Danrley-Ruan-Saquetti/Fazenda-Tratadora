@@ -1,18 +1,99 @@
 "use strict";
-function App() {
-    if (GLOBAL_DEPENDENCE == "production") {
-        const res = prompt("KEY");
-        if (res !== "panoramasistemas")
-            return;
-    }
-    const renderControl = RenderControl();
-    const initComponents = () => {
-        Setup();
-        renderControl.initComponents();
+const dataLocal = (function () {
+    const storage = [];
+    let length = storage.length;
+    const clear = () => {
+        storage.splice(0, storage.length);
+        length = storage.length;
     };
-    return initComponents();
+    const getItem = (key) => { return storage.find(d => { return d.key == key; })?.value; };
+    const removeItem = (key) => {
+        const index = (function () {
+            for (let i = 0; i < storage.length; i++) {
+                const element = storage[i];
+                if (element.key == key) {
+                    return i;
+                }
+            }
+            return -1;
+        }());
+        if (index < 0) {
+            return;
+        }
+        storage.splice(index, 1);
+        length = storage.length;
+    };
+    const setItem = (key, value) => {
+        removeItem(key);
+        storage.push({ key, value });
+        length = storage.length;
+    };
+    const key = (i) => {
+        return storage[i].value;
+    };
+    return {
+        clear,
+        getItem,
+        removeItem,
+        setItem,
+        length: length,
+        key
+    };
+}());
+const dependencies = {
+    production: localStorage,
+    development: dataLocal
+};
+const ls = dependencies["production"];
+function ControlDataBase() {
+    const createItem = (key, value) => {
+        try {
+            removeItem(key);
+            ls.setItem(key, converterJSONToString(value) || "");
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    };
+    const updateItem = (key, value) => {
+        try {
+            removeItem(key);
+            createItem(key, value);
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    };
+    const removeItem = (key, clear = false) => {
+        try {
+            !clear ? ls.removeItem(key) : ls.clear();
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    };
+    const getItem = (key, keysRegExp) => {
+        try {
+            const value = ls.getItem(key);
+            if (!value) {
+                return null;
+            }
+            return converterStringToJSON(value, keysRegExp);
+        }
+        catch (err) {
+            return null;
+        }
+    };
+    return {
+        createItem,
+        updateItem,
+        removeItem,
+        getItem,
+    };
 }
-window.onload = App;
 const GLOBAL_TEMPLATE = {
     "settings": {
         "table": {
@@ -174,7 +255,9 @@ const GLOBAL_SETTINGS_RESET = {
         }
     }
 };
-const GLOBAL_DEPENDENCE = "production";
+const isDev = ControlDataBase().getItem("dev.edition") || false;
+const GLOBAL_DEPENDENCE = isDev ? 'development' : "production";
+ControlDataBase().updateItem("dev.edition", false);
 const GLOBAL_HISTORY = [];
 const GLOBAL_ROUTERS = [
     { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript", active: true },
@@ -187,263 +270,180 @@ const GLOBAL_ROUTERS = [
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 const GLOBAL_ROUTERS_ROUTER = {
     "routers/panel.feature.html": GLOBAL_ROUTER_NOT_FOUND,
-    "routers/panel-history.html": `<button class="load-table">Load</button>
-    <div class="table" table-parent>
-        <table table="history"></table>
-    </div>`,
+    "routers/panel-history.html": `<div button-container>
+    <button action="_confirm" class="load-table"><i class="bi-arrow-clockwise" icon></i>Atualizar</button>
+    <button action="_new" class="new-farm"><i class="bi-plus-lg" icon></i>Nova Fazenda</button>
+    <button action="_confirm" class="download"><i class="bi-download" icon></i>Download</button>
+</div>
+
+<div class="table" table-parent>
+    <table table="history"></table>
+</div>
+
+<script src="../src/bundle.js"></script>`,
     "routers/panel-test.html": `<h1>Teste</h1>`,
-    "routers/panel-farm.html": `<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
-    <input type="file" name="input-file-plant-price" id="input-file-plant-price">
-    <label for="input-file-plant-deadline">Selecione o arquivo de Prazo</label>
-    <input type="file" name="input-file-plant-deadline" id="input-file-plant-deadline">
-    <label for="input-file-settings">Selecione o arquivo de Configurações</label>
-    <input type="file" name="input-file-settings" id="input-file-settings">
-    <label for="param-cep-initial">Informe o Cep Inicial</label>
-    <input type="text" name="param-cep-initial" id="param-cep-initial">
-    <label for="param-cep-final">Informe o Cep Final</label>
-    <input type="text" name="param-cep-final" id="param-cep-final">
-    <label for="param-cep-origin-initial">Informe o Cep de Origem Inicial</label>
-    <input type="text" name="param-cep-origin-initial" id="param-cep-origin-initial">
-    <label for="param-cep-origin-final">Informe o Cep de Origem Final</label>
-    <input type="text" name="param-cep-origin-final" id="param-cep-origin-final">
-    <label for="param-deadline">Informe o cabeçalho de Prazo</label>
-    <input type="text" name="param-deadline" id="param-deadline">
-    <label for="param-rate-price">Informe o cabeçalho de Taxa do Preço</label>
-    <input type="text" name="param-rate-price" id="param-rate-price">
-    <label for="param-rate-deadline">Informe o cabeçalho de Taxa do Prazo</label>
-    <input type="text" name="param-rate-deadline" id="param-rate-deadline">
-    <label for="param-selection-criteria-price">Informe o cabeçalho de Critério de Seleção do Preço</label>
-    <input type="text" name="param-selection-criteria-price" id="param-selection-criteria-price">
-    <label for="param-selection-criteria-deadline">Informe o cabeçalho de Critério de Seleção do Prazo</label>
-    <input type="text" name="param-selection-criteria-deadline" id="param-selection-criteria-deadline">
-    <label for="param-excess">Informe o cabeçalho de Excesso</label>
-    <input type="text" name="param-excess" id="param-excess">
-    <label for="param-name-farm">Informe o nome da Fazenda</label>
-    <input type="text" name="param-name-farm" id="param-name-farm">
-    <button id="upload-files-plant">Upload</button>
-    <a href="#" id="download-files" download>Download</a>
-    <button id="save-farm">Salvar</button>
-    <button id="get-data">Fazenda</button>
-    <button id="clear-ls">Limpar Histórico</button>
-    <button id="clear-farm">Limpar Fazenda</button>
-    <button id="clear-settings">Limpar Configurações</button>`,
+    "routers/panel-farm.html": `<div button-container>
+    <button action="_new" id="upload-files-plant">Upload</button>
+    <button action="_view" id="get-data">Fazenda</button>
+    <a action="_new" href="#" id="download-files" class="bt" download>Download</a>
+    <button action="_new" id="save-farm">Salvar</button>
+    <button action="_new" id="clear-ls">Limpar Histórico</button>
+    <button action="_new" id="clear-farm">Limpar Fazenda</button>
+    <button action="_new" id="clear-settings">Limpar Configurações</button>
+</div>
+
+<div line="horizontal" line-width="margin"></div>
+
+<label for="input-file-plant-price">Selecione o arquivo de Preço</label>
+<input type="file" name="input-file-plant-price" id="input-file-plant-price">
+<label for="input-file-plant-deadline">Selecione o arquivo de Prazo</label>
+<input type="file" name="input-file-plant-deadline" id="input-file-plant-deadline">
+<label for="input-file-farm">Selecione o arquivo de Fazenda</label>
+<input type="file" name="input-file-farm" id="input-file-farm">
+<label for="input-file-settings">Selecione o arquivo de Configurações</label>
+<input type="file" name="input-file-settings" id="input-file-settings">
+<label for="param-cep-initial">Informe o Cep Inicial</label>
+<input type="text" name="param-cep-initial" id="param-cep-initial">
+<label for="param-cep-final">Informe o Cep Final</label>
+<input type="text" name="param-cep-final" id="param-cep-final">
+<label for="param-cep-origin-initial">Informe o Cep de Origem Inicial</label>
+<input type="text" name="param-cep-origin-initial" id="param-cep-origin-initial">
+<label for="param-cep-origin-final">Informe o Cep de Origem Final</label>
+<input type="text" name="param-cep-origin-final" id="param-cep-origin-final">
+<label for="param-deadline">Informe o cabeçalho de Prazo</label>
+<input type="text" name="param-deadline" id="param-deadline">
+<label for="param-rate-price">Informe o cabeçalho de Taxa do Preço</label>
+<input type="text" name="param-rate-price" id="param-rate-price">
+<label for="param-rate-deadline">Informe o cabeçalho de Taxa do Prazo</label>
+<input type="text" name="param-rate-deadline" id="param-rate-deadline">
+<label for="param-selection-criteria-price">Informe o cabeçalho de Critério de Seleção do Preço</label>
+<input type="text" name="param-selection-criteria-price" id="param-selection-criteria-price">
+<label for="param-selection-criteria-deadline">Informe o cabeçalho de Critério de Seleção do Prazo</label>
+<input type="text" name="param-selection-criteria-deadline" id="param-selection-criteria-deadline">
+<label for="param-excess">Informe o cabeçalho de Excesso</label>
+<input type="text" name="param-excess" id="param-excess">
+<label for="param-name-farm">Informe o nome da Fazenda</label>
+<input type="text" name="param-name-farm" id="param-name-farm">`,
     "routers/panel-404.html": GLOBAL_ROUTER_NOT_FOUND,
     "routers/panel-guide.html": GLOBAL_ROUTER_NOT_FOUND,
     "routers/panel-setting.html": GLOBAL_ROUTER_NOT_FOUND
 };
-function Setup() {
-    const historyTableControl = HistoryTableControl();
-    const settingControl = SettingControl(FarmRepository());
-    if (!historyTableControl.getHistory().history) {
-        historyTableControl.setup([...GLOBAL_HISTORY]);
+function isNumber(str) { return !isNaN(parseFloat(str)); }
+function generatedId() {
+    const VALUE_MAX = 9999;
+    const now = new Date();
+    return `${now.getFullYear()}${`${now.getMonth() + 1}`.padStart(2, "0")}${`${Math.floor(Math.random() * VALUE_MAX)}`.padStart(`${VALUE_MAX}`.length, "0")}`;
+}
+function replaceText({ replaceValue, searchValue, val, betweenText }) {
+    let value = val;
+    if (!value) {
+        return "";
     }
-    if (!settingControl.getSettings({ storage: true })) {
-        settingControl.updateSettings(GLOBAL_SETTINGS);
+    if (!betweenText) {
+        do {
+            value = value.replace(searchValue, replaceValue);
+        } while (value.indexOf(searchValue) >= 0);
+        return value;
+    }
+    let i = 0;
+    let isOpenQuote = false;
+    do {
+        const index = value.indexOf(betweenText, i);
+        if (index < 0) {
+            break;
+        }
+        if (!isOpenQuote)
+            isOpenQuote = true;
+        else {
+            value = value.substring(0, i) + value.substring(i, index).replace(searchValue, replaceValue) + value.substring(index);
+            isOpenQuote = false;
+        }
+        i = index + 1;
+    } while (i < value.length);
+    return value;
+}
+function processObjToJSON(obj) {
+    const newObj = _.cloneDeep(obj);
+    for (const key in newObj) {
+        if (newObj[key] instanceof RegExp) {
+            newObj[key] = converterReGexpToString(newObj[key]);
+            continue;
+        }
+        if (typeof newObj[key] === "object" && newObj[key] !== null) {
+            newObj[key] = processObjToJSON(newObj[key]);
+        }
+    }
+    return newObj;
+}
+function processJSONToObj(obj, keysRegExp = []) {
+    const newObj = _.cloneDeep(obj);
+    for (const key in newObj) {
+        if (keysRegExp.includes(`${key}`) && typeof newObj[key] === "string") {
+            try {
+                newObj[key] = converterStringToRegExp(newObj[key]);
+            }
+            catch (e) { }
+        }
+        if (typeof newObj[key] === "object" && newObj[key] !== null) {
+            newObj[key] = processJSONToObj(newObj[key], keysRegExp);
+        }
+    }
+    return newObj;
+}
+function converterReGexpToString(value) {
+    return `${value}`;
+}
+function converterStringToRegExp(value) {
+    return new RegExp(value.slice(1, -1));
+}
+function converterStringToJSON(str, keysRegExp) {
+    try {
+        return processJSONToObj(JSON.parse(str), keysRegExp);
+    }
+    catch (err) {
+        console.log(err);
+        return null;
     }
 }
-const plantDeadlineTest = `CEP INICIAL;CEP FINAL;X;X;Prazo;D+1;UF;REGIAO;CS
-15111000;15114999;1;3999;7;8;SP;I;SP I
-15115000;15115999;1;999;5;6;SP;C;SP C
-15116000;15119999;1;3999;7;8;SP;I;SP I
-2925000;2930999;1;5999;1;2;SP;C;SP C
-2931000;2958999;1;27999;1;2;SP;C;SP C
-14400000;14414999;239001;14999;1;2;SP;C;SP C
-1001000;1599999;x;598999;1;2;SP;C;SP C
-15120000;15120999;1;999;5;6;SP;I;SP I
-15121000;15124999;1;3999;7;8;SP;I;SP I
-15125000;15125999;1;999;5;6;SP;I;SP I
-2900000;2911999;58001;11999;1;2;SP;C;SP C
-2912000;2924999;1;12999;1;2;SP;C;SP C
-2000000;2811999;400001;811999;1;2;SP;C;SP C
-2817000;2832999;5001;15999;1;2;SP;C;SP C
-2840000;2841999;7001;1999;1;2;SP;C;SP C
-15126000;15127999;1;1999;7;8;SP;I;SP I
-15128000;15128999;1;999;5;6;SP;I;SP I
-15129000;15129999;1;999;7;8;SP;I;SP I
-19870000;19870999;4001;999;5;6;SP;I;SP I
-19880000;19880999;9001;999;3;4;SP;I;SP I
-14940000;14940999;525001;999;3;4;SP;I;SP I
-15100000;15101999;1;1999;2;3;SP;I;SP I
-15102000;15102999;1;999;5;6;SP;C;SP C
-15110000;15110999;1;999;5;6;SP;I;SP I
-15103000;15103999;1;999;2;3;SP;I;SP I
-15000000;15099999;59001;99999;1;2;SP;C;SP C
-15104000;15104999;1;999;5;6;SP;C;SP C
-15105000;15105999;1;999;5;6;SP;I;SP I
-15106000;15107999;1;1999;7;8;SP;I;SP I
-15108000;15108999;1;999;5;6;SP;I;SP I
-15109000;15109999;1;999;7;8;SP;I;SP I
-19900000;19919999;19001;19999;3;4;SP;I;SP I`;
-const plantPriceTest = `REGIAO;UF;CS;Exce;0,25;0,5;0,75;1;2;3;4;5;6;7;8;9;10
-C;PR;PR C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-C;RS;RS C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-C;SC;SC C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-C;SP;SP C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-C;MG;MG C;4,69;15,56;17,78;20,01;22,23;23,19;27,72;29,6;31,67;36,02;39,75;43,31;45,44;46,97
-C;RJ;RJ C;4,69;15,56;17,78;20,01;22,23;23,19;27,72;29,6;31,67;36,02;39,75;43,31;45,44;46,97
-C;ES;ES C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
-C;DF;DF C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
-C;TO;TO C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
-C;GO;GO C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
-C;MS;MS C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
-C;SE;SE C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
-C;BA;BA C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
-C;MT;MT C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
-C;SE;SE C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
-C;AL;AL C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;CE;CE C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;MA;MA C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;PB;PB C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;PI;PI C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;PE;PE C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;RN;RN C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;AM;AM C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;AP;AP C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;PA;PA C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
-C;AC;AC C;8,98;26,12;29,85;33,59;37,32;40,99;49;52,33;56;68,88;76,04;82,85;86,94;89,85
-C;RR;RR C;8,98;26,12;29,85;33,59;37,32;40,99;49;52,33;56;68,88;76,04;82,85;86,94;89,85
-C;RO;RO C;8,98;26,12;29,85;33,59;37,32;40,99;49;52,33;56;68,88;76,04;82,85;86,94;89,85
-I;DF;DF I;7,49;37,73;40,09;42,45;44,8;48,9;55,71;57,82;61,89;69,41;75,81;81,98;86,55;90,4
-I;ES;ES I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;GO;GO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;MG;MG I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
-I;RJ;RJ I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
-I;SP;SP I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-I;AC;AC I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
-I;AL;AL I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;AM;AM I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;AP;AP I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;BA;BA I;8,76;41,04;43,87;46,7;49,53;54,07;61,91;64,44;68,97;79,2;86,6;93,76;98,9;103,16
-I;CE;CE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;MA;MA I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;MS;MS I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;MT;MT I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
-I;PA;PA I;10,29;44,99;48,38;51,77;55,17;60,29;69,32;72,36;77,45;90,94;99,57;107,88;113,72;118,48
-I;PB;PB I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;PE;PE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;PI;PI I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;PR;PR I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
-I;RO;RO I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
-I;RN;RN I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;RR;RR I;11,1;47,36;51,09;54,83;58,56;64;73,78;77,11;82,55;97,2;106,48;115,41;121,62;126,65
-I;RS;RS I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
-I;SC;SC I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
-I;SE;SE I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
-I;TO;TO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;DF;DF I;7,49;37,73;40,09;42,45;44,8;48,9;55,71;57,82;61,89;69,41;75,81;81,98;86,55;90,4
-I;ES;ES I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;GO;GO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;MG;MG I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
-I;RJ;RJ I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
-I;SP;SP I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-I;AC;AC I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
-I;AL;AL I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;AM;AM I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;AP;AP I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;BA;BA I;8,76;41,04;43,87;46,7;49,53;54,07;61,91;64,44;68,97;79,2;86,6;93,76;98,9;103,16
-I;CE;CE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;MA;MA I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;MS;MS I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;MT;MT I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
-I;PA;PA I;10,29;44,99;48,38;51,77;55,17;60,29;69,32;72,36;77,45;90,94;99,57;107,88;113,72;118,48
-I;PB;PB I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;PE;PE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;PI;PI I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;PR;PR I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
-I;RO;RO I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
-I;RN;RN I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
-I;RR;RR I;11,1;47,36;51,09;54,83;58,56;64;73,78;77,11;82,55;97,2;106,48;115,41;121,62;126,65
-I;RS;RS I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
-I;SC;SC I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
-I;SE;SE I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
-I;TO;TO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
-I;PR;PR I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
-I;RS;RS I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
-I;SC;SC I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
-I;SP;SP I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
-I;MG;MG I;6,59;95,56;97,78;100,01;102,23;103,19;107,72;109,6;111,67;116,02;119,75;123,31;125,44;126,97
-I;RJ;RJ I;6,59;95,56;97,78;100,01;102,23;103,19;107,72;109,6;111,67;116,02;119,75;123,31;125,44;126,97
-I;ES;ES I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
-I;DF;DF I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
-I;TO;TO I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
-I;GO;GO I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
-I;MS;MS I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
-I;MT;MT I;8,54;99,8;102,63;105,46;108,29;111,06;117,13;119,66;122,42;130,88;136,16;141,2;144,22;146,36
-I;BA;BA I;8,54;99,8;102,63;105,46;108,29;111,06;117,13;119,66;122,42;130,88;136,16;141,2;144,22;146,36
-I;SE;SE I;8,54;99,8;102,63;105,46;108,29;111,06;117,13;119,66;122,42;130,88;136,16;141,2;144,22;146,36
-I;AL;AL I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;CE;CE I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;MA;MA I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;PB;PB I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;PI;PI I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;PE;PE I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;RN;RN I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;AM;AM I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;AP;AP I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;PA;PA I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
-I;AC;AC I;10,88;106,12;109,85;113,59;117,32;120,99;129;132,33;136;148,88;156,04;162,85;166,94;169,85
-I;RR;RR I;10,88;106,12;109,85;113,59;117,32;120,99;129;132,33;136;148,88;156,04;162,85;166,94;169,85
-I;RO;RO I;10,88;106,12;109,85;113,59;117,32;120,99;129;132,33;136;148,88;156,04;162,85;166,94;169,85
-I;PR;PR I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
-I;RS;RS I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
-I;SC;SC I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
-I;SP;SP I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
-I;MG;MG I;6,59;165,56;167,78;170,01;172,23;173,19;177,72;179,6;181,67;186,02;189,75;193,31;195,44;196,97
-I;RJ;RJ I;6,59;165,56;167,78;170,01;172,23;173,19;177,72;179,6;181,67;186,02;189,75;193,31;195,44;196,97
-I;ES;ES I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
-I;DF;DF I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
-I;TO;TO I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
-I;GO;GO I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
-I;MS;MS I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
-I;MT;MT I;8,54;169,8;172,63;175,46;178,29;181,06;187,13;189,66;192,42;200,88;206,16;211,2;214,22;216,36
-I;BA;BA I;8,54;169,8;172,63;175,46;178,29;181,06;187,13;189,66;192,42;200,88;206,16;211,2;214,22;216,36
-I;SE;SE I;8,54;169,8;172,63;175,46;178,29;181,06;187,13;189,66;192,42;200,88;206,16;211,2;214,22;216,36
-I;AL;AL I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;CE;CE I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;MA;MA I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;PB;PB I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;PI;PI I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;PE;PE I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;RN;RN I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;AM;AM I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;AP;AP I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;PA;PA I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
-I;AC;AC I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
-I;RR;RR I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
-I;RO;RO I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85`;
-const plantFarmTest = `CEP INICIAL;CEP FINAL;Prazo;UF;REGIAO;Exce;0,25;0,5;0,75;1;2;3;4;5;6;7;8;9;10
-15109-000;15109-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-14940-000;14940-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-2912-000;2924-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15100-000;15101-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-1001-000;1599-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-14400-000;14414-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-2000-000;2811-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15129-000;15129-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15120-000;15120-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15000-000;15099-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15128-000;15128-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15116-000;15119-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15121-000;15124-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15125-000;15125-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-2925-000;2930-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-19870-000;19870-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15126-000;15127-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15102-000;15102-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15106-000;15107-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-19900-000;19919-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-2817-000;2832-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15110-000;15110-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15115-000;15115-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15111-000;15114-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-2931-000;2958-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-2840-000;2841-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-2900-000;2911-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15108-000;15108-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15103-000;15103-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-15104-000;15104-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
-15105-000;15105-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
-19880-000;19880-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88`;
+function converterJSONToString(str) {
+    try {
+        return JSON.stringify(processObjToJSON(str));
+    }
+    catch (err) {
+        return null;
+    }
+}
+function deepEqual(obj1, obj2) {
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if (keys1.length !== keys2.length) {
+        return false;
+    }
+    keys1.sort();
+    keys2.sort();
+    for (let i = 0; i < keys1.length; i++) {
+        if (keys1[i] != keys2[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+const createIcon = (name, type = "bi") => {
+    const iconEl = document.createElement("i");
+    iconEl.classList.add(`${type}-${name}`);
+    iconEl.setAttribute("icon", "");
+    return iconEl;
+};
+const getRouter = async (route, callback, onerror = (err) => { }) => {
+    try {
+        const response = await fetch(route);
+        const data = await response.text();
+        callback(data);
+    }
+    catch (error) {
+        onerror(error);
+    }
+};
 function tableComponent({ table: tableEl, headers }, onSelection, colResizableProps = { dragCursor: "ew-resize", headerOnly: true, hoverCursor: "ew-resize", liveDrag: true, resizeMode: 'fit', minWidth: 64, onResize: () => { } }) {
     const listSelected = [];
     const insertColumnSelect = () => {
@@ -574,99 +574,107 @@ function tableComponent({ table: tableEl, headers }, onSelection, colResizablePr
         onLoad: loadDataTable
     };
 }
-const dataLocal = (function () {
-    const storage = [];
-    let length = storage.length;
-    const clear = () => {
-        storage.splice(0, storage.length);
-        length = storage.length;
+function FarmRepository() {
+    const data = {
+        tables: [], id: null, settings: _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false }),
+        process: []
     };
-    const getItem = (key) => { return storage.find(d => { return d.key == key; })?.value; };
-    const removeItem = (key) => {
-        const index = (function () {
-            for (let i = 0; i < storage.length; i++) {
-                const element = storage[i];
-                if (element.key == key) {
-                    return i;
-                }
+    const setup = (props) => {
+        props.tables.forEach(_modelTable => {
+            addTable(_modelTable, _modelTable.code == "template.rate");
+        });
+        data.id = props.id;
+        data.settings = { ..._.cloneDeep(props.settings), isActive: true };
+        data.process = [..._.cloneDeep(props.process)];
+    };
+    const reset = () => {
+        data.tables.splice(0, data.tables.length);
+        data.process.splice(0, data.process.length);
+        data.id = null;
+        data.settings = _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false });
+    };
+    const addTable = (tableModel, saveOld = false) => {
+        !saveOld && removeTable(tableModel);
+        data.tables.push(tableModel);
+    };
+    const getTable = ({ code }) => {
+        return _.cloneDeep(data.tables.reduce((acc, _table, index) => {
+            if (_table.code == code) {
+                acc.push({ ..._table, index });
             }
-            return -1;
-        }());
-        if (index < 0) {
-            return;
+            return acc;
+        }, []));
+    };
+    const removeTable = ({ code }) => {
+        const modelTable = getTable({ code })[0];
+        if (!modelTable) {
+            return false;
         }
-        storage.splice(index, 1);
-        length = storage.length;
+        data.tables.splice(modelTable.index, 1);
+        return true;
     };
-    const setItem = (key, value) => {
-        removeItem(key);
-        storage.push({ key, value });
-        length = storage.length;
+    const updateTable = ({ code, headers: newHeaders, table: newTable }) => {
+        const modelTable = getTable({ code })[0];
+        if (!modelTable) {
+            return false;
+        }
+        if (newHeaders) {
+            data.tables[modelTable.index].headers = newHeaders;
+        }
+        data.tables[modelTable.index].table = newTable;
+        return true;
     };
-    const key = (i) => {
-        return storage[i].value;
+    const updateHeaders = ({ code, headers: newHeaders }) => {
+        const modelTable = getTable({ code })[0];
+        if (!modelTable) {
+            return false;
+        }
+        return updateTable({ code, table: modelTable.table, headers: newHeaders });
+    };
+    const getHeaders = ({ code, types = [], hasValue = true }) => {
+        const modelTable = getTable({ code })[0];
+        if (!modelTable) {
+            return [];
+        }
+        if (types.length == 0) {
+            return modelTable.headers;
+        }
+        return _.cloneDeep(modelTable.headers.filter(_header => {
+            if (!hasValue && _header.value) {
+                return false;
+            }
+            return types.includes(_header.type);
+        }));
+    };
+    const updateSetting = (settings) => {
+        data.settings = { ..._.cloneDeep(settings), isActive: true };
+    };
+    const getSettings = () => {
+        return _.cloneDeep(data.settings);
+    };
+    const updateProcess = (process) => {
+        data.process = _.cloneDeep(process);
+    };
+    const getProcess = ({ types } = { types: [] }) => {
+        if (types.length > 0) {
+            return _.cloneDeep(data.process).filter(_process => { return types.find(_type => { return _process.type == _type; }); });
+        }
+        return _.cloneDeep(data.process);
     };
     return {
-        clear,
-        getItem,
-        removeItem,
-        setItem,
-        length: length,
-        key
-    };
-}());
-const dependencies = {
-    production: localStorage,
-    development: dataLocal
-};
-const ls = dependencies["production"];
-function ControlDataBase() {
-    const createItem = (key, value) => {
-        try {
-            removeItem(key);
-            ls.setItem(key, converterJSONToString(value) || "");
-            return true;
-        }
-        catch (err) {
-            return false;
-        }
-    };
-    const updateItem = (key, value) => {
-        try {
-            removeItem(key);
-            createItem(key, value);
-            return true;
-        }
-        catch (err) {
-            return false;
-        }
-    };
-    const removeItem = (key, clear = false) => {
-        try {
-            !clear ? ls.removeItem(key) : ls.clear();
-            return true;
-        }
-        catch (err) {
-            return false;
-        }
-    };
-    const getItem = (key, keysRegExp) => {
-        try {
-            const value = ls.getItem(key);
-            if (!value) {
-                return null;
-            }
-            return converterStringToJSON(value, keysRegExp);
-        }
-        catch (err) {
-            return null;
-        }
-    };
-    return {
-        createItem,
-        updateItem,
-        removeItem,
-        getItem,
+        data,
+        setup,
+        reset,
+        addTable,
+        getTable,
+        removeTable,
+        updateTable,
+        updateHeaders,
+        getHeaders,
+        updateSetting,
+        getSettings,
+        getProcess,
+        updateProcess,
     };
 }
 function FarmControl(farmRepository) {
@@ -1419,483 +1427,6 @@ function HistoryTableControl() {
         setup,
     };
 }
-function MainControl() {
-    const farmRepository = FarmRepository();
-    const historyTableControl = HistoryTableControl();
-    const settingControl = SettingControl(farmRepository);
-    const fileControl = FileControl(farmRepository);
-    const farmControl = FarmControl(farmRepository);
-    const getData = (id) => {
-        console.log(`Panel=${id}`);
-        console.log({ farm: farmControl.getData() });
-        console.log(historyTableControl.getHistory());
-        console.log(settingControl.getSettings({ farm: true }).settings ? settingControl.getSettings({ farm: true }) : settingControl.getSettings({ global: true }));
-        console.log("");
-        return farmControl.getData();
-    };
-    const uploadFilesPlants = (props, callback) => {
-        farmControl.uploadFilesPlants(props, callback);
-    };
-    const getContentFile = (file, onload, onerror) => {
-        return fileControl.getContentFile(file, onload, onerror);
-    };
-    const exportFiles = ({ files, callback }) => {
-        const filesZip = [];
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const fileBlob = fileControl.createFile({ content: [file.file] });
-            filesZip.push({ file: fileBlob, name: file.name || "?" });
-        }
-        const zip = fileControl.createFileZip({ files: filesZip });
-        zip.generateAsync({ type: "blob" }).then((zipBlob) => {
-            const url = fileControl.createObjectURL(zipBlob);
-            callback(url);
-        });
-    };
-    const createURLDownload = (callback, files) => {
-        const now = new Date(Date.now());
-        const date = replaceText({ replaceValue: ".", searchValue: "/", val: now.toLocaleDateString('pt-br') });
-        const hour = `${now.getHours().toString().padStart(2, "0")}.${now.getMinutes().toString().padStart(2, "0")}`;
-        const zipName = `${date} - ${hour}.zip`;
-        exportFiles({ files, callback: (url) => callback(url, zipName) });
-    };
-    const createFile = (props) => {
-        return fileControl.createFile(props);
-    };
-    const downloadCurrentFarm = (callback) => {
-        const farm = farmControl.getData().tables;
-        const files = [];
-        for (let i = 0; i < farm.length; i++) {
-            const _farm = farm[i];
-            if (!_farm) {
-                continue;
-            }
-            const file = fileControl.getContentInFormatCSV(_farm.table);
-            files.push({ file: file, name: _farm.name });
-        }
-        createURLDownload(callback, files);
-    };
-    const prepareForDownload = (name = "") => {
-        downloadCurrentFarm((url, zipName) => {
-            const tagDownload = document.getElementById("download-files");
-            if (!tagDownload) {
-                return;
-            }
-            tagDownload.setAttribute("href", url);
-            tagDownload.setAttribute("download", `Fazenda - ${name ? `${name} ` : ``}${zipName}`);
-        });
-    };
-    const setupFarm = ({ plants, settings, process: processSelection }, callback) => {
-        const process = processSelection.map(_process => { return { type: _process, logs: [] }; });
-        farmControl.updateSetting({ settings });
-        farmControl.updateProcess({ process });
-        uploadFilesPlants({ plants }, callback);
-    };
-    const processRepoTable = (props) => {
-        return farmControl.processFarm(props) || null;
-    };
-    const processFarm = () => {
-        const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]);
-        const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]);
-        const plantFarm = _.cloneDeep(farmControl.getTable({ code: "farm" })[0]);
-        const plants = [];
-        plantDeadline && plants.push(plantDeadline);
-        plantPrice && plants.push(plantPrice);
-        plantFarm && plants.push(plantFarm);
-        const farm = processRepoTable({
-            modelTables: plants,
-            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
-            process: farmControl.getProcess()
-        });
-        farmControl.setup(farm);
-        console.log("$Finish");
-        return farm;
-    };
-    const saveFarm = (name) => {
-        const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, process: farmControl.getData().process }, farmControl.getData().id);
-        if (!id) {
-            return;
-        }
-        farmControl.setup({ id, tables: farmControl.getData().tables, settings: farmControl.getData().settings, process: farmControl.getData().process });
-    };
-    const loadFarm = (id) => {
-        const farm = historyTableControl.getData({ id });
-        if (!farm.data) {
-            return;
-        }
-        farmControl.reset();
-        farmControl.setup({ id: farm.id, tables: farm.data.tables, settings: farm.data.settings, process: farm.data.process });
-    };
-    const clearFarm = () => {
-        farmControl.reset();
-    };
-    const clearHistory = () => {
-        historyTableControl.clearHistory();
-        historyTableControl.setup(GLOBAL_HISTORY);
-    };
-    const clearSettings = () => {
-        settingControl.clearSettings();
-        settingControl.updateSettings(GLOBAL_SETTINGS);
-    };
-    return {
-        getData,
-        uploadFilesPlants,
-        processFarm,
-        getContentFile,
-        processRepoTable,
-        exportFiles,
-        saveFarm,
-        loadFarm,
-        clearHistory,
-        createURLDownload,
-        createFile,
-        downloadCurrentFarm,
-        clearFarm,
-        clearSettings,
-        prepareForDownload,
-        setupFarm,
-    };
-}
-function ModelWindowControl() {
-    const createModel = (children) => {
-        const model = document.createElement("div");
-        model.setAttribute("model-window", "enabled");
-        model.appendChild(children);
-        setupModel(model);
-        return model;
-    };
-    const setupModel = (model) => {
-        const headerModel = document.createElement("div");
-        const btClose = document.createElement("button");
-        btClose.onclick = () => closeModel(model);
-        btClose.appendChild(createIcon("x"));
-        headerModel.appendChild(btClose);
-        headerModel.classList.add("header");
-        model.insertBefore(headerModel, model.firstChild);
-        setupMoveModel(headerModel, model);
-        openModel(model);
-    };
-    const setupMoveModel = (header, model) => {
-        let mouseX, mouseY, elementX, elementY;
-        let isPressed = false;
-        const move = (ev) => {
-            if (!isPressed) {
-                return;
-            }
-            const parent = model.parentElement;
-            const deltaX = ev.clientX - mouseX;
-            const deltaY = ev.clientY - mouseY;
-            const newElementX = elementX + deltaX;
-            const newElementY = elementY + deltaY;
-            const width = model.clientWidth;
-            const height = model.clientHeight;
-            const x = newElementX <= 0 ? 0 : parent ? newElementX + width >= parent.clientWidth ? parent.clientWidth - width : newElementX : newElementX;
-            const y = newElementY <= 0 ? 0 : parent ? newElementY + height >= parent.clientHeight ? parent.clientHeight - height : newElementY : newElementY;
-            model.style.left = x + "px";
-            model.style.top = y + "px";
-        };
-        header.addEventListener("mousedown", (ev) => {
-            ev.preventDefault();
-            if (model.getAttribute("model-window") != "enabled") {
-                return;
-            }
-            mouseX = ev.clientX;
-            mouseY = ev.clientY;
-            elementX = model.offsetLeft;
-            elementY = model.offsetTop;
-            isPressed = true;
-        });
-        window.addEventListener("mouseup", () => {
-            isPressed = false;
-        });
-        window.addEventListener("mousemove", move);
-    };
-    const openModel = (model) => {
-        model.setAttribute("model-window", "enabled");
-        const headerModel = model.querySelector(".header");
-        if (!headerModel) {
-            return;
-        }
-    };
-    const closeModel = (model) => {
-        model.setAttribute("model-window", "disabled");
-    };
-    return {
-        createModel
-    };
-}
-function PanelControl() {
-    const modelWindowControl = ModelWindowControl();
-    const routerControl = RouterControl();
-    let panelList;
-    let abaList;
-    let panelActive = null;
-    const initComponents = (listPanel, listAba) => {
-        panelList = listPanel;
-        abaList = listAba;
-    };
-    const createPanel = (id, name, parent, callback) => {
-        if (!name) {
-            return null;
-        }
-        const panelEl = document.createElement("div");
-        panelEl.setAttribute("id", `${id}`);
-        panelEl.setAttribute("panel", `${name}`);
-        panelEl.setAttribute("model-window-parent", "");
-        loadPanel(panelEl, id, name, parent, (res) => {
-            if (!res) {
-                return callback(null);
-            }
-            callback(panelEl);
-        });
-    };
-    const newPanel = ({ name, title, __dev, active }, isCtrl) => {
-        if (GLOBAL_DEPENDENCE != "development") {
-            if (__dev) {
-                return;
-            }
-            if (!active) {
-                return;
-            }
-        }
-        if (!isCtrl && getPanelByName(name)) {
-            return;
-        }
-        const id = generatedId();
-        const { bt: closePanel, el: aba } = createAba(title, id);
-        createPanel(id, name, panelList, (panel) => {
-            if (!isCtrl || !getPanelByName(name)) {
-                togglePanel(id);
-            }
-            aba.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
-            aba.addEventListener("click", ({ altKey }) => {
-                if (altKey) {
-                    return removePanelModel(id);
-                }
-                togglePanel(id);
-            });
-            closePanel.addEventListener("click", () => removePanelModel(id));
-            abaList.appendChild(aba);
-        });
-    };
-    const loadPanel = (panel, id, name, parent, callback) => {
-        const responseRouter = routerControl.getRouter({ name });
-        if (!responseRouter) {
-            panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
-        }
-        else {
-            const { router, script } = responseRouter;
-            routerControl.query({ router }, ({ data, error }) => {
-                if (!data || error) {
-                    panel.innerHTML = error?.msg || GLOBAL_ROUTER_NOT_FOUND;
-                    return callback(false);
-                }
-                if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
-                    panel.innerHTML = "Cannot load page";
-                    return callback(false);
-                }
-                panel.innerHTML = data;
-                parent.appendChild(panel);
-                if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) {
-                    panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
-                    return callback(false);
-                }
-                callback(true);
-            });
-        }
-        return true;
-    };
-    const removePanelModel = (id) => {
-        removeAba(id);
-        removePanel(id);
-    };
-    const showPanel = (id) => {
-        const panel = getPanel(id);
-        if (!panel) {
-            return;
-        }
-        panel.classList.toggle("active", true);
-        panelActive = id;
-    };
-    const hiddenPanel = (id) => {
-        const panel = getPanel(id);
-        if (!panel) {
-            return;
-        }
-        panel.classList.toggle("active", false);
-    };
-    const removePanel = (id) => {
-        const panel = getPanel(id);
-        if (!panel) {
-            return false;
-        }
-        const nextPanel = panel.previousElementSibling;
-        if (panelActive == id) {
-            const nextId = nextPanel ? nextPanel.getAttribute("id") || "" : "";
-            if (nextId) {
-                togglePanel(nextId);
-            }
-            else {
-                panelActive = null;
-            }
-        }
-        panel.remove();
-        return true;
-    };
-    const getPanel = (id) => {
-        const panel = panelList.querySelector(`[panel][id="${id}"]`);
-        return panel;
-    };
-    const getPanelByName = (name, id) => {
-        const panel = document.querySelector(`[panel="${name}"]${id ? `[id="${id}"]` : ``}`);
-        return panel;
-    };
-    const togglePanel = (id) => {
-        if (!getPanel(id)) {
-            return;
-        }
-        const panels = panelList.querySelectorAll("[panel]");
-        panels.forEach(_panel => {
-            hiddenPanel(_panel.getAttribute("id") || "");
-        });
-        showPanel(id);
-        activeAba(id);
-    };
-    const createAba = (title, idPanel) => {
-        const abaEl = document.createElement("div");
-        const spanTitle = document.createElement("span");
-        const btClose = document.createElement("button");
-        const iconEl = createIcon("x");
-        spanTitle.textContent = title;
-        spanTitle.classList.add("aba-title");
-        abaEl.setAttribute("aba", `${idPanel}`);
-        abaEl.classList.add("aba");
-        btClose.title = "Fechar aba";
-        btClose.appendChild(iconEl);
-        abaEl.appendChild(spanTitle);
-        abaEl.appendChild(btClose);
-        return { el: abaEl, bt: btClose };
-    };
-    const getAba = (id) => {
-        const aba = abaList.querySelector(`[aba="${id}"]`);
-        return aba;
-    };
-    const removeAba = (id) => {
-        const aba = getAba(id);
-        if (!aba) {
-            return;
-        }
-        aba.remove();
-    };
-    const activeAba = (id) => {
-        const aba = getAba(id);
-        if (!aba) {
-            return;
-        }
-        const abas = abaList.querySelectorAll(`[aba]`);
-        abas.forEach(_aba => _aba.classList.toggle("active", false));
-        aba.classList.toggle("active", true);
-    };
-    return {
-        initComponents,
-        newPanel,
-        togglePanel,
-        getPanelByName,
-    };
-}
-function RenderControl() {
-    const historyTableControl = HistoryTableControl();
-    const mainControl = MainControl();
-    const panelControl = PanelControl();
-    const modelWindowControl = ModelWindowControl();
-    const ELEMENTS = {
-        sideBarList: document.querySelector(".side-bar [list]"),
-        panelControl: document.querySelector(".panel-control"),
-        abaContentList: document.querySelector(".abas"),
-        listFarms: document.querySelector(".list.farms")
-    };
-    const initComponents = () => {
-        panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList);
-        GLOBAL_ROUTERS.forEach(_item => {
-            if (GLOBAL_DEPENDENCE != "development") {
-                if (_item.__dev) {
-                    return;
-                }
-                if (!_item.active) {
-                    return;
-                }
-            }
-            const itemEl = createItem(_item.title, _item.icon, _item.name, _item.active);
-            itemEl.addEventListener("click", (ev) => {
-                const panelAlreadyExist = panelControl.getPanelByName(_item.name);
-                if (!ev.ctrlKey && panelAlreadyExist) {
-                    const id = panelAlreadyExist.getAttribute("id");
-                    return id && panelControl.togglePanel(id);
-                }
-                panelControl.newPanel(_item, ev.ctrlKey);
-            });
-            ELEMENTS.sideBarList.appendChild(itemEl);
-        });
-    };
-    const createItem = (title, icon, name, active) => {
-        const itemEl = document.createElement("div");
-        const span = document.createElement("span");
-        const iconEl = createIcon(icon);
-        itemEl.setAttribute("item", name);
-        itemEl.setAttribute("icon-parent", "");
-        itemEl.classList.add("item");
-        span.classList.add("item-title");
-        span.textContent = title;
-        itemEl.appendChild(iconEl);
-        itemEl.appendChild(span);
-        if (!active) {
-            const iconDisabledEl = createIcon("eye-slash");
-            itemEl.appendChild(iconDisabledEl);
-        }
-        return itemEl;
-    };
-    return {
-        initComponents,
-    };
-}
-function RouterControl() {
-    const apiRouter = {
-        "production": (router, callback) => {
-            const response = fetch(`${router}`).then(res => {
-                return res.text();
-            }).then(res => {
-                return { data: res };
-            }).catch(error => {
-                return { error: { msg: "Rout not found" } };
-            });
-            response.then(callback);
-            return response;
-        },
-        "development": (router, callback) => {
-            const routerResponse = GLOBAL_ROUTERS_ROUTER[`${router}`];
-            if (routerResponse)
-                return callback({ data: routerResponse });
-            callback({ error: { msg: "Rout not found" } });
-        },
-    };
-    const fetchRouter = (router, callback) => {
-        apiRouter[GLOBAL_DEPENDENCE](router, ({ data, error }) => {
-            if (!data || error)
-                return apiRouter[GLOBAL_DEPENDENCE]("routers/panel-404.html", callback);
-            callback({ data });
-        });
-    };
-    const getRouter = ({ router, name, script }) => {
-        return GLOBAL_ROUTERS.find(_router => { return _router.router == router || _router.name == name || _router.script == script; }) || null;
-    };
-    const query = ({ router }, callback) => {
-        fetchRouter(`${router}`, callback);
-    };
-    return {
-        getRouter,
-        query
-    };
-}
 function SettingControl(farmRepository) {
     const controlDB = ControlDataBase();
     const KEY = "setting";
@@ -2175,117 +1706,484 @@ function TestControl() {
         getIndexByCep,
     };
 }
-function FarmRepository() {
-    const data = {
-        tables: [], id: null, settings: _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false }),
-        process: []
+function ModelWindowControl() {
+    const createModel = (children) => {
+        const model = document.createElement("div");
+        model.setAttribute("model-window", "enabled");
+        model.appendChild(children);
+        setupModel(model);
+        return model;
     };
-    const setup = (props) => {
-        props.tables.forEach(_modelTable => {
-            addTable(_modelTable, _modelTable.code == "template.rate");
+    const setupModel = (model) => {
+        const headerModel = document.createElement("div");
+        const btClose = document.createElement("button");
+        btClose.onclick = () => closeModel(model);
+        btClose.appendChild(createIcon("x"));
+        headerModel.appendChild(btClose);
+        headerModel.classList.add("header");
+        model.insertBefore(headerModel, model.firstChild);
+        setupMoveModel(headerModel, model);
+        openModel(model);
+    };
+    const setupMoveModel = (header, model) => {
+        let mouseX, mouseY, elementX, elementY;
+        let isPressed = false;
+        const move = (ev) => {
+            if (!isPressed) {
+                return;
+            }
+            const parent = model.parentElement;
+            const deltaX = ev.clientX - mouseX;
+            const deltaY = ev.clientY - mouseY;
+            const newElementX = elementX + deltaX;
+            const newElementY = elementY + deltaY;
+            const width = model.clientWidth;
+            const height = model.clientHeight;
+            const x = newElementX <= 0 ? 0 : parent ? newElementX + width >= parent.clientWidth ? parent.clientWidth - width : newElementX : newElementX;
+            const y = newElementY <= 0 ? 0 : parent ? newElementY + height >= parent.clientHeight ? parent.clientHeight - height : newElementY : newElementY;
+            model.style.left = x + "px";
+            model.style.top = y + "px";
+        };
+        header.addEventListener("mousedown", (ev) => {
+            ev.preventDefault();
+            if (model.getAttribute("model-window") != "enabled") {
+                return;
+            }
+            mouseX = ev.clientX;
+            mouseY = ev.clientY;
+            elementX = model.offsetLeft;
+            elementY = model.offsetTop;
+            isPressed = true;
         });
-        data.id = props.id;
-        data.settings = { ..._.cloneDeep(props.settings), isActive: true };
-        data.process = [..._.cloneDeep(props.process)];
+        window.addEventListener("mouseup", () => {
+            isPressed = false;
+        });
+        window.addEventListener("mousemove", move);
     };
-    const reset = () => {
-        data.tables.splice(0, data.tables.length);
-        data.process.splice(0, data.process.length);
-        data.id = null;
-        data.settings = _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false });
-    };
-    const addTable = (tableModel, saveOld = false) => {
-        !saveOld && removeTable(tableModel);
-        data.tables.push(tableModel);
-    };
-    const getTable = ({ code }) => {
-        return _.cloneDeep(data.tables.reduce((acc, _table, index) => {
-            if (_table.code == code) {
-                acc.push({ ..._table, index });
-            }
-            return acc;
-        }, []));
-    };
-    const removeTable = ({ code }) => {
-        const modelTable = getTable({ code })[0];
-        if (!modelTable) {
-            return false;
+    const openModel = (model) => {
+        model.setAttribute("model-window", "enabled");
+        const headerModel = model.querySelector(".header");
+        if (!headerModel) {
+            return;
         }
-        data.tables.splice(modelTable.index, 1);
-        return true;
     };
-    const updateTable = ({ code, headers: newHeaders, table: newTable }) => {
-        const modelTable = getTable({ code })[0];
-        if (!modelTable) {
-            return false;
-        }
-        if (newHeaders) {
-            data.tables[modelTable.index].headers = newHeaders;
-        }
-        data.tables[modelTable.index].table = newTable;
-        return true;
-    };
-    const updateHeaders = ({ code, headers: newHeaders }) => {
-        const modelTable = getTable({ code })[0];
-        if (!modelTable) {
-            return false;
-        }
-        return updateTable({ code, table: modelTable.table, headers: newHeaders });
-    };
-    const getHeaders = ({ code, types = [], hasValue = true }) => {
-        const modelTable = getTable({ code })[0];
-        if (!modelTable) {
-            return [];
-        }
-        if (types.length == 0) {
-            return modelTable.headers;
-        }
-        return _.cloneDeep(modelTable.headers.filter(_header => {
-            if (!hasValue && _header.value) {
-                return false;
-            }
-            return types.includes(_header.type);
-        }));
-    };
-    const updateSetting = (settings) => {
-        data.settings = { ..._.cloneDeep(settings), isActive: true };
-    };
-    const getSettings = () => {
-        return _.cloneDeep(data.settings);
-    };
-    const updateProcess = (process) => {
-        data.process = _.cloneDeep(process);
-    };
-    const getProcess = ({ types } = { types: [] }) => {
-        if (types.length > 0) {
-            return _.cloneDeep(data.process).filter(_process => { return types.find(_type => { return _process.type == _type; }); });
-        }
-        return _.cloneDeep(data.process);
+    const closeModel = (model) => {
+        model.setAttribute("model-window", "disabled");
     };
     return {
-        data,
-        setup,
-        reset,
-        addTable,
-        getTable,
-        removeTable,
-        updateTable,
-        updateHeaders,
-        getHeaders,
-        updateSetting,
-        getSettings,
-        getProcess,
-        updateProcess,
+        createModel
     };
 }
-const GLOBAL_MODULE_SCRIPTS = {
-    ["FarmScript"]: FarmScript,
-    ["HistoryScript"]: HistoryScript,
-    ["FeatureScript"]: FeatureScript,
-    ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
-    ["SettingScript"]: (id) => { return { error: { msg: 'Router "Setting" not found' } }; },
-    ["GuideScript"]: GuideScript
-};
+function PanelControl() {
+    const modelWindowControl = ModelWindowControl();
+    const routerControl = RouterControl();
+    let panelList;
+    let abaList;
+    let panelActive = null;
+    const initComponents = (listPanel, listAba) => {
+        panelList = listPanel;
+        abaList = listAba;
+    };
+    const createPanel = (id, name, parent, callback) => {
+        if (!name) {
+            return null;
+        }
+        const panelEl = document.createElement("div");
+        panelEl.setAttribute("id", `${id}`);
+        panelEl.setAttribute("panel", `${name}`);
+        panelEl.setAttribute("model-window-parent", "");
+        loadPanel(panelEl, id, name, parent, (res) => {
+            if (!res) {
+                return callback(null);
+            }
+            callback(panelEl);
+        });
+    };
+    const newPanel = ({ name, title, __dev, active }, isCtrl) => {
+        if (GLOBAL_DEPENDENCE != "development") {
+            if (__dev) {
+                return;
+            }
+            if (!active) {
+                return;
+            }
+        }
+        if (!isCtrl && getPanelByName(name)) {
+            return;
+        }
+        const id = generatedId();
+        const { bt: closePanel, el: aba } = createAba(title, id);
+        createPanel(id, name, panelList, (panel) => {
+            if (!isCtrl || !getPanelByName(name)) {
+                togglePanel(id);
+            }
+            aba.addEventListener("mousedown", (ev) => ev.button == 1 && removePanelModel(id));
+            aba.addEventListener("click", ({ altKey }) => {
+                if (altKey) {
+                    return removePanelModel(id);
+                }
+                togglePanel(id);
+            });
+            closePanel.addEventListener("click", () => removePanelModel(id));
+            abaList.appendChild(aba);
+        });
+    };
+    const loadPanel = (panel, id, name, parent, callback) => {
+        const responseRouter = routerControl.getRouter({ name });
+        if (!responseRouter) {
+            panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
+        }
+        else {
+            const { router, script } = responseRouter;
+            routerControl.query({ router }, ({ data, error }) => {
+                if (!data || error) {
+                    panel.innerHTML = error?.msg || GLOBAL_ROUTER_NOT_FOUND;
+                    return callback(false);
+                }
+                if (!GLOBAL_MODULE_SCRIPTS[`${script}`]) {
+                    panel.innerHTML = "Cannot load page";
+                    return callback(false);
+                }
+                panel.innerHTML = data;
+                parent.appendChild(panel);
+                if (GLOBAL_MODULE_SCRIPTS[`${script}`](id).error) {
+                    panel.innerHTML = GLOBAL_ROUTER_NOT_FOUND;
+                    return callback(false);
+                }
+                callback(true);
+            });
+        }
+        return true;
+    };
+    const removePanelModel = (id) => {
+        removeAba(id);
+        removePanel(id);
+    };
+    const showPanel = (id) => {
+        const panel = getPanel(id);
+        if (!panel) {
+            return;
+        }
+        panel.classList.toggle("active", true);
+        panelActive = id;
+    };
+    const hiddenPanel = (id) => {
+        const panel = getPanel(id);
+        if (!panel) {
+            return;
+        }
+        panel.classList.toggle("active", false);
+    };
+    const removePanel = (id) => {
+        const panel = getPanel(id);
+        if (!panel) {
+            return false;
+        }
+        const nextPanel = panel.previousElementSibling;
+        if (panelActive == id) {
+            const nextId = nextPanel ? nextPanel.getAttribute("id") || "" : "";
+            if (nextId) {
+                togglePanel(nextId);
+            }
+            else {
+                panelActive = null;
+            }
+        }
+        panel.remove();
+        return true;
+    };
+    const getPanel = (id) => {
+        const panel = panelList.querySelector(`[panel][id="${id}"]`);
+        return panel;
+    };
+    const getPanelByName = (name, id) => {
+        const panel = document.querySelector(`[panel="${name}"]${id ? `[id="${id}"]` : ``}`);
+        return panel;
+    };
+    const togglePanel = (id) => {
+        if (!getPanel(id)) {
+            return;
+        }
+        const panels = panelList.querySelectorAll("[panel]");
+        panels.forEach(_panel => {
+            hiddenPanel(_panel.getAttribute("id") || "");
+        });
+        showPanel(id);
+        activeAba(id);
+    };
+    const createAba = (title, idPanel) => {
+        const abaEl = document.createElement("div");
+        const spanTitle = document.createElement("span");
+        const btClose = document.createElement("button");
+        const iconEl = createIcon("x");
+        spanTitle.textContent = title;
+        spanTitle.classList.add("aba-title");
+        abaEl.setAttribute("aba", `${idPanel}`);
+        abaEl.classList.add("aba");
+        btClose.title = "Fechar aba";
+        btClose.appendChild(iconEl);
+        abaEl.appendChild(spanTitle);
+        abaEl.appendChild(btClose);
+        return { el: abaEl, bt: btClose };
+    };
+    const getAba = (id) => {
+        const aba = abaList.querySelector(`[aba="${id}"]`);
+        return aba;
+    };
+    const removeAba = (id) => {
+        const aba = getAba(id);
+        if (!aba) {
+            return;
+        }
+        aba.remove();
+    };
+    const activeAba = (id) => {
+        const aba = getAba(id);
+        if (!aba) {
+            return;
+        }
+        const abas = abaList.querySelectorAll(`[aba]`);
+        abas.forEach(_aba => _aba.classList.toggle("active", false));
+        aba.classList.toggle("active", true);
+    };
+    return {
+        initComponents,
+        newPanel,
+        togglePanel,
+        getPanelByName,
+    };
+}
+function RouterControl() {
+    const apiRouter = {
+        "production": (router, callback) => {
+            const response = fetch(`${router}`).then(res => {
+                return res.text();
+            }).then(res => {
+                return { data: res };
+            }).catch(error => {
+                return { error: { msg: "Rout not found" } };
+            });
+            response.then(callback);
+            return response;
+        },
+        "development": (router, callback) => {
+            const routerResponse = GLOBAL_ROUTERS_ROUTER[`${router}`];
+            if (routerResponse)
+                return callback({ data: routerResponse });
+            callback({ error: { msg: "Rout not found" } });
+        },
+    };
+    const fetchRouter = (router, callback) => {
+        apiRouter[GLOBAL_DEPENDENCE](router, ({ data, error }) => {
+            if (!data || error)
+                return apiRouter[GLOBAL_DEPENDENCE]("routers/panel-404.html", callback);
+            callback({ data });
+        });
+    };
+    const getRouter = ({ router, name, script }) => {
+        return GLOBAL_ROUTERS.find(_router => { return _router.router == router || _router.name == name || _router.script == script; }) || null;
+    };
+    const query = ({ router }, callback) => {
+        fetchRouter(`${router}`, callback);
+    };
+    return {
+        getRouter,
+        query
+    };
+}
+function MainControl() {
+    const farmRepository = FarmRepository();
+    const historyTableControl = HistoryTableControl();
+    const settingControl = SettingControl(farmRepository);
+    const fileControl = FileControl(farmRepository);
+    const farmControl = FarmControl(farmRepository);
+    const getData = (id) => {
+        console.log(`Panel=${id}`);
+        console.log({ farm: farmControl.getData() });
+        console.log(historyTableControl.getHistory());
+        console.log(settingControl.getSettings({ farm: true }).settings ? settingControl.getSettings({ farm: true }) : settingControl.getSettings({ global: true }));
+        console.log("");
+        return farmControl.getData();
+    };
+    const uploadFilesPlants = (props, callback) => {
+        farmControl.uploadFilesPlants(props, callback);
+    };
+    const getContentFile = (file, onload, onerror) => {
+        return fileControl.getContentFile(file, onload, onerror);
+    };
+    const exportFiles = ({ files, callback }) => {
+        const filesZip = [];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileBlob = fileControl.createFile({ content: [file.file] });
+            filesZip.push({ file: fileBlob, name: file.name || "?" });
+        }
+        const zip = fileControl.createFileZip({ files: filesZip });
+        zip.generateAsync({ type: "blob" }).then((zipBlob) => {
+            const url = fileControl.createObjectURL(zipBlob);
+            callback(url);
+        });
+    };
+    const createURLDownload = (callback, files) => {
+        const now = new Date(Date.now());
+        const date = replaceText({ replaceValue: ".", searchValue: "/", val: now.toLocaleDateString('pt-br') });
+        const hour = `${now.getHours().toString().padStart(2, "0")}.${now.getMinutes().toString().padStart(2, "0")}`;
+        const zipName = `${date} - ${hour}.zip`;
+        exportFiles({ files, callback: (url) => callback(url, zipName) });
+    };
+    const createFile = (props) => {
+        return fileControl.createFile(props);
+    };
+    const downloadCurrentFarm = (callback) => {
+        const farm = farmControl.getData().tables;
+        const files = [];
+        for (let i = 0; i < farm.length; i++) {
+            const _farm = farm[i];
+            if (!_farm) {
+                continue;
+            }
+            const file = fileControl.getContentInFormatCSV(_farm.table);
+            files.push({ file: file, name: _farm.name });
+        }
+        createURLDownload(callback, files);
+    };
+    const prepareForDownload = (name = "") => {
+        downloadCurrentFarm((url, zipName) => {
+            const tagDownload = document.getElementById("download-files");
+            if (!tagDownload) {
+                return;
+            }
+            tagDownload.setAttribute("href", url);
+            tagDownload.setAttribute("download", `Fazenda - ${name ? `${name} ` : ``}${zipName}`);
+        });
+    };
+    const setupFarm = ({ plants, settings, process: processSelection }, callback) => {
+        const process = processSelection.map(_process => { return { type: _process, logs: [] }; });
+        farmControl.updateSetting({ settings });
+        farmControl.updateProcess({ process });
+        uploadFilesPlants({ plants }, callback);
+    };
+    const processRepoTable = (props) => {
+        return farmControl.processFarm(props) || null;
+    };
+    const processFarm = () => {
+        const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]);
+        const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]);
+        const plantFarm = _.cloneDeep(farmControl.getTable({ code: "farm" })[0]);
+        const plants = [];
+        plantDeadline && plants.push(plantDeadline);
+        plantPrice && plants.push(plantPrice);
+        plantFarm && plants.push(plantFarm);
+        const farm = processRepoTable({
+            modelTables: plants,
+            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
+            process: farmControl.getProcess()
+        });
+        farmControl.setup(farm);
+        console.log("$Finish");
+        return farm;
+    };
+    const saveFarm = (name) => {
+        const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, process: farmControl.getData().process }, farmControl.getData().id);
+        if (!id) {
+            return;
+        }
+        farmControl.setup({ id, tables: farmControl.getData().tables, settings: farmControl.getData().settings, process: farmControl.getData().process });
+    };
+    const loadFarm = (id) => {
+        const farm = historyTableControl.getData({ id });
+        if (!farm.data) {
+            return;
+        }
+        farmControl.reset();
+        farmControl.setup({ id: farm.id, tables: farm.data.tables, settings: farm.data.settings, process: farm.data.process });
+    };
+    const clearFarm = () => {
+        farmControl.reset();
+    };
+    const clearHistory = () => {
+        historyTableControl.clearHistory();
+        historyTableControl.setup(GLOBAL_HISTORY);
+    };
+    const clearSettings = () => {
+        settingControl.clearSettings();
+        settingControl.updateSettings(GLOBAL_SETTINGS);
+    };
+    return {
+        getData,
+        uploadFilesPlants,
+        processFarm,
+        getContentFile,
+        processRepoTable,
+        exportFiles,
+        saveFarm,
+        loadFarm,
+        clearHistory,
+        createURLDownload,
+        createFile,
+        downloadCurrentFarm,
+        clearFarm,
+        clearSettings,
+        prepareForDownload,
+        setupFarm,
+    };
+}
+function RenderControl() {
+    const historyTableControl = HistoryTableControl();
+    const mainControl = MainControl();
+    const panelControl = PanelControl();
+    const modelWindowControl = ModelWindowControl();
+    const ELEMENTS = {
+        sideBarList: document.querySelector(".side-bar [list]"),
+        panelControl: document.querySelector(".panel-control"),
+        abaContentList: document.querySelector(".abas"),
+        listFarms: document.querySelector(".list.farms")
+    };
+    const initComponents = () => {
+        panelControl.initComponents(ELEMENTS.panelControl, ELEMENTS.abaContentList);
+        GLOBAL_ROUTERS.forEach(_item => {
+            if (GLOBAL_DEPENDENCE != "development") {
+                if (_item.__dev) {
+                    return;
+                }
+                if (!_item.active) {
+                    return;
+                }
+            }
+            const itemEl = createItem(_item.title, _item.icon, _item.name, _item.active);
+            itemEl.addEventListener("click", (ev) => {
+                const panelAlreadyExist = panelControl.getPanelByName(_item.name);
+                if (!ev.ctrlKey && panelAlreadyExist) {
+                    const id = panelAlreadyExist.getAttribute("id");
+                    return id && panelControl.togglePanel(id);
+                }
+                panelControl.newPanel(_item, ev.ctrlKey);
+            });
+            GLOBAL_DEPENDENCE == "development" && _item.__dev && panelControl.newPanel(_item, false);
+            ELEMENTS.sideBarList.appendChild(itemEl);
+        });
+    };
+    const createItem = (title, icon, name, active) => {
+        const itemEl = document.createElement("div");
+        const span = document.createElement("span");
+        const iconEl = createIcon(icon);
+        itemEl.setAttribute("item", name);
+        itemEl.setAttribute("icon-parent", "");
+        itemEl.classList.add("item");
+        span.classList.add("item-title");
+        span.textContent = title;
+        itemEl.appendChild(iconEl);
+        itemEl.appendChild(span);
+        if (!active) {
+            const iconDisabledEl = createIcon("eye-slash");
+            itemEl.appendChild(iconDisabledEl);
+        }
+        return itemEl;
+    };
+    return {
+        initComponents,
+    };
+}
 function FarmScript(idPanel) {
     const panel = document.querySelector(`[panel="farm"][id="${idPanel}"]`);
     if (!panel) {
@@ -2484,119 +2382,263 @@ function HistoryScript(idPanel) {
     initComponents();
     return {};
 }
-const createIcon = (name, type = "bi") => {
-    const iconEl = document.createElement("i");
-    iconEl.classList.add(`${type}-${name}`);
-    iconEl.setAttribute("icon", "");
-    return iconEl;
+const GLOBAL_MODULE_SCRIPTS = {
+    ["FarmScript"]: FarmScript,
+    ["HistoryScript"]: HistoryScript,
+    ["FeatureScript"]: FeatureScript,
+    ["TestScript"]: (id) => { return { error: { msg: 'Router "Test" not found' } }; },
+    ["SettingScript"]: (id) => { return { error: { msg: 'Router "Setting" not found' } }; },
+    ["GuideScript"]: GuideScript
 };
-const getRouter = async (route, callback, onerror = (err) => { }) => {
-    try {
-        const response = await fetch(route);
-        const data = await response.text();
-        callback(data);
+function Setup() {
+    const historyTableControl = HistoryTableControl();
+    const settingControl = SettingControl(FarmRepository());
+    if (!historyTableControl.getHistory().history) {
+        historyTableControl.setup([...GLOBAL_HISTORY]);
     }
-    catch (error) {
-        onerror(error);
+    if (!settingControl.getSettings({ storage: true })) {
+        settingControl.updateSettings(GLOBAL_SETTINGS);
     }
-};
-function isNumber(str) { return !isNaN(parseFloat(str)); }
-function generatedId() {
-    const VALUE_MAX = 9999;
-    const now = new Date();
-    return `${now.getFullYear()}${`${now.getMonth() + 1}`.padStart(2, "0")}${`${Math.floor(Math.random() * VALUE_MAX)}`.padStart(`${VALUE_MAX}`.length, "0")}`;
 }
-function replaceText({ replaceValue, searchValue, val, betweenText }) {
-    let value = val;
-    if (!value) {
-        return "";
-    }
-    if (!betweenText) {
-        do {
-            value = value.replace(searchValue, replaceValue);
-        } while (value.indexOf(searchValue) >= 0);
-        return value;
-    }
-    let i = 0;
-    let isOpenQuote = false;
-    do {
-        const index = value.indexOf(betweenText, i);
-        if (index < 0) {
-            break;
-        }
-        if (!isOpenQuote)
-            isOpenQuote = true;
-        else {
-            value = value.substring(0, i) + value.substring(i, index).replace(searchValue, replaceValue) + value.substring(index);
-            isOpenQuote = false;
-        }
-        i = index + 1;
-    } while (i < value.length);
-    return value;
-}
-function processObjToJSON(obj) {
-    const newObj = _.cloneDeep(obj);
-    for (const key in newObj) {
-        if (newObj[key] instanceof RegExp) {
-            newObj[key] = converterReGexpToString(newObj[key]);
-            continue;
-        }
-        if (typeof newObj[key] === "object" && newObj[key] !== null) {
-            newObj[key] = processObjToJSON(newObj[key]);
-        }
-    }
-    return newObj;
-}
-function processJSONToObj(obj, keysRegExp = []) {
-    const newObj = _.cloneDeep(obj);
-    for (const key in newObj) {
-        if (keysRegExp.includes(`${key}`) && typeof newObj[key] === "string") {
-            try {
-                newObj[key] = converterStringToRegExp(newObj[key]);
+const plantDeadlineTest = `CEP INICIAL;CEP FINAL;X;X;Prazo;D+1;UF;REGIAO;CS
+15111000;15114999;1;3999;7;8;SP;I;SP I
+15115000;15115999;1;999;5;6;SP;C;SP C
+15116000;15119999;1;3999;7;8;SP;I;SP I
+2925000;2930999;1;5999;1;2;SP;C;SP C
+2931000;2958999;1;27999;1;2;SP;C;SP C
+14400000;14414999;239001;14999;1;2;SP;C;SP C
+1001000;1599999;x;598999;1;2;SP;C;SP C
+15120000;15120999;1;999;5;6;SP;I;SP I
+15121000;15124999;1;3999;7;8;SP;I;SP I
+15125000;15125999;1;999;5;6;SP;I;SP I
+2900000;2911999;58001;11999;1;2;SP;C;SP C
+2912000;2924999;1;12999;1;2;SP;C;SP C
+2000000;2811999;400001;811999;1;2;SP;C;SP C
+2817000;2832999;5001;15999;1;2;SP;C;SP C
+2840000;2841999;7001;1999;1;2;SP;C;SP C
+15126000;15127999;1;1999;7;8;SP;I;SP I
+15128000;15128999;1;999;5;6;SP;I;SP I
+15129000;15129999;1;999;7;8;SP;I;SP I
+19870000;19870999;4001;999;5;6;SP;I;SP I
+19880000;19880999;9001;999;3;4;SP;I;SP I
+14940000;14940999;525001;999;3;4;SP;I;SP I
+15100000;15101999;1;1999;2;3;SP;I;SP I
+15102000;15102999;1;999;5;6;SP;C;SP C
+15110000;15110999;1;999;5;6;SP;I;SP I
+15103000;15103999;1;999;2;3;SP;I;SP I
+15000000;15099999;59001;99999;1;2;SP;C;SP C
+15104000;15104999;1;999;5;6;SP;C;SP C
+15105000;15105999;1;999;5;6;SP;I;SP I
+15106000;15107999;1;1999;7;8;SP;I;SP I
+15108000;15108999;1;999;5;6;SP;I;SP I
+15109000;15109999;1;999;7;8;SP;I;SP I
+19900000;19919999;19001;19999;3;4;SP;I;SP I`;
+const plantPriceTest = `REGIAO;UF;CS;Exce;0,25;0,5;0,75;1;2;3;4;5;6;7;8;9;10
+C;PR;PR C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+C;RS;RS C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+C;SC;SC C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+C;SP;SP C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+C;MG;MG C;4,69;15,56;17,78;20,01;22,23;23,19;27,72;29,6;31,67;36,02;39,75;43,31;45,44;46,97
+C;RJ;RJ C;4,69;15,56;17,78;20,01;22,23;23,19;27,72;29,6;31,67;36,02;39,75;43,31;45,44;46,97
+C;ES;ES C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
+C;DF;DF C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
+C;TO;TO C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
+C;GO;GO C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
+C;MS;MS C;5,37;16,49;18,85;21,21;23,56;25,89;30,93;33,04;35,34;41,09;45,37;49,42;51,87;53,6
+C;SE;SE C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
+C;BA;BA C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
+C;MT;MT C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
+C;SE;SE C;6,64;19,8;22,63;25,46;28,29;31,06;37,13;39,66;42,42;50,88;56,16;61,2;64,22;66,36
+C;AL;AL C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;CE;CE C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;MA;MA C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;PB;PB C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;PI;PI C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;PE;PE C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;RN;RN C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;AM;AM C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;AP;AP C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;PA;PA C;8,17;23,75;27,14;30,53;33,93;37,28;44,54;47,58;50,9;62,62;69,13;75,32;79,04;81,68
+C;AC;AC C;8,98;26,12;29,85;33,59;37,32;40,99;49;52,33;56;68,88;76,04;82,85;86,94;89,85
+C;RR;RR C;8,98;26,12;29,85;33,59;37,32;40,99;49;52,33;56;68,88;76,04;82,85;86,94;89,85
+C;RO;RO C;8,98;26,12;29,85;33,59;37,32;40,99;49;52,33;56;68,88;76,04;82,85;86,94;89,85
+I;DF;DF I;7,49;37,73;40,09;42,45;44,8;48,9;55,71;57,82;61,89;69,41;75,81;81,98;86,55;90,4
+I;ES;ES I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;GO;GO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;MG;MG I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
+I;RJ;RJ I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
+I;SP;SP I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+I;AC;AC I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
+I;AL;AL I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;AM;AM I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;AP;AP I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;BA;BA I;8,76;41,04;43,87;46,7;49,53;54,07;61,91;64,44;68,97;79,2;86,6;93,76;98,9;103,16
+I;CE;CE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;MA;MA I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;MS;MS I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;MT;MT I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
+I;PA;PA I;10,29;44,99;48,38;51,77;55,17;60,29;69,32;72,36;77,45;90,94;99,57;107,88;113,72;118,48
+I;PB;PB I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;PE;PE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;PI;PI I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;PR;PR I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
+I;RO;RO I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
+I;RN;RN I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;RR;RR I;11,1;47,36;51,09;54,83;58,56;64;73,78;77,11;82,55;97,2;106,48;115,41;121,62;126,65
+I;RS;RS I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
+I;SC;SC I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
+I;SE;SE I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
+I;TO;TO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;DF;DF I;7,49;37,73;40,09;42,45;44,8;48,9;55,71;57,82;61,89;69,41;75,81;81,98;86,55;90,4
+I;ES;ES I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;GO;GO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;MG;MG I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
+I;RJ;RJ I;6,81;45,06;47,28;49,51;51,73;54,81;61,47;63,35;67,54;74,02;79,87;85,55;89,8;93,45
+I;SP;SP I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+I;AC;AC I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
+I;AL;AL I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;AM;AM I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;AP;AP I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;BA;BA I;8,76;41,04;43,87;46,7;49,53;54,07;61,91;64,44;68,97;79,2;86,6;93,76;98,9;103,16
+I;CE;CE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;MA;MA I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;MS;MS I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;MT;MT I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
+I;PA;PA I;10,29;44,99;48,38;51,77;55,17;60,29;69,32;72,36;77,45;90,94;99,57;107,88;113,72;118,48
+I;PB;PB I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;PE;PE I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;PI;PI I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;PR;PR I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
+I;RO;RO I;11,1;55,62;59,35;63,09;66,82;72,61;82,75;86,08;91,87;106,88;116,16;125,09;131,3;136,33
+I;RN;RN I;10,29;53,25;56,64;60,03;63,43;68,9;78,29;81,33;86,77;100,62;109,25;117,56;123,4;128,16
+I;RR;RR I;11,1;47,36;51,09;54,83;58,56;64;73,78;77,11;82,55;97,2;106,48;115,41;121,62;126,65
+I;RS;RS I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
+I;SC;SC I;6,2;33,58;33,58;33,58;33,58;35,7;37,83;37,83;39,95;42,08;44,2;46,32;48,44;50,56
+I;SE;SE I;8,76;49,3;52,13;54,96;57,79;62,68;70,88;73,41;78,29;88,88;96,28;103,44;108,58;112,84
+I;TO;TO I;7,49;45,99;48,35;50,71;53,06;57,51;64,68;66,79;71,21;79,09;85,49;91,66;96,23;100,08
+I;PR;PR I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
+I;RS;RS I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
+I;SC;SC I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
+I;SP;SP I;5,98;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08;84,08
+I;MG;MG I;6,59;95,56;97,78;100,01;102,23;103,19;107,72;109,6;111,67;116,02;119,75;123,31;125,44;126,97
+I;RJ;RJ I;6,59;95,56;97,78;100,01;102,23;103,19;107,72;109,6;111,67;116,02;119,75;123,31;125,44;126,97
+I;ES;ES I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
+I;DF;DF I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
+I;TO;TO I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
+I;GO;GO I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
+I;MS;MS I;7,27;96,49;98,85;101,21;103,56;105,89;110,93;113,04;115,34;121,09;125,37;129,42;131,87;133,6
+I;MT;MT I;8,54;99,8;102,63;105,46;108,29;111,06;117,13;119,66;122,42;130,88;136,16;141,2;144,22;146,36
+I;BA;BA I;8,54;99,8;102,63;105,46;108,29;111,06;117,13;119,66;122,42;130,88;136,16;141,2;144,22;146,36
+I;SE;SE I;8,54;99,8;102,63;105,46;108,29;111,06;117,13;119,66;122,42;130,88;136,16;141,2;144,22;146,36
+I;AL;AL I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;CE;CE I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;MA;MA I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;PB;PB I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;PI;PI I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;PE;PE I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;RN;RN I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;AM;AM I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;AP;AP I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;PA;PA I;10,07;103,75;107,14;110,53;113,93;117,28;124,54;127,58;130,9;142,62;149,13;155,32;159,04;161,68
+I;AC;AC I;10,88;106,12;109,85;113,59;117,32;120,99;129;132,33;136;148,88;156,04;162,85;166,94;169,85
+I;RR;RR I;10,88;106,12;109,85;113,59;117,32;120,99;129;132,33;136;148,88;156,04;162,85;166,94;169,85
+I;RO;RO I;10,88;106,12;109,85;113,59;117,32;120,99;129;132,33;136;148,88;156,04;162,85;166,94;169,85
+I;PR;PR I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
+I;RS;RS I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
+I;SC;SC I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
+I;SP;SP I;5,98;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08;154,08
+I;MG;MG I;6,59;165,56;167,78;170,01;172,23;173,19;177,72;179,6;181,67;186,02;189,75;193,31;195,44;196,97
+I;RJ;RJ I;6,59;165,56;167,78;170,01;172,23;173,19;177,72;179,6;181,67;186,02;189,75;193,31;195,44;196,97
+I;ES;ES I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
+I;DF;DF I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
+I;TO;TO I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
+I;GO;GO I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
+I;MS;MS I;7,27;166,49;168,85;171,21;173,56;175,89;180,93;183,04;185,34;191,09;195,37;199,42;201,87;203,6
+I;MT;MT I;8,54;169,8;172,63;175,46;178,29;181,06;187,13;189,66;192,42;200,88;206,16;211,2;214,22;216,36
+I;BA;BA I;8,54;169,8;172,63;175,46;178,29;181,06;187,13;189,66;192,42;200,88;206,16;211,2;214,22;216,36
+I;SE;SE I;8,54;169,8;172,63;175,46;178,29;181,06;187,13;189,66;192,42;200,88;206,16;211,2;214,22;216,36
+I;AL;AL I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;CE;CE I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;MA;MA I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;PB;PB I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;PI;PI I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;PE;PE I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;RN;RN I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;AM;AM I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;AP;AP I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;PA;PA I;10,07;173,75;177,14;180,53;183,93;187,28;194,54;197,58;200,9;212,62;219,13;225,32;229,04;231,68
+I;AC;AC I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
+I;RR;RR I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85
+I;RO;RO I;10,88;176,12;179,85;183,59;187,32;190,99;199;202,33;206;218,88;226,04;232,85;236,94;239,85`;
+const plantFarmTest = `CEP INICIAL;CEP FINAL;Prazo;UF;REGIAO;Exce;0,25;0,5;0,75;1;2;3;4;5;6;7;8;9;10
+15109-000;15109-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+14940-000;14940-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+2912-000;2924-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15100-000;15101-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+1001-000;1599-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+14400-000;14414-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2000-000;2811-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15129-000;15129-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15120-000;15120-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15000-000;15099-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15128-000;15128-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15116-000;15119-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15121-000;15124-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15125-000;15125-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+2925-000;2930-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+19870-000;19870-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15126-000;15127-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15102-000;15102-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15106-000;15107-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+19900-000;19919-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+2817-000;2832-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15110-000;15110-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15115-000;15115-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15111-000;15114-999;8;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+2931-000;2958-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2840-000;2841-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+2900-000;2911-999;2;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15108-000;15108-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15103-000;15103-999;3;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+15104-000;15104-999;6;SP;C;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08;4,08
+15105-000;15105-999;6;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88
+19880-000;19880-999;4;SP;I;6,2;25,32;25,32;25,32;25,32;27,09;28,86;28,86;30,63;32,4;34,52;36,64;38,76;40,88`;
+function App() {
+    const controlDB = ControlDataBase();
+    const now = Date.now();
+    const isAuthenticated = controlDB.getItem("auth.authenticated") || false;
+    const devIsConnected = controlDB.getItem("dev.edition") || false;
+    const expireDate = controlDB.getItem("auth.expire") || now - 100000;
+    const isExpired = expireDate < now;
+    if (!devIsConnected && GLOBAL_DEPENDENCE == "production") {
+        if (!isAuthenticated || isExpired) {
+            const res = prompt("KEY");
+            if (res !== "panoramasistemas") {
+                if (res === "__devpanoramasistemas") {
+                    controlDB.updateItem("dev.edition", true);
+                    controlDB.updateItem("auth.authenticated", false);
+                    return window.location.reload();
+                }
+                return;
             }
-            catch (e) { }
-        }
-        if (typeof newObj[key] === "object" && newObj[key] !== null) {
-            newObj[key] = processJSONToObj(newObj[key], keysRegExp);
-        }
-    }
-    return newObj;
-}
-function converterReGexpToString(value) {
-    return `${value}`;
-}
-function converterStringToRegExp(value) {
-    return new RegExp(value.slice(1, -1));
-}
-function converterStringToJSON(str, keysRegExp) {
-    try {
-        return processJSONToObj(JSON.parse(str), keysRegExp);
-    }
-    catch (err) {
-        console.log(err);
-        return null;
-    }
-}
-function converterJSONToString(str) {
-    try {
-        return JSON.stringify(processObjToJSON(str));
-    }
-    catch (err) {
-        return null;
-    }
-}
-function deepEqual(obj1, obj2) {
-    const keys1 = Object.keys(obj1);
-    const keys2 = Object.keys(obj2);
-    if (keys1.length !== keys2.length) {
-        return false;
-    }
-    keys1.sort();
-    keys2.sort();
-    for (let i = 0; i < keys1.length; i++) {
-        if (keys1[i] != keys2[i]) {
-            return false;
+            const now = new Date(Date.now());
+            now.setHours(now.getHours() + 1);
+            controlDB.updateItem("auth.authenticated", true);
+            controlDB.updateItem("auth.expire", now.getTime());
+            controlDB.updateItem("dev.edition", false);
         }
     }
-    return true;
+    const renderControl = RenderControl();
+    const initComponents = () => {
+        Setup();
+        const btLogout = document.querySelector(".bt-logout");
+        btLogout.addEventListener("click", () => {
+            controlDB.updateItem("auth.authenticated", false);
+            controlDB.updateItem("dev.edition", false);
+            window.location.reload();
+        });
+        renderControl.initComponents();
+    };
+    return initComponents();
 }
+window.onload = App;

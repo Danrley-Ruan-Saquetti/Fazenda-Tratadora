@@ -35,6 +35,8 @@ function RenderControl() {
                 panelControl.newPanel(_item, ev.ctrlKey)
             })
 
+            GLOBAL_DEPENDENCE == "development" && _item.__dev && panelControl.newPanel(_item, false)
+
             ELEMENTS.sideBarList.appendChild(itemEl)
         })
     }

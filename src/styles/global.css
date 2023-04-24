@@ -97,8 +97,8 @@ body > * {
   height: 100%;
 }
 
-[icon-parent], [panel] button,
-[panel] .bt, [aba] {
+[icon-parent], button,
+.bt, [aba] {
   display: flex;
   align-items: center;
 }
@@ -191,6 +191,9 @@ header {
 header .logo {
   font-weight: 300;
   font-size: 1.2rem;
+}
+header .profile button {
+  color: white;
 }
 
 main {
@@ -331,75 +334,79 @@ tr {
   flex-wrap: wrap;
 }
 
-[panel] button,
-[panel] .bt {
-  padding: 0.4rem 1.2rem;
+button,
+.bt {
   border-radius: 0.3rem;
   cursor: pointer;
 }
-[panel] button[action=_confirm],
-[panel] .bt[action=_confirm] {
+button[action=_confirm],
+.bt[action=_confirm] {
   background-color: #0076ca;
   color: white;
   transition: 0.2s;
 }
-[panel] button[action=_confirm]:hover,
-[panel] .bt[action=_confirm]:hover {
+button[action=_confirm]:hover,
+.bt[action=_confirm]:hover {
   background-color: #005897;
   color: white;
 }
-[panel] button[action=_confirm]:active,
-[panel] .bt[action=_confirm]:active {
+button[action=_confirm]:active,
+.bt[action=_confirm]:active {
   background-color: #00345a;
   color: white;
 }
-[panel] button[action=_cancel],
-[panel] .bt[action=_cancel] {
+button[action=_cancel],
+.bt[action=_cancel] {
   background-color: #cc3a3a;
   color: white;
   transition: 0.2s;
 }
-[panel] button[action=_cancel]:hover,
-[panel] .bt[action=_cancel]:hover {
+button[action=_cancel]:hover,
+.bt[action=_cancel]:hover {
   background-color: #a82b2b;
   color: white;
 }
-[panel] button[action=_cancel]:active,
-[panel] .bt[action=_cancel]:active {
+button[action=_cancel]:active,
+.bt[action=_cancel]:active {
   background-color: #771f1f;
   color: white;
 }
-[panel] button[action=_new],
-[panel] .bt[action=_new] {
+button[action=_new],
+.bt[action=_new] {
   background-color: #26b131;
   color: white;
   transition: 0.2s;
 }
-[panel] button[action=_new]:hover,
-[panel] .bt[action=_new]:hover {
+button[action=_new]:hover,
+.bt[action=_new]:hover {
   background-color: #1d8725;
   color: white;
 }
-[panel] button[action=_new]:active,
-[panel] .bt[action=_new]:active {
+button[action=_new]:active,
+.bt[action=_new]:active {
   background-color: #125517;
   color: white;
 }
-[panel] button[action=_view],
-[panel] .bt[action=_view] {
+button[action=_view],
+.bt[action=_view] {
   background-color: #426eff;
   color: white;
   transition: 0.2s;
 }
-[panel] button[action=_view]:hover,
-[panel] .bt[action=_view]:hover {
+button[action=_view]:hover,
+.bt[action=_view]:hover {
   background-color: #0f47ff;
   color: white;
 }
-[panel] button[action=_view]:active,
-[panel] .bt[action=_view]:active {
+button[action=_view]:active,
+.bt[action=_view]:active {
   background-color: #0031d1;
   color: white;
+}
+
+[panel] button,
+[panel] .bt {
+  padding: 0.4rem 1.2rem;
 }
 [panel] button [icon],
 [panel] .bt [icon] {

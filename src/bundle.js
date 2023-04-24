@@ -269,7 +269,18 @@ const GLOBAL_ROUTERS = [
 ];
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 const GLOBAL_ROUTERS_ROUTER = {
-    "routers/panel.feature.html": GLOBAL_ROUTER_NOT_FOUND,
+    "routers/panel.feature.html": `<div class="select-container">
+	<div class="header">
+		<button class="add-box-selection">ADD</button>
+		<button class="submit">Send</button>
+		<button class="add-all">All</button>
+		<button class="clear-all">Clear</button>
+	</div>
+	
+	<div class="list-box-selection">
+		
+	</div>
+</div>`,
     "routers/panel-history.html": `<div button-container>
     <button action="_confirm" class="load-table"><i class="bi-arrow-clockwise" icon></i>Atualizar</button>
     <button action="_new" class="new-farm"><i class="bi-plus-lg" icon></i>Nova Fazenda</button>

@@ -966,9 +966,6 @@ function FarmControl(farmRepository) {
                 return { result: processResult };
             },
             "template": () => {
-                if (!repoControl.getProcess({ types: ["create-farm"] })[0]) {
-                    return { result: null };
-                }
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
                 if (!modelTableFarm) {
                     return { result: null };

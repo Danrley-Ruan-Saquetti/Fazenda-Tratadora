@@ -1,4 +1,6 @@
 function RouterControl() {
+    const GLOBAL_DEPENDENCE = "production"
+
     const apiRouter = {
         "production": (router: TRouter, callback: ICallback) => {
             const response = fetch(`${router}`).then(res => {

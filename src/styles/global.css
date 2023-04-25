@@ -1,4 +1,4 @@
-.flex-column, [panel], .panel, [list-type=horizontal], body {
+.flex-column, [panel], .panel, [list-type=vertical], body {
   flex-direction: column;
 }
 
@@ -52,19 +52,19 @@ body > * {
   overflow: hidden;
 }
 
-[list-content]:has([list-type=vertical], [button-container]) {
-  overflow-x: auto;
-}
-[list-content]:has([list-type=horizontal]) {
+[list-content]:has([list-type=vertical]) {
   overflow-y: auto;
 }
-
-[list-type=vertical], [button-container] {
-  display: flex;
-  min-width: 100%;
+[list-content]:has([list-type=horizontal], [button-container]) {
+  overflow-x: auto;
 }
 
-[list-type=horizontal] {
+[list-type=vertical] {
+  display: flex;
+  min-height: 100%;
+}
+
+[list-type=horizontal], [button-container] {
   display: flex;
   min-width: 100%;
 }
@@ -339,6 +339,22 @@ button,
   border-radius: 0.3rem;
   cursor: pointer;
 }
+button[action=_default],
+.bt[action=_default] {
+  background-color: #cacaca;
+  color: black;
+  transition: 0.2s;
+}
+button[action=_default]:hover,
+.bt[action=_default]:hover {
+  background-color: #b1b1b1;
+  color: black;
+}
+button[action=_default]:active,
+.bt[action=_default]:active {
+  background-color: #929292;
+  color: black;
+}
 button[action=_confirm],
 .bt[action=_confirm] {
   background-color: #0076ca;
@@ -416,4 +432,26 @@ button[action=_view]:active,
 [panel] button [icon]::before,
 [panel] .bt [icon]::before {
   vertical-align: -0.125em !important;
+}
+
+form .selection-form-list,
+.form .selection-form-list {
+  gap: 1.25rem;
+}
+form .selection-form-list .box,
+.form .selection-form-list .box {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+[panel=farm] .select-container .list-box-selection,
+[panel=feature] .select-container .list-box-selection {
+  gap: 1.25rem;
+}
+[panel=farm] .select-container .list-box-selection .box,
+[panel=feature] .select-container .list-box-selection .box {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
 }/*# sourceMappingURL=global.css.map */

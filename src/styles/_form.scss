@@ -1,0 +1,11 @@
+form,
+.form {
+    .selection-form-list {
+        gap: $gap-1;
+        .box {
+            @include flex;
+            justify-content: center;
+            gap: $gap-1;
+        }
+    }
+}

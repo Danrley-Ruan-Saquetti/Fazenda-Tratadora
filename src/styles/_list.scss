@@ -1,18 +1,18 @@
 [list-content] {
     &:has([list-type="vertical"]) {
-        @include scroll("x");
+        @include scroll("y");
     }
     &:has([list-type="horizontal"]) {
-        @include scroll("y");
+        @include scroll("x");
     }
 }
 
 [list-type="vertical"] {
-    @include flex();
-    min-width: 100%;
+    @include flex(auto);
+    min-height: 100%;
 }
 
 [list-type="horizontal"] {
-    @include flex(auto);
+    @include flex();
     min-width: 100%;
 }

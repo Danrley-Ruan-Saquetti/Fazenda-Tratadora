@@ -257,7 +257,6 @@ const GLOBAL_SETTINGS_RESET = {
 };
 const isDev = ControlDataBase().getItem("dev.edition") || false;
 const GLOBAL_DEPENDENCE = !isDev ? "production" : "development";
-ControlDataBase().updateItem("dev.edition", false);
 const GLOBAL_HISTORY = [];
 const GLOBAL_ROUTERS = [
     { icon: "house-door", title: "Fazenda", name: "farm", router: "routers/panel-farm.html", script: "FarmScript", active: true },
@@ -270,7 +269,7 @@ const GLOBAL_ROUTERS = [
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 const GLOBAL_ROUTERS_ROUTER = {
     "routers/panel.feature.html": `<div class="select-container">
-	<div class="header">
+	<div class="header-selection">
 		<button class="add-box-selection">ADD</button>
 		<button class="submit">Send</button>
 		<button class="add-all">All</button>
@@ -583,6 +582,114 @@ function tableComponent({ table: tableEl, headers }, onSelection, colResizablePr
     setup();
     return {
         onLoad: loadDataTable
+    };
+}
+function SelectionFormComponent(form, props, pre) {
+    const MAP_OPTIONS = [
+        { type: "_newOne", icon: "plus-lg", _action: "_new", content: "Novo" },
+        { type: "_newAll", icon: "list-ul", _action: "_new", content: "Adicionar Tudo" },
+        { type: "_clear", icon: "x-lg", _action: "_cancel", content: "Limpar" },
+    ];
+    const listSelected = [];
+    const updateListSelected = () => {
+        const listEl = form.querySelectorAll(".box");
+        listSelected.splice(0, listSelected.length);
+        listEl.forEach(_el => {
+            const select = _el.querySelector("select");
+            const value = select?.value || "";
+            listSelected.push(value);
+        });
+    };
+    const MAP_OPTIONS_FUNCTION = {
+        "_newOne": (actionProcessActive = "") => {
+            const box = props.events._newOne();
+            const list = form.querySelector(".selection-form-list");
+            const btRemove = document.createElement("button");
+            const selectionProcess = document.createElement("select");
+            const iconRemove = createIcon("dash");
+            props.options.forEach(_option => {
+                const option = document.createElement("option");
+                option.innerHTML = _option.content;
+                option.value = _option.action;
+                if (actionProcessActive == _option.action) {
+                    option.selected = true;
+                }
+                selectionProcess.appendChild(option);
+            });
+            if (props.submenu && props.submenu.length > 0) {
+                box.appendChild(createSubMenu(props.submenu));
+            }
+            btRemove.setAttribute("action", "_default");
+            selectionProcess.onchange = updateListSelected;
+            btRemove.onclick = () => {
+                box.remove();
+                updateListSelected();
+            };
+            btRemove.appendChild(iconRemove);
+            box.appendChild(selectionProcess);
+            box.appendChild(btRemove);
+            list.appendChild(box);
+            updateListSelected();
+        },
+        "_newAll": () => {
+            props.events?._newAll && props.events._newAll();
+            props.options.forEach(_option => {
+                MAP_OPTIONS_FUNCTION["_newOne"](_option.action);
+            });
+            updateListSelected();
+        },
+        "_clear": () => {
+            props.events?._clear && props.events._clear();
+            const listEl = form.querySelectorAll(".box");
+            listEl.forEach(_el => _el.remove());
+            updateListSelected();
+        }
+    };
+    const createContainerOptions = () => {
+        const container = document.createElement("div");
+        container.setAttribute("button-container", "");
+        MAP_OPTIONS.forEach(_option => {
+            const bt = document.createElement("button");
+            const span = document.createElement("span");
+            const icon = createIcon(_option.icon);
+            bt.onclick = () => {
+                MAP_OPTIONS_FUNCTION[_option.type]();
+            };
+            bt.setAttribute("action", _option._action);
+            span.textContent = _option.content;
+            bt.appendChild(icon);
+            bt.appendChild(span);
+            container.appendChild(bt);
+        });
+        form.appendChild(container);
+    };
+    const createListOptions = () => {
+        const list = document.createElement("div");
+        list.setAttribute("list-type", "vertical");
+        list.classList.add("selection-form-list");
+        form.appendChild(list);
+    };
+    const createSubMenu = (subMenus) => {
+        const subMenu = document.createElement("div");
+        const selectSubMenu = document.createElement("select");
+        subMenu.classList.add("sub-menu");
+        subMenus.forEach(_sm => {
+            const option = document.createElement("option");
+            option.textContent = _sm.content;
+            option.value = _sm.type;
+            selectSubMenu.appendChild(option);
+        });
+        subMenu.appendChild(selectSubMenu);
+        return subMenu;
+    };
+    const setup = () => {
+        createContainerOptions();
+        createListOptions();
+        pre && pre.forEach(_preFunc => MAP_OPTIONS_FUNCTION[_preFunc]());
+    };
+    setup();
+    return {
+        listSelected
     };
 }
 function FarmRepository() {
@@ -1962,6 +2069,7 @@ function PanelControl() {
     };
 }
 function RouterControl() {
+    const GLOBAL_DEPENDENCE = "production";
     const apiRouter = {
         "production": (router, callback) => {
             const response = fetch(`${router}`).then(res => {
@@ -2352,130 +2460,89 @@ function FeatureScript(idPanel) {
     if (!panel) {
         return { error: { msg: "Panel not found" } };
     }
-    const initComponents = () => {
-        const initComponents = () => {
-        const selectContainer = document.querySelector(".select-container")
-        const btAdd = document.querySelector(".add-box-selection")
-        const btSubmit = document.querySelector(".submit")
-        const btAddAll = document.querySelector(".add-all")
-        const btClearAll = document.querySelector(".clear-all")
-        const list = document.querySelector(".list-box-selection")
-
-        const MAP_PARAMS = {
-            process: [],
-            settings: []
-        }
-
-        const MAP_SELECTION_PROCESS = [
-            { 
-                content: "Criar Fazenda",
-                type: "process",
-                action: "create-farm",
-                params: [...MAP_PARAMS["process"]] 
-            },
-            { 
-                content: "Inserir valores",
-                type: "process",
-                action: "insert-values",
-                params: [...MAP_PARAMS["process"]] 
-            },
-            { 
-                content: "D+1",
-                type: "process",
-                action: "deadline+D",
-                params: [...MAP_PARAMS["process"]] 
-            },
-            { 
-                content: "Verificar CEP contido",
-                type: "process",
-                action: "contained-cep",
-                params: [...MAP_PARAMS["process"]] 
-            },
-            { 
-                content: "Procv",
-                type: "process",
-                action: "procv",
-                params: [...MAP_PARAMS["process"]] 
-            },
-            { 
-                content: "Gerar templates de Preço e Prazo",
-                type: "process",
-                action: "template",
-                params: [...MAP_PARAMS["process"]] 
-            },
-            { 
-                content: "Gerar templates de taxas",
-                type: "process",
-                action: "rate",
-                params: [...MAP_PARAMS["process"]] 
-            },
+    const ELEMENTS = {
+        selectFormPlants: document.querySelector(".select-form.plants"),
+        selectFormProcess: document.querySelector(".select-form.process"),
+    };
+    const MAP_PARAMS = {
+        process: {
+            "create-farm": [],
+            "insert-values": [],
+            "deadline+D": [],
+            "contained-cep": [],
+            "procv": [],
+            "template": [],
+            "rate": [],
+        },
+        plants: [
+            { content: "CEP de Origem Inicial", type: "cep.origin.initial" },
+            { content: "CEP de Origem Final", type: "cep.origin.final" },
+            { content: "CEP Inicial", type: "cep.initial" },
+            { content: "CEP Final", type: "cep.final" },
+            { content: "Critério de Seleção", type: "selection-criteria" },
+            { content: "Prazo", type: "deadline" },
+            { content: "D+1", type: "deadline+d" },
+            { content: "Excedente", type: "excess" },
+            { content: "Taxa", type: "rate" },
         ]
-
-        function creatBoxSelection(actionProcessActive = null) {
-            const box = document.createElement("div")
-            const span = document.createElement("span")
-            const btRemove = document.createElement("button")
-            const selectionProcess = document.createElement("select")
-
-            MAP_SELECTION_PROCESS.forEach(_process => {
-                const option = document.createElement("option")
-
-                option.innerHTML = _process.content
-                option.value = _process.action
-
-                if (actionProcessActive == _process.action) {option.selected = true}
-
-                selectionProcess.appendChild(option)
-            })
-
-            box.classList.add("box")
-
-            span.textContent = "Hello World"
-            btRemove.innerHTML = "DEL"
-
-            btRemove.onclick = () => {
-                box.remove()
-            }
-
-            box.appendChild(span)
-            box.appendChild(selectionProcess)
-            box.appendChild(btRemove)
-            list.appendChild(box)
+    };
+    const MAP_SELECTION_PLANTS = [
+        { action: "farm", content: "Fazenda", type: "farm" },
+        { action: "deadline", content: "Prazo", type: "deadline" },
+        { action: "price", content: "Preço", type: "price" },
+    ];
+    const MAP_SELECTION_PROCESS = [
+        {
+            content: "Criar Fazenda",
+            type: "process",
+            action: "create-farm",
+            submenu: [...MAP_PARAMS["process"]["create-farm"]]
+        },
+        {
+            content: "Inserir valores",
+            type: "process",
+            action: "insert-values",
+            submenu: [...MAP_PARAMS["process"]["insert-values"]]
+        },
+        {
+            content: "D+1",
+            type: "process",
+            action: "deadline+D",
+            submenu: [...MAP_PARAMS["process"]["deadline+D"]]
+        },
+        {
+            content: "Verificar CEP contido",
+            type: "process",
+            action: "contained-cep",
+            submenu: [...MAP_PARAMS["process"]["contained-cep"]]
+        },
+        {
+            content: "Procv",
+            type: "process",
+            action: "procv",
+            submenu: [...MAP_PARAMS["process"]["procv"]]
+        },
+        {
+            content: "Gerar templates de Preço e Prazo",
+            type: "process",
+            action: "template",
+            submenu: [...MAP_PARAMS["process"]["template"]]
+        },
+        {
+            content: "Gerar templates de taxas",
+            type: "process",
+            action: "rate",
+            submenu: [...MAP_PARAMS["process"]["rate"]]
+        },
+    ];
+    const initComponents = () => {
+        const { listSelected: listPlants } = SelectionFormComponent(ELEMENTS.selectFormPlants, { events: { _newOne: createBoxSelection }, options: MAP_SELECTION_PLANTS, submenu: [...MAP_PARAMS["plants"]] });
+        const { listSelected: listProcess } = SelectionFormComponent(ELEMENTS.selectFormProcess, { events: { _newOne: createBoxSelection }, options: MAP_SELECTION_PROCESS }, ["_newAll"]);
+        function createBoxSelection() {
+            const box = document.createElement("div");
+            box.classList.add("box");
+            return box;
         }
-
-        function addAll() {
-            MAP_SELECTION_PROCESS.forEach(_process => {
-                creatBoxSelection(_process.action)
-            })
-        }
-
-        function clearAll() {
-            const listProcessEl = list.querySelectorAll(".box")
-
-            listProcessEl.forEach(_process => _process.remove())
-        }
-
-        function submit() {
-            const listProcessEl = list.querySelectorAll(".box")
-
-            const listProcess = []
-
-            listProcessEl.forEach(_process => {
-                const process = _process.querySelector("select")
-
-                const value = process.value
-
-                listProcess.push(value)
-            })	
-
-            console.log(listProcess)
-        }
-
-        btAdd.addEventListener("click", creatBoxSelection)
-        btSubmit.addEventListener("click", submit)
-        btAddAll.addEventListener("click", addAll)
-        btClearAll.addEventListener("click", clearAll)
-    }
     };
     initComponents();
     return {};

@@ -1,6 +1,6 @@
-$bt-actions: ( _confirm: $main-color, _cancel: #cc3a3a, _new: #26b131, _view: #426eff);
+$bt-actions: ( _default: #cacaca, _confirm: $main-color, _cancel: #cc3a3a, _new: #26b131, _view: #426eff);
 [button-container] {
-    @extend [list-type="vertical"];
+    @extend [list-type="horizontal"];
     gap: $gap-2;
     padding: $padding-1;
     flex-wrap: wrap;

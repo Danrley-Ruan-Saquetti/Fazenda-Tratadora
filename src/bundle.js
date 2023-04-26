@@ -1012,7 +1012,7 @@ function FarmControl(farmRepository) {
                 ];
                 const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
                 const processResult = { logs: logsInsertValues, type: "insert-values", situation: "finalized" };
-                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table, headers: headerPlantValueDeadlineToFarm });
                 return { result: processResult };
             },
             "remove-character": () => {
@@ -1184,6 +1184,7 @@ function FarmControl(farmRepository) {
         }
         process.forEach(_process => {
             const result = PROCESS[_process.type]();
+            console.log(result.result, _process.type);
             if (result.result) {
                 repoControl.updateProcess({
                     process: [
@@ -1226,6 +1227,7 @@ function FarmControl(farmRepository) {
         for (let i = 1; i < tableModel.table.length; i++) {
             tableModel.table[i][headerDeadlineMoreD] = `${Number(tableBase.table[i][headerDeadline]) + valueD}`;
         }
+        logs.push({ date: new Date(Date.now()), type: "success", message: `Deadline +${settings.process["deadline+D"]} successfully added` });
         return { logs };
     };
     const validateContainedCEP = ({ table }) => {
@@ -2188,9 +2190,9 @@ function MainControl() {
             settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
             process: farmControl.getProcess()
         });
-        farmControl.setup(farm);
         console.log("$Finish");
-        return farm;
+        farm && farmControl.setup(farm);
+        return farm || null;
     };
     const saveFarm = (name) => {
         const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, process: farmControl.getData().process }, farmControl.getData().id);

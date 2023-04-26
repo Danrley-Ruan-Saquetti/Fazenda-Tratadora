@@ -284,7 +284,7 @@ function FarmControl(farmRepository: IFarmRepository) {
 
                 const processResult: TFarmProcess = { logs: logsInsertValues, type: "insert-values", situation: "finalized" }
 
-                repoControl.updateTable({ code: "farm", table: modelTableFarm.table })
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table, headers: headerPlantValueDeadlineToFarm })
 
                 return { result: processResult }
             },
@@ -507,6 +507,8 @@ function FarmControl(farmRepository: IFarmRepository) {
         process.forEach(_process => {
             const result = PROCESS[_process.type]()
 
+            console.log(result.result, _process.type)
+
             if (result.result) {
                 repoControl.updateProcess({
                     process: [
@@ -563,6 +565,8 @@ function FarmControl(farmRepository: IFarmRepository) {
         for (let i = 1; i < tableModel.table.length; i++) {
             tableModel.table[i][headerDeadlineMoreD] = `${Number(tableBase.table[i][headerDeadline]) + valueD}`
         }
+
+        logs.push({ date: new Date(Date.now()), type: "success", message: `Deadline +${settings.process["deadline+D"]} successfully added` })
 
         return { logs }
     }

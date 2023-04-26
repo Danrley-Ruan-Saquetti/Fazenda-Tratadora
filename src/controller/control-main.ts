@@ -120,11 +120,11 @@ function MainControl() {
             process: farmControl.getProcess()
         })
 
-        farmControl.setup(farm)
-
         console.log("$Finish")
 
-        return farm
+        farm && farmControl.setup(farm)
+
+        return farm || null
     }
 
     // History

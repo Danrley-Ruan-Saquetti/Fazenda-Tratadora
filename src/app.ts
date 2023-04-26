@@ -37,6 +37,8 @@ function App() {
     const initComponents = () => {
         Setup()
 
+        const notificationControl = NotificationControl(document.querySelector(".list-notification") as HTMLElement)
+
         const btLogout = document.querySelector(".bt-logout") as HTMLElement
 
         btLogout.addEventListener("click", () => {

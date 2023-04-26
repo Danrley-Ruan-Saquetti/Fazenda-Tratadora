@@ -1,7 +1,8 @@
 .panel {
     @include flex(true);
     @include scroll("x", hidden);
-    &>* {
+    .aba-container,
+    .panel-control {
         width: 100%;
         height: 100%;
     }

@@ -1,0 +1,106 @@
+$notifications-type: (_success: #04a704, _error: #ff2828, _warning: #ffb224, _info: #a7a7a7, _extra: #5353ff);
+.notification-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: min(40%, 40rem);
+    height: auto;
+    padding: 10px;
+    overflow: hidden;
+    .list-notification {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        height: auto;
+        .notification-content {
+            display: flex;
+            justify-content: end;
+            gap: 10px;
+            &.hidden {
+                animation: slideOut .3s ease-in;
+                transform: translateX(100%);
+            }
+            .notification {
+                position: relative;
+                display: flex;
+                width: max(80%, 50px);
+                background-color: #000000c9;
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                gap: 10px;
+                padding: 10px;
+                color: #fff;
+                border-radius: 5px;
+                animation: slideIn .3s ease-out;
+                cursor: pointer;
+                overflow: hidden;
+                transition: all .3s;
+                &:hover {
+                    transform: translateY(-5px);
+                }
+                &:active {
+                    transform: scale(.95) translateY(-5px);
+                }
+                @each $key,
+                $value in $notifications-type {
+                    .status[action="#{$key}"] {
+                        border-right: 2px solid $value;
+                        color: $value;
+                    }
+                    &:has(.status[action="#{$key}"]) .timer {
+                        background-color: $value;
+                    }
+                }
+                .status {
+                    padding-right: 10px;
+                    [icon] {
+                        display: block;
+                        position: relative;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        font-size: 20px;
+                    }
+                }
+                .timer {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 0;
+                    height: 3px;
+                    border-radius: 5px;
+                    background-color: grey;
+                }
+                .content {
+                    display: flex;
+                    flex-direction: column;
+                    .title {
+                        font-size: 12px;
+                    }
+                    .body {
+                        font-size: 16px;
+                        font-weight: 300;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}

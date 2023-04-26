@@ -3,6 +3,8 @@ function FarmScript(idPanel: string) {
 
     if (!panel) { return { error: { msg: "Panel not found" } } }
 
+    const notificationControl = NotificationControl(document.querySelector(".list-notification") as HTMLElement)
+
     const mainControl = MainControl()
     const renderControl = RenderControl()
 
@@ -24,7 +26,70 @@ function FarmScript(idPanel: string) {
         nameFarm: panel.querySelector("#param-name-farm") as HTMLInputElement,
     }
 
-    const PARAMS: ISettingsTemplate = _.cloneDeep(GLOBAL_TEMPLATE)
+    plantFarmTest
+    plantDeadlineTest
+    plantPriceTest
+    const PARAMS: ISettingsTemplate = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
+        "settings": {
+            "table": {
+                "cep.initial": "CEP INICIAL",
+                "cep.final": "CEP FINAL",
+                "deadline": "Prazo",
+                "excess": "Exce",
+                "rate": {
+                    "deadline": "",
+                    "price": ""
+                },
+                "selection.criteria": {
+                    "price": "UF,REGIAO",
+                    "deadline": "UF,REGIAO"
+                }
+            },
+            "process": {
+                "deadline+D": 1,
+                "criteria.selection": {
+                    "join": " "
+                },
+                "converterStringTable": {
+                    "separatorLine": /\r?\n/,
+                    "separatorColumn": ";",
+                    "configSeparatorColumn": {
+                        "separator": ",",
+                        "searchValue": ",",
+                        "replaceValue": "?",
+                        "betweenText": "\""
+                    }
+                }
+            },
+            "template": {
+                "rateValue": {
+                    "cep.origin.initial": "1000000",
+                    "cep.origin.final": "99999999"
+                },
+                "headerName": {
+                    "cep.origin.initial": "Inicio  Origem",
+                    "cep.origin.final": "Fim  Origem",
+                    "cep.initial": "Inicio  Destino",
+                    "cep.final": "Fim  Destino",
+                    "deadline+D": "Dias",
+                    "excess": "Excedente"
+                },
+                "cepOriginValue": {
+                    "cep.origin.final": "89140000",
+                    "cep.origin.initial": "89140000"
+                }
+            }
+        },
+        "process": [
+            "create-farm",
+            "insert-values",
+            "deadline+D",
+            "contained-cep",
+            "procv",
+            "template",
+            "rate"
+        ]
+    }
 
     const initComponents = () => {
         loadForm()
@@ -141,6 +206,8 @@ function FarmScript(idPanel: string) {
             mainControl.processFarm()
             prepareForDownload()
         })
+
+        notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: "Tratamento concluído" })
     }
 
     const prepareForDownload = () => {

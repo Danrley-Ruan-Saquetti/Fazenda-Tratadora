@@ -2305,6 +2305,7 @@ function FarmScript(idPanel) {
     if (!panel) {
         return { error: { msg: "Panel not found" } };
     }
+    const notificationControl = NotificationControl(document.querySelector(".list-notification"));
     const mainControl = MainControl();
     const renderControl = RenderControl();
     const ELEMENTS_FORM = {
@@ -2324,7 +2325,70 @@ function FarmScript(idPanel) {
         paramExcess: panel.querySelector("#param-excess"),
         nameFarm: panel.querySelector("#param-name-farm"),
     };
-    const PARAMS = _.cloneDeep(GLOBAL_TEMPLATE);
+    plantFarmTest;
+    plantDeadlineTest;
+    plantPriceTest;
+    const PARAMS = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
+        "settings": {
+            "table": {
+                "cep.initial": "CEP INICIAL",
+                "cep.final": "CEP FINAL",
+                "deadline": "Prazo",
+                "excess": "Exce",
+                "rate": {
+                    "deadline": "",
+                    "price": ""
+                },
+                "selection.criteria": {
+                    "price": "UF,REGIAO",
+                    "deadline": "UF,REGIAO"
+                }
+            },
+            "process": {
+                "deadline+D": 1,
+                "criteria.selection": {
+                    "join": " "
+                },
+                "converterStringTable": {
+                    "separatorLine": /\r?\n/,
+                    "separatorColumn": ";",
+                    "configSeparatorColumn": {
+                        "separator": ",",
+                        "searchValue": ",",
+                        "replaceValue": "?",
+                        "betweenText": "\""
+                    }
+                }
+            },
+            "template": {
+                "rateValue": {
+                    "cep.origin.initial": "1000000",
+                    "cep.origin.final": "99999999"
+                },
+                "headerName": {
+                    "cep.origin.initial": "Inicio  Origem",
+                    "cep.origin.final": "Fim  Origem",
+                    "cep.initial": "Inicio  Destino",
+                    "cep.final": "Fim  Destino",
+                    "deadline+D": "Dias",
+                    "excess": "Excedente"
+                },
+                "cepOriginValue": {
+                    "cep.origin.final": "89140000",
+                    "cep.origin.initial": "89140000"
+                }
+            }
+        },
+        "process": [
+            "create-farm",
+            "insert-values",
+            "deadline+D",
+            "contained-cep",
+            "procv",
+            "template",
+            "rate"
+        ]
+    };
     const initComponents = () => {
         loadForm();
         panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
@@ -2431,6 +2495,7 @@ function FarmScript(idPanel) {
             mainControl.processFarm();
             prepareForDownload();
         });
+        notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: "Tratamento concluído" });
     };
     const prepareForDownload = () => {
         mainControl.prepareForDownload();
@@ -2829,6 +2894,7 @@ function App() {
     const renderControl = RenderControl();
     const initComponents = () => {
         Setup();
+        const notificationControl = NotificationControl(document.querySelector(".list-notification"));
         const btLogout = document.querySelector(".bt-logout");
         btLogout.addEventListener("click", () => {
             controlDB.updateItem("auth.authenticated", false);
@@ -2840,3 +2906,95 @@ function App() {
     return initComponents();
 }
 window.onload = App;
+function NotificationControl(listNotificationEl) {
+    const MAP_TYPES_NOTIFICATIONS = {
+        "_success": {
+            icon: "check-lg"
+        },
+        "_error": {
+            icon: "dash-circle"
+        },
+        "_warning": {
+            icon: "exclamation-circle"
+        },
+        "_info": {
+            icon: "info-lg"
+        },
+        "_extra": {
+            icon: "stars"
+        },
+    };
+    function createNotification({ body, title, type }) {
+        const notificationContent = document.createElement("div");
+        const notification = document.createElement("div");
+        const contentEl = document.createElement("div");
+        const titleEl = document.createElement("span");
+        const bodyEl = document.createElement("span");
+        const actionEl = document.createElement("div");
+        const icon = createIcon(MAP_TYPES_NOTIFICATIONS[type].icon);
+        const loading = document.createElement("i");
+        contentEl.classList.add("content");
+        notificationContent.classList.add("notification-content");
+        notification.classList.add("notification");
+        actionEl.classList.add("status");
+        actionEl.setAttribute("action", type);
+        loading.classList.add("timer");
+        titleEl.classList.add("title");
+        bodyEl.classList.add("body");
+        titleEl.innerHTML = title;
+        bodyEl.innerHTML = body;
+        actionEl.appendChild(icon);
+        contentEl.appendChild(titleEl);
+        contentEl.appendChild(bodyEl);
+        notification.appendChild(loading);
+        notification.appendChild(actionEl);
+        notification.appendChild(contentEl);
+        notificationContent.appendChild(notification);
+        listNotificationEl.appendChild(notificationContent);
+        const max = 1000 * 3;
+        const update = 10;
+        let cont = 0;
+        let stopCont = false;
+        let timerCont;
+        notification.onmouseover = () => {
+            stopCont = true;
+        };
+        notification.onmouseout = () => {
+            stopCont = false;
+        };
+        notification.onclick = () => {
+            clearInterval(timerCont);
+            removeNotification(notificationContent);
+        };
+        timerCont = setInterval(() => {
+            if (stopCont) {
+                return;
+            }
+            if (cont >= max) {
+                clearInterval(timerCont);
+                removeNotification(notificationContent);
+            }
+            cont += update;
+            let perc = Math.round((cont * 100) / max);
+            loading.style.width = perc + "%";
+        }, update);
+    }
+    function removeNotification(notification) {
+        notification.classList.add("hidden");
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }
+    const createIcon = (name, type = "bi") => {
+        const iconEl = document.createElement("i");
+        iconEl.classList.add(`${type}-${name}`);
+        iconEl.setAttribute("icon", "");
+        return iconEl;
+    };
+    const newNotification = (props) => {
+        createNotification(props);
+    };
+    return {
+        newNotification
+    };
+}

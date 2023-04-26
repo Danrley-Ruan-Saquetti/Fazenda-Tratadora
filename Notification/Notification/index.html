@@ -1,0 +1,292 @@
+<header>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter";
+        }
+        
+        body {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .notification-container {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 60%;
+            height: auto;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        .list-notification {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            height: auto;
+        }
+        
+        .notification-content {
+            display: flex;
+            justify-content: end;
+            gap: 10px;
+        }
+        
+        .notification-content.hidden {
+            animation: slideOut .3s ease-in;
+            transform: translateX(100%);
+        }
+        
+        .notification {
+            position: relative;
+            display: flex;
+            width: max(80%, 50px);
+            background-color: #0009;
+            gap: 10px;
+            padding: 10px;
+            color: #fff;
+            border-radius: 5px;
+            animation: slideIn .3s ease-out;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all .3s;
+        }
+        
+        .notification:hover {
+            transform: translateY(-5px);
+        }
+        
+        .notification:active {
+            transform: scale(.95) translateY(-5px);
+        }
+        
+        .notification .timer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            border-radius: 5px;
+        }
+        
+        .notification .content {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .notification .status {
+            padding-right: 10px;
+        }
+        
+        .notification .status[action="_success"] {
+            border-right: 2px solid green;
+            color: green;
+        }
+        
+        .notification:has(.status[action="_success"]) .timer {
+            background-color: green;
+        }
+        
+        .notification .status[action="_error"] {
+            border-right: 2px solid red;
+            color: red;
+        }
+        
+        .notification:has(.status[action="_error"]) .timer {
+            background-color: red;
+        }
+        
+        .notification .status[action="_warning"] {
+            border-right: 2px solid orange;
+            color: orange;
+        }
+        
+        .notification:has(.status[action="_warning"]) .timer {
+            background-color: orange;
+        }
+        
+        .notification .status[action="_info"] {
+            border-right: 2px solid white;
+            color: white;
+        }
+        
+        .notification:has(.status[action="_info"]) .timer {
+            background-color: white;
+        }
+        
+        .notification .status [icon] {
+            display: block;
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+        }
+        
+        .notification .title {
+            font-size: 13px;
+        }
+        
+        .notification .body {
+            font-size: 17px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</header>
+
+<body>
+    <div class="notification-container">
+        <div class="list-notification"></div>
+    </div>
+</body>
+
+<script>
+    const listNotificationEl = document.querySelector(".list-notification")
+
+    function createNotification({
+        title = "",
+        body = "",
+        action = "",
+        type = ""
+    }) {
+        const notificationContent = document.createElement("div")
+        const notification = document.createElement("div")
+        const contentEl = document.createElement("div")
+        const titleEl = document.createElement("span")
+        const bodyEl = document.createElement("span")
+        const actionEl = document.createElement("div")
+        const icon = createIcon(type)
+        const loading = document.createElement("i")
+
+        contentEl.classList.add("content")
+        notificationContent.classList.add("notification-content")
+        notification.classList.add("notification")
+        actionEl.classList.add("status")
+        actionEl.setAttribute("action", action)
+
+        loading.classList.add("timer")
+
+        titleEl.classList.add("title")
+        bodyEl.classList.add("body")
+
+        titleEl.innerHTML = title
+        bodyEl.innerHTML = body
+
+        actionEl.appendChild(icon)
+        contentEl.appendChild(titleEl)
+        contentEl.appendChild(bodyEl)
+        notification.appendChild(loading)
+        notification.appendChild(actionEl)
+        notification.appendChild(contentEl)
+        notificationContent.appendChild(notification)
+        listNotificationEl.appendChild(notificationContent)
+
+        let miliCont = 0
+        const max = 1000 * 3
+        const update = 10
+        const som = Math.round(max / update)
+        let stopCont = false
+
+        let timerCont
+        let removeCont
+
+        notification.onmouseover = () => {
+            stopCont = true
+        }
+        notification.onmouseout = () => {
+            stopCont = false
+        }
+        notification.onclick = () => {
+            clearInterval(timerCont)
+            removeNotification(notificationContent)
+        }
+        timerCont = setInterval(() => {
+            if (stopCont) {
+                return
+            }
+
+            if (miliCont >= max) {
+                clearInterval(timerCont)
+                removeNotification(notificationContent)
+            }
+
+            miliCont += update
+
+            let perc = Math.round((miliCont * 100) / max)
+
+            loading.style.width = perc + "%"
+        }, update)
+    }
+
+    function removeNotification(notification) {
+        notification.classList.add("hidden")
+        setTimeout(() => {
+            notification.remove()
+            spwnNotification()
+        }, 300)
+    }
+
+    const createIcon = (name, type = "bi") => {
+        const iconEl = document.createElement("i");
+        iconEl.classList.add(`${type}-${name}`);
+        iconEl.setAttribute("icon", "");
+        return iconEl;
+    };
+
+    const MAP_NOTIFICATIONS = [{
+        title: "Fazenda",
+        body: "Sucesso",
+        action: "_success",
+        type: "check-lg"
+    }, {
+        title: "Fazenda",
+        body: "Erro",
+        action: "_error",
+        type: "dash-circle"
+    }, {
+        title: "Fazenda",
+        body: "Aviso",
+        action: "_warning",
+        type: "exclamation-circle"
+    }, {
+        title: "Fazenda",
+        body: "Info",
+        action: "_info",
+        type: "info-lg"
+    }]
+
+    const spwnNotification = () => {
+        const index = Math.floor(Math.random() * (MAP_NOTIFICATIONS.length))
+
+        createNotification(MAP_NOTIFICATIONS[index])
+    }
+
+    spwnNotification()
+    spwnNotification()
+    spwnNotification()
+</script>

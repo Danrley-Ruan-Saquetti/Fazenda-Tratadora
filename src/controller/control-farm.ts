@@ -173,7 +173,7 @@ function FarmControl(farmRepository: IFarmRepository) {
     const processFarm = ({ modelTables, settings, process }: { modelTables: ITableModel[], settings: ISettingsGeneral, process: TFarmProcess[] }) => {
         const repoControl = FarmControl(FarmRepository())
 
-        repoControl.setup({ id: null, settings, tables: modelTables, process })
+        repoControl.setup({ id: null, settings, tables: modelTables, process: [] })
 
         const PROCESS = {
             "process-plant": () => {
@@ -380,31 +380,31 @@ function FarmControl(farmRepository: IFarmRepository) {
             },
             "template": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0]
+                const modelTableDeadline = repoControl.getTable({ code: "plant.deadline" })[0]
 
-                if (!modelTableFarm) { return { result: null } }
+                const headerDeadline = repoControl.getHeaders({ tableModel: modelTableFarm, types: ["deadline+D"] })[0] || repoControl.getHeaders({ tableModel: modelTableFarm, types: ["deadline"] })[0]
 
-                const modelTemplates: ITableModel[] = []
-
-                const isProcessProcv = repoControl.getProcess({ types: ["procv"] })[0]
-
-                const headersTemplateDeadline: THeader[] = [
+                const headersTemplateDeadline: THeader[] = headerDeadline ? [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.cepOriginValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.cepOriginValue["cep.origin.final"] },
-                    ...repoControl.getHeaders({ tableModel: modelTableFarm, types: ["cep.initial", "cep.final", "deadline+D"] }),
+                    ...repoControl.getHeaders({ tableModel: modelTableFarm || modelTableDeadline, types: ["cep.initial", "cep.final"] }),
+                    headerDeadline
+                ] : [
+                    { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.cepOriginValue["cep.origin.initial"] },
+                    { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.cepOriginValue["cep.origin.final"] },
+                    ...repoControl.getHeaders({ tableModel: modelTableFarm || modelTableDeadline, types: ["cep.initial", "cep.final"] }),
                 ]
-                const headersTemplatePrice: THeader[] = isProcessProcv ? [
+                const headersTemplatePrice: THeader[] = modelTableFarm ? [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.cepOriginValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.cepOriginValue["cep.origin.final"] },
-                    ...repoControl.getHeaders({ tableModel: { table: modelTableFarm.table, code: "farm", headers: modelTableFarm.headers }, types: ["cep.initial", "cep.final", "excess"] }),
+                    ...repoControl.getHeaders({ tableModel: modelTableFarm, types: ["cep.initial", "cep.final", "excess"] }),
                     ...repoControl.getHeadersWeight({ table: [modelTableFarm.table[0]] }),
                 ] : []
 
-                if (repoControl.getProcess({ types: ["insert-values"] })[0]) {
-                    modelTemplates.push({ code: "template.deadline", headers: headersTemplateDeadline, table: modelTableFarm.table, name: "Template Prazo" })
-                    if (isProcessProcv) {
-                        modelTemplates.push({ code: "template.price", headers: headersTemplatePrice, table: modelTableFarm.table, name: "Template Preço" })
-                    }
-                }
+                const modelTemplates: ITableModel[] = []
+
+                modelTemplates.push({ code: "template.deadline", headers: headersTemplateDeadline, table: modelTableFarm.table, name: "Template Prazo" })
+                headersTemplatePrice.length > 0 && modelTemplates.push({ code: "template.price", headers: headersTemplatePrice, table: modelTableFarm.table, name: "Template Preço" })
 
                 const processResult: TFarmProcess = { logs: [], type: "template" }
 
@@ -424,33 +424,26 @@ function FarmControl(farmRepository: IFarmRepository) {
                 return { result: processResult }
             },
             "rate": () => {
-                if (repoControl.getData().tables.length == 0) { return { result: null } }
-
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0]
                 const modelTablePlantDeadline = repoControl.getTable({ code: "plant.deadline" })[0]
-
-                const modelHeadersRate: { headers: THeader[], table: TTable }[] = []
-
-                if (repoControl.getProcess({ types: ["create-farm"] })[0]) {
-                    if (modelTableFarm) {
-                        modelHeadersRate.push({ table: modelTableFarm.table, headers: repoControl.getHeaders({ tableModel: modelTableFarm, types: ["rate"] }) })
-                    } else if (modelTablePlantDeadline) {
-                        modelHeadersRate.push({ table: modelTablePlantDeadline.table, headers: repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }) })
-                    }
-                } else {
-                    if (modelTablePlantDeadline) {
-                        modelHeadersRate.push({ table: modelTablePlantDeadline.table, headers: repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }) })
-                    }
-                }
 
                 const headersTemplateRate: THeader[] = modelTableFarm || modelTablePlantDeadline ? [
                     { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
                     { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
-                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
-                ] : [
-                    { header: settings.template.headerName["cep.origin.initial"], type: "cep.origin.initial", value: settings.template.rateValue["cep.origin.initial"] },
-                    { header: settings.template.headerName["cep.origin.final"], type: "cep.origin.final", value: settings.template.rateValue["cep.origin.final"] },
-                ]
+                    ...repoControl.getHeaders({ tableModel: modelTableFarm || modelTablePlantDeadline, types: ["cep.initial", "cep.final"] })
+                ] : []
+
+                const modelHeadersRate: { headers: THeader[], table: TTable }[] = []
+
+                if (headersTemplateRate.length > 0) {
+                    if (modelTableFarm) {
+                        modelHeadersRate.push({ table: modelTableFarm.table, headers: repoControl.getHeaders({ tableModel: modelTableFarm, types: ["rate"] }) })
+                    } else {
+                        if (modelTablePlantDeadline) {
+                            modelHeadersRate.push({ table: modelTablePlantDeadline.table, headers: repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["rate"] }) })
+                        }
+                    }
+                }
 
                 const processResult: TFarmProcess = { logs: [], type: "rate" }
 
@@ -502,6 +495,8 @@ function FarmControl(farmRepository: IFarmRepository) {
                 return { result: processResult }
             }
         }
+
+        if (repoControl.getData().tables.length == 0) { return }
 
         PROCESS["process-plant"]()
 

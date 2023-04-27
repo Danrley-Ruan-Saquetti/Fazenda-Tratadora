@@ -60,6 +60,8 @@ const GLOBAL_TEMPLATE: ISettingsTemplate = {
     ]
 }
 
+
+
 const GLOBAL_SETTINGS: ISettingsGeneral = {
     "table": {
         "cep.initial": "",
@@ -176,6 +178,8 @@ const GLOBAL_ROUTERS: TItemRoute[] = [
     { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript", active: false },
     { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript", __dev: true, active: false }
 ]
+
+const GLOBAL_ROUTERS_OPEN: TRouterName[] = ["feature"]
 
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`
 

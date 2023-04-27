@@ -266,6 +266,7 @@ const GLOBAL_ROUTERS = [
     { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript", active: false },
     { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript", __dev: true, active: false }
 ];
+const GLOBAL_ROUTERS_OPEN = ["feature"];
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 const GLOBAL_ROUTERS_ROUTER = {
     "routers/panel.feature.html": `<div class="select-container">
@@ -770,8 +771,17 @@ function FarmRepository() {
     const getSettings = () => {
         return _.cloneDeep(data.settings);
     };
-    const updateProcess = (process) => {
+    const setupProcess = (process) => {
         data.process = _.cloneDeep(process);
+    };
+    const updateProcess = (process) => {
+        const index = data.process.findIndex(_process => {
+            return _process.type == process.type;
+        });
+        if (index < 0) {
+            return;
+        }
+        data.process[index] = process;
     };
     const getProcess = ({ types } = { types: [] }) => {
         if (types.length > 0) {
@@ -793,6 +803,7 @@ function FarmRepository() {
         getSettings,
         getProcess,
         updateProcess,
+        setupProcess,
     };
 }
 function FarmControl(farmRepository) {
@@ -921,7 +932,7 @@ function FarmControl(farmRepository) {
     };
     const processFarm = ({ modelTables, settings, process }) => {
         const repoControl = FarmControl(FarmRepository());
-        repoControl.setup({ id: null, settings, tables: modelTables, process: [] });
+        repoControl.setup({ id: null, settings, tables: modelTables, process });
         const PROCESS = {
             "process-plant": () => {
                 const modelTablePlantPrice = repoControl.getTable({ code: "plant.price" })[0];
@@ -1003,16 +1014,14 @@ function FarmControl(farmRepository) {
                 if (!modelTableFarm || !modelTablePlantDeadline || !modelTablePlantPrice) {
                     return { result: null };
                 }
-                const headerDeadline = repoControl.getHeaders({ code: "plant.deadline", types: ["deadline"] })[0];
                 const headerPlantValueDeadlineToFarm = [
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
-                    { header: `${headerDeadline ? headerDeadline.header : "D"}+${settings.process["deadline+D"]}`, type: "deadline+D" },
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "excess", "rate"] }),
                     ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
                 ];
                 const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
                 const processResult = { logs: logsInsertValues, type: "insert-values", situation: "finalized" };
-                repoControl.updateTable({ code: "farm", table: modelTableFarm.table, headers: headerPlantValueDeadlineToFarm });
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
                 return { result: processResult };
             },
             "remove-character": () => {
@@ -1035,10 +1044,10 @@ function FarmControl(farmRepository) {
             },
             "deadline+D": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0];
-                if (!modelTableFarm) {
+                if (!modelTableFarm || !repoControl.getProcess({ types: ["insert-values"] })[0]) {
                     return { result: null };
                 }
-                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: modelTableFarm, tableBase: modelTableFarm, settings });
+                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: modelTableFarm, tableBase: _.cloneDeep(modelTableFarm), settings });
                 const processResult = { logs: logsInsertValuesDMoreOne, type: "deadline+D", situation: "finalized" };
                 repoControl.updateTable({ code: "farm", table: modelTableFarm.table });
                 return { result: processResult };
@@ -1184,13 +1193,9 @@ function FarmControl(farmRepository) {
         }
         process.forEach(_process => {
             const result = PROCESS[_process.type]();
-            console.log(result.result, _process.type);
             if (result.result) {
                 repoControl.updateProcess({
-                    process: [
-                        ...repoControl.getProcess(),
-                        result.result
-                    ]
+                    process: result.result
                 });
             }
         });
@@ -1202,8 +1207,7 @@ function FarmControl(farmRepository) {
             const indexColumnHeader = tableControl.getIndex({ valueSearch: headers[k].header, where: { array: table[0] } });
             const indexColumnHeaderPlant = tableControl.getIndex({ valueSearch: headers[k].header, where: { array: tablePlant[0] } });
             if (indexColumnHeader < 0 || indexColumnHeaderPlant < 0) {
-                if (indexColumnHeaderPlant < 0 && (headers[k].type == "cep.final" || headers[k].type == "cep.initial"))
-                    logs.push({ type: "alert", message: `Column "${headers[k].header}" not found in plant` });
+                logs.push({ type: "alert", message: `Column "${headers[k].header}" not found in plant` });
                 continue;
             }
             for (let i = 1; i < table.length; i++) {
@@ -1213,19 +1217,18 @@ function FarmControl(farmRepository) {
         logs.push({ date: new Date(Date.now()), type: logs.length == 0 ? "success" : "alert", message: `Table values inserted successfully${logs.length != 0 ? ". But no values for Cep" : ""}` });
         return { logs };
     };
-    const insertCSValue = ({}) => {
-    };
     const insertValuesDMoreOne = ({ tableModel, tableBase, settings }) => {
         const logs = [];
-        const headerDeadlineMoreD = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: tableModel.table, headers: tableModel.headers }, types: ["deadline+D"] })[0]?.header || "", where: { array: tableModel.table[0] } });
-        const headerDeadline = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: tableBase.table, headers: tableBase.headers }, types: ["deadline"] })[0]?.header || "", where: { array: tableBase.table[0] } });
-        if (headerDeadline < 0 || headerDeadlineMoreD < 0) {
-            !headerDeadline && logs.push({ type: "warning", message: `Column "${getHeaders({ tableModel: { table: tableModel.table, headers: tableModel.headers }, types: ["deadline+D"] })[0]?.header || "Deadline"}" not found in plant deadline` });
+        const headerDeadline = getHeaders({ tableModel: tableBase, types: ["deadline"] })[0];
+        const indexHeaderDeadline = tableControl.getIndex({ valueSearch: headerDeadline?.header || "", where: { array: tableBase.table[0] } });
+        const indexHeaderDeadlineMoreD = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: tableModel, types: ["deadline+D"] })[0]?.header || "", where: { array: tableModel.table[0] } });
+        if (indexHeaderDeadline < 0 || indexHeaderDeadlineMoreD < 0) {
+            !indexHeaderDeadline && logs.push({ type: "warning", message: `Column "${getHeaders({ tableModel: tableModel, types: ["deadline+D"] })[0]?.header || "Deadline"}" not found in plant deadline` });
             return { logs };
         }
         const valueD = Number(settings.process["deadline+D"]);
         for (let i = 1; i < tableModel.table.length; i++) {
-            tableModel.table[i][headerDeadlineMoreD] = `${Number(tableBase.table[i][headerDeadline]) + valueD}`;
+            tableModel.table[i][indexHeaderDeadlineMoreD] = `${Number(tableBase.table[i][indexHeaderDeadline]) + valueD}`;
         }
         logs.push({ date: new Date(Date.now()), type: "success", message: `Deadline +${settings.process["deadline+D"]} successfully added` });
         return { logs };
@@ -1353,6 +1356,9 @@ function FarmControl(farmRepository) {
     const getSettings = () => {
         return _.cloneDeep(farmRepository.getSettings());
     };
+    const setupProcess = (props) => {
+        farmRepository.setupProcess(props.process);
+    };
     const updateProcess = (props) => {
         farmRepository.updateProcess(props.process);
     };
@@ -1383,7 +1389,8 @@ function FarmControl(farmRepository) {
         createTemplate,
         createTemplateRate,
         validateContainedCEP,
-        insertValuesDMoreOne
+        insertValuesDMoreOne,
+        setupProcess
     };
 }
 function FileControl(farmRepository) {
@@ -2171,7 +2178,7 @@ function MainControl() {
     const setupFarm = ({ plants, settings, process: processSelection }, callback) => {
         const process = processSelection.map(_process => { return { type: _process, logs: [] }; });
         farmControl.updateSetting({ settings });
-        farmControl.updateProcess({ process });
+        farmControl.setupProcess({ process });
         uploadFilesPlants({ plants }, callback);
     };
     const processRepoTable = (props) => {
@@ -2270,7 +2277,7 @@ function RenderControl() {
                 }
                 panelControl.newPanel(_item, ev.ctrlKey);
             });
-            GLOBAL_DEPENDENCE == "development" && _item.__dev && panelControl.newPanel(_item, false);
+            GLOBAL_ROUTERS_OPEN.includes(_item.name) && panelControl.newPanel(_item, false);
             ELEMENTS.sideBarList.appendChild(itemEl);
         });
     };
@@ -2379,7 +2386,6 @@ function FarmScript(idPanel) {
             "insert-values",
             "deadline+D",
             "contained-cep",
-            "procv",
             "template",
             "rate"
         ]

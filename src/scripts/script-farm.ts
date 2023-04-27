@@ -85,7 +85,7 @@ function FarmScript(idPanel: string) {
             "insert-values",
             "deadline+D",
             "contained-cep",
-            "procv",
+            // "procv",
             "template",
             "rate"
         ]

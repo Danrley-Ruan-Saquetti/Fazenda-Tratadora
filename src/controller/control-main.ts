@@ -94,7 +94,7 @@ function MainControl() {
         const process = processSelection.map(_process => { return { type: _process, logs: [] } })
 
         farmControl.updateSetting({ settings })
-        farmControl.updateProcess({ process })
+        farmControl.setupProcess({ process })
 
         uploadFilesPlants({ plants }, callback)
     }

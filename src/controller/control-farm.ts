@@ -173,7 +173,7 @@ function FarmControl(farmRepository: IFarmRepository) {
     const processFarm = ({ modelTables, settings, process }: { modelTables: ITableModel[], settings: ISettingsGeneral, process: TFarmProcess[] }) => {
         const repoControl = FarmControl(FarmRepository())
 
-        repoControl.setup({ id: null, settings, tables: modelTables, process: [] })
+        repoControl.setup({ id: null, settings, tables: modelTables, process })
 
         const PROCESS = {
             "process-plant": () => {
@@ -271,11 +271,8 @@ function FarmControl(farmRepository: IFarmRepository) {
 
                 if (!modelTableFarm || !modelTablePlantDeadline || !modelTablePlantPrice) { return { result: null } }
 
-                const headerDeadline = repoControl.getHeaders({ code: "plant.deadline", types: ["deadline"] })[0]
-
                 const headerPlantValueDeadlineToFarm: THeader[] = [
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
-                    { header: `${headerDeadline ? headerDeadline.header : "D"}+${settings.process["deadline+D"]}`, type: "deadline+D" },
                     ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "excess", "rate"] }),
                     ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
                 ]
@@ -284,7 +281,7 @@ function FarmControl(farmRepository: IFarmRepository) {
 
                 const processResult: TFarmProcess = { logs: logsInsertValues, type: "insert-values", situation: "finalized" }
 
-                repoControl.updateTable({ code: "farm", table: modelTableFarm.table, headers: headerPlantValueDeadlineToFarm })
+                repoControl.updateTable({ code: "farm", table: modelTableFarm.table })
 
                 return { result: processResult }
             },
@@ -317,9 +314,9 @@ function FarmControl(farmRepository: IFarmRepository) {
             "deadline+D": () => {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0]
 
-                if (!modelTableFarm) { return { result: null } }
+                if (!modelTableFarm || !repoControl.getProcess({ types: ["insert-values"] })[0]) { return { result: null } }
 
-                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: modelTableFarm, tableBase: modelTableFarm, settings })
+                const { logs: logsInsertValuesDMoreOne } = insertValuesDMoreOne({ tableModel: modelTableFarm, tableBase: _.cloneDeep(modelTableFarm), settings })
 
                 const processResult: TFarmProcess = { logs: logsInsertValuesDMoreOne, type: "deadline+D", situation: "finalized" }
 
@@ -507,14 +504,11 @@ function FarmControl(farmRepository: IFarmRepository) {
         process.forEach(_process => {
             const result = PROCESS[_process.type]()
 
-            console.log(result.result, _process.type)
+            // console.log(result.result, _process.type)
 
             if (result.result) {
                 repoControl.updateProcess({
-                    process: [
-                        ...repoControl.getProcess(),
-                        result.result
-                    ]
+                    process: result.result
                 })
             }
         })
@@ -530,7 +524,8 @@ function FarmControl(farmRepository: IFarmRepository) {
             const indexColumnHeaderPlant = tableControl.getIndex({ valueSearch: headers[k].header, where: { array: tablePlant[0] } })
 
             if (indexColumnHeader < 0 || indexColumnHeaderPlant < 0) {
-                if (indexColumnHeaderPlant < 0 && (headers[k].type == "cep.final" || headers[k].type == "cep.initial")) logs.push({ type: "alert", message: `Column "${headers[k].header}" not found in plant` })
+                // if (indexColumnHeaderPlant < 0 && (headers[k].type == "cep.final" || headers[k].type == "cep.initial")) 
+                logs.push({ type: "alert", message: `Column "${headers[k].header}" not found in plant` })
                 continue
             }
 
@@ -544,18 +539,16 @@ function FarmControl(farmRepository: IFarmRepository) {
         return { logs }
     }
 
-    const insertCSValue = ({ }: { table: TTable, headers: THeader[] }) => {
-
-    }
-
     const insertValuesDMoreOne = ({ tableModel, tableBase, settings }: { tableModel: { table: TTable, headers: THeader[] }, tableBase: { table: TTable, headers: THeader[] }, settings: ISettingsFarm }) => {
         const logs: TLog[] = []
 
-        const headerDeadlineMoreD = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: tableModel.table, headers: tableModel.headers }, types: ["deadline+D"] })[0]?.header || "", where: { array: tableModel.table[0] } })
-        const headerDeadline = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: { table: tableBase.table, headers: tableBase.headers }, types: ["deadline"] })[0]?.header || "", where: { array: tableBase.table[0] } })
+        const headerDeadline = getHeaders({ tableModel: tableBase, types: ["deadline"] })[0]
 
-        if (headerDeadline < 0 || headerDeadlineMoreD < 0) {
-            !headerDeadline && logs.push({ type: "warning", message: `Column "${getHeaders({ tableModel: { table: tableModel.table, headers: tableModel.headers }, types: ["deadline+D"] })[0]?.header || "Deadline"}" not found in plant deadline` })
+        const indexHeaderDeadline = tableControl.getIndex({ valueSearch: headerDeadline?.header || "", where: { array: tableBase.table[0] } })
+        const indexHeaderDeadlineMoreD = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: tableModel, types: ["deadline+D"] })[0]?.header || "", where: { array: tableModel.table[0] } })
+
+        if (indexHeaderDeadline < 0 || indexHeaderDeadlineMoreD < 0) {
+            !indexHeaderDeadline && logs.push({ type: "warning", message: `Column "${getHeaders({ tableModel: tableModel, types: ["deadline+D"] })[0]?.header || "Deadline"}" not found in plant deadline` })
 
             return { logs }
         }
@@ -563,7 +556,7 @@ function FarmControl(farmRepository: IFarmRepository) {
         const valueD = Number(settings.process["deadline+D"])
 
         for (let i = 1; i < tableModel.table.length; i++) {
-            tableModel.table[i][headerDeadlineMoreD] = `${Number(tableBase.table[i][headerDeadline]) + valueD}`
+            tableModel.table[i][indexHeaderDeadlineMoreD] = `${Number(tableBase.table[i][indexHeaderDeadline]) + valueD}`
         }
 
         logs.push({ date: new Date(Date.now()), type: "success", message: `Deadline +${settings.process["deadline+D"]} successfully added` })
@@ -734,7 +727,11 @@ function FarmControl(farmRepository: IFarmRepository) {
     }
 
     // Process
-    const updateProcess = (props: { process: TFarmProcess[] }) => {
+    const setupProcess = (props: { process: TFarmProcess[] }) => {
+        farmRepository.setupProcess(props.process)
+    }
+
+    const updateProcess = (props: { process: TFarmProcess }) => {
         farmRepository.updateProcess(props.process)
     }
 
@@ -766,6 +763,7 @@ function FarmControl(farmRepository: IFarmRepository) {
         createTemplate,
         createTemplateRate,
         validateContainedCEP,
-        insertValuesDMoreOne
+        insertValuesDMoreOne,
+        setupProcess
     }
 }

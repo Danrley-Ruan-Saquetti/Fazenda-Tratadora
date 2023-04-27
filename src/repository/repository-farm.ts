@@ -92,8 +92,18 @@ function FarmRepository(): IFarmRepository {
     }
 
     // Process
-    const updateProcess = (process: TFarmProcess[]) => {
+    const setupProcess = (process: TFarmProcess[]) => {
         data.process = _.cloneDeep(process)
+    }
+
+    const updateProcess = (process: TFarmProcess) => {
+        const index = data.process.findIndex(_process => {
+            return _process.type == process.type
+        })
+
+        if (index < 0) { return }
+
+        data.process[index] = process
     }
 
     const getProcess = ({ types }: { types: TFarmProcessType[] } = { types: [] }) => {
@@ -118,5 +128,6 @@ function FarmRepository(): IFarmRepository {
         getSettings,
         getProcess,
         updateProcess,
+        setupProcess,
     }
 }

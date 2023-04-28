@@ -3,5 +3,12 @@ function GuideScript(idPanel: string) {
 
     if (!panel) { return { error: { msg: "Panel not found" } } }
 
+    const initComponents = () => {
+        PreloadPanel(panel)
+
+    }
+
+    initComponents()
+
     return {}
 }

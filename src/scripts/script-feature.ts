@@ -4,8 +4,9 @@ function FeatureScript(idPanel: string) {
     if (!panel) { return { error: { msg: "Panel not found" } } }
 
     const ELEMENTS = {
-        selectFormPlants: document.querySelector(".select-form.plants") as HTMLElement,
-        selectFormProcess: document.querySelector(".select-form.process") as HTMLElement,
+        selectGroupPlants: panel.querySelector(".select-group.plants") as HTMLElement,
+        selectGroupProcess: panel.querySelector(".select-group.process") as HTMLElement,
+        btUpload: panel.querySelector("#upload-files-plant") as HTMLElement
     }
 
     const MAP_PARAMS = {
@@ -19,22 +20,22 @@ function FeatureScript(idPanel: string) {
             "rate": [],
         },
         plants: [
-            { content: "CEP de Origem Inicial", type: "cep.origin.initial" },
-            { content: "CEP de Origem Final", type: "cep.origin.final" },
-            { content: "CEP Inicial", type: "cep.initial" },
-            { content: "CEP Final", type: "cep.final" },
-            { content: "Critério de Seleção", type: "selection-criteria" },
-            { content: "Prazo", type: "deadline" },
-            { content: "D+1", type: "deadline+d" },
-            { content: "Excedente", type: "excess" },
-            { content: "Taxa", type: "rate" },
+            { content: "CEP de Origem Inicial", type: "cep.origin.initial", action: "cep.origin.initial" },
+            { content: "CEP de Origem Final", type: "cep.origin.final", action: "cep.origin.final" },
+            { content: "CEP Inicial", type: "cep.initial", action: "cep.initial" },
+            { content: "CEP Final", type: "cep.final", action: "cep.final" },
+            { content: "Critério de Seleção", type: "selection-criteria", action: "selection-criteria" },
+            { content: "Prazo", type: "deadline", action: "deadline" },
+            { content: "Prazo+D", type: "deadline+d", action: "deadline+d" },
+            { content: "Excedente", type: "excess", action: "excess" },
+            { content: "Taxa", type: "rate", action: "rate" },
         ]
     }
 
     const MAP_SELECTION_PLANTS: TOptionSelection[] = [
-        { action: "farm", content: "Fazenda", type: "farm" },
         { action: "deadline", content: "Prazo", type: "deadline" },
         { action: "price", content: "Preço", type: "price" },
+        { action: "farm", content: "Fazenda", type: "farm" },
     ]
 
     const MAP_SELECTION_PROCESS: TOptionSelection[] = [
@@ -83,16 +84,14 @@ function FeatureScript(idPanel: string) {
     ]
 
     const initComponents = () => {
-        const { listSelected: listPlants } = SelectionFormComponent(ELEMENTS.selectFormPlants, { events: { _newOne: createBoxSelection }, options: MAP_SELECTION_PLANTS, submenu: [...MAP_PARAMS["plants"]] })
-        const { listSelected: listProcess } = SelectionFormComponent(ELEMENTS.selectFormProcess, { events: { _newOne: createBoxSelection }, options: MAP_SELECTION_PROCESS }, ["_newAll"])
+        PreloadPanel(panel)
 
-        function createBoxSelection() {
-            const box = document.createElement("div") as HTMLElement
+        const { listSelected: listPlants } = SelectionGroupComponent(ELEMENTS.selectGroupPlants, { actions: ["_newOne", "_newAll", "_clear"], options: MAP_SELECTION_PLANTS, submenu: [...MAP_PARAMS["plants"]], classBox: "box" }, [])
+        const { listSelected: listProcess } = SelectionGroupComponent(ELEMENTS.selectGroupProcess, { actions: ["_newOne", "_newAll", "_clear"], classBox: "box", options: MAP_SELECTION_PROCESS }, [])
 
-            box.classList.add("box")
-
-            return box
-        }
+        ELEMENTS.btUpload.addEventListener("click", () => {
+            console.log(listPlants, listProcess)
+        })
     }
 
     initComponents()

@@ -585,26 +585,49 @@ function tableComponent({ table: tableEl, headers }, onSelection, colResizablePr
         onLoad: loadDataTable
     };
 }
-function SelectionFormComponent(form, props, pre) {
+function SelectionGroupComponent(form, props, pre) {
     const MAP_OPTIONS = [
         { type: "_newOne", icon: "plus-lg", _action: "_new", content: "Novo" },
         { type: "_newAll", icon: "list-ul", _action: "_new", content: "Adicionar Tudo" },
         { type: "_clear", icon: "x-lg", _action: "_cancel", content: "Limpar" },
     ];
     const listSelected = [];
+    if (typeof props.isParent == "undefined") {
+        props.isParent = true;
+    }
+    if (typeof props.submenu == "undefined") {
+        props.submenu = [];
+    }
+    if (typeof props.updateList == "undefined") {
+        props.updateList = true;
+    }
     const updateListSelected = () => {
-        const listEl = form.querySelectorAll(".box");
+        if (!props.updateList) {
+            return props.listeners && props.listeners && props.listeners.onUpdate && props.listeners.onUpdate();
+        }
+        const listEl = form.querySelectorAll("." + props.classBox + ".parent");
+        console.log({ listEl });
         listSelected.splice(0, listSelected.length);
         listEl.forEach(_el => {
+            const listSubEl = _el.querySelectorAll("." + props.classBox + ".children");
             const select = _el.querySelector("select");
+            const listSub = [];
+            listSubEl.forEach(_elSub => {
+                const selectSub = _elSub.querySelector("select");
+                const valueSub = selectSub?.value || "";
+                listSub.push({ value: valueSub });
+            });
             const value = select?.value || "";
-            listSelected.push(value);
+            listSelected.push({ value, subMenu: listSub });
         });
+        props.listeners && props.listeners && props.listeners.onUpdate && props.listeners.onUpdate();
     };
     const MAP_OPTIONS_FUNCTION = {
         "_newOne": (actionProcessActive = "") => {
-            const box = props.events._newOne();
-            const list = form.querySelector(".selection-form-list");
+            const box = document.createElement("div");
+            const list = form.querySelector(".select-group-list");
+            box.classList.add(props.classBox, props.isParent ? "parent" : "children");
+            const selectionContent = document.createElement("div");
             const btRemove = document.createElement("button");
             const selectionProcess = document.createElement("select");
             const iconRemove = createIcon("dash");
@@ -617,9 +640,7 @@ function SelectionFormComponent(form, props, pre) {
                 }
                 selectionProcess.appendChild(option);
             });
-            if (props.submenu && props.submenu.length > 0) {
-                box.appendChild(createSubMenu(props.submenu));
-            }
+            selectionContent.classList.add(props.classBox + "-container");
             btRemove.setAttribute("action", "_default");
             selectionProcess.onchange = updateListSelected;
             btRemove.onclick = () => {
@@ -627,38 +648,40 @@ function SelectionFormComponent(form, props, pre) {
                 updateListSelected();
             };
             btRemove.appendChild(iconRemove);
-            box.appendChild(selectionProcess);
-            box.appendChild(btRemove);
+            selectionContent.appendChild(selectionProcess);
+            selectionContent.appendChild(btRemove);
+            box.appendChild(selectionContent);
             list.appendChild(box);
+            props.submenu && props.submenu.length > 0 && box.appendChild(createSubMenu(props.submenu));
             updateListSelected();
         },
         "_newAll": () => {
-            props.events?._newAll && props.events._newAll();
             props.options.forEach(_option => {
                 MAP_OPTIONS_FUNCTION["_newOne"](_option.action);
             });
             updateListSelected();
         },
         "_clear": () => {
-            props.events?._clear && props.events._clear();
-            const listEl = form.querySelectorAll(".box");
+            const listEl = form.querySelectorAll("." + props.classBox);
             listEl.forEach(_el => _el.remove());
             updateListSelected();
         }
     };
-    const createContainerOptions = () => {
+    const createContainerActions = () => {
         const container = document.createElement("div");
         container.setAttribute("button-container", "");
+        container.classList.add("select-group-actions");
         MAP_OPTIONS.forEach(_option => {
+            if (!props.actions.includes(_option.type)) {
+                return;
+            }
             const bt = document.createElement("button");
+            const iconEl = createIcon(_option.icon);
             const span = document.createElement("span");
-            const icon = createIcon(_option.icon);
-            bt.onclick = () => {
-                MAP_OPTIONS_FUNCTION[_option.type]();
-            };
+            bt.onclick = () => MAP_OPTIONS_FUNCTION[_option.type]();
             bt.setAttribute("action", _option._action);
             span.textContent = _option.content;
-            bt.appendChild(icon);
+            bt.appendChild(iconEl);
             bt.appendChild(span);
             container.appendChild(bt);
         });
@@ -667,24 +690,17 @@ function SelectionFormComponent(form, props, pre) {
     const createListOptions = () => {
         const list = document.createElement("div");
         list.setAttribute("list-type", "vertical");
-        list.classList.add("selection-form-list");
+        list.classList.add("select-group-list", props.isParent ? "parent" : "children");
         form.appendChild(list);
     };
     const createSubMenu = (subMenus) => {
         const subMenu = document.createElement("div");
-        const selectSubMenu = document.createElement("select");
         subMenu.classList.add("sub-menu");
-        subMenus.forEach(_sm => {
-            const option = document.createElement("option");
-            option.textContent = _sm.content;
-            option.value = _sm.type;
-            selectSubMenu.appendChild(option);
-        });
-        subMenu.appendChild(selectSubMenu);
+        SelectionGroupComponent(subMenu, { actions: props.actions, options: subMenus, isParent: false, updateList: false, classBox: props.classBox, listeners: { onUpdate: updateListSelected } }, []);
         return subMenu;
     };
     const setup = () => {
-        createContainerOptions();
+        createContainerActions();
         createListOptions();
         pre && pre.forEach(_preFunc => MAP_OPTIONS_FUNCTION[_preFunc]());
     };
@@ -2391,6 +2407,7 @@ function FarmScript(idPanel) {
         ]
     };
     const initComponents = () => {
+        PreloadPanel(panel);
         loadForm();
         panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
         panel.querySelector("#download-files")?.addEventListener("click", downloadFiles);
@@ -2527,8 +2544,9 @@ function FeatureScript(idPanel) {
         return { error: { msg: "Panel not found" } };
     }
     const ELEMENTS = {
-        selectFormPlants: document.querySelector(".select-form.plants"),
-        selectFormProcess: document.querySelector(".select-form.process"),
+        selectGroupPlants: panel.querySelector(".select-group.plants"),
+        selectGroupProcess: panel.querySelector(".select-group.process"),
+        btUpload: panel.querySelector("#upload-files-plant")
     };
     const MAP_PARAMS = {
         process: {
@@ -2541,21 +2559,21 @@ function FeatureScript(idPanel) {
             "rate": [],
         },
         plants: [
-            { content: "CEP de Origem Inicial", type: "cep.origin.initial" },
-            { content: "CEP de Origem Final", type: "cep.origin.final" },
-            { content: "CEP Inicial", type: "cep.initial" },
-            { content: "CEP Final", type: "cep.final" },
-            { content: "Critério de Seleção", type: "selection-criteria" },
-            { content: "Prazo", type: "deadline" },
-            { content: "D+1", type: "deadline+d" },
-            { content: "Excedente", type: "excess" },
-            { content: "Taxa", type: "rate" },
+            { content: "CEP de Origem Inicial", type: "cep.origin.initial", action: "cep.origin.initial" },
+            { content: "CEP de Origem Final", type: "cep.origin.final", action: "cep.origin.final" },
+            { content: "CEP Inicial", type: "cep.initial", action: "cep.initial" },
+            { content: "CEP Final", type: "cep.final", action: "cep.final" },
+            { content: "Critério de Seleção", type: "selection-criteria", action: "selection-criteria" },
+            { content: "Prazo", type: "deadline", action: "deadline" },
+            { content: "Prazo+D", type: "deadline+d", action: "deadline+d" },
+            { content: "Excedente", type: "excess", action: "excess" },
+            { content: "Taxa", type: "rate", action: "rate" },
         ]
     };
     const MAP_SELECTION_PLANTS = [
-        { action: "farm", content: "Fazenda", type: "farm" },
         { action: "deadline", content: "Prazo", type: "deadline" },
         { action: "price", content: "Preço", type: "price" },
+        { action: "farm", content: "Fazenda", type: "farm" },
     ];
     const MAP_SELECTION_PROCESS = [
         {
@@ -2602,13 +2620,12 @@ function FeatureScript(idPanel) {
         },
     ];
     const initComponents = () => {
-        const { listSelected: listPlants } = SelectionFormComponent(ELEMENTS.selectFormPlants, { events: { _newOne: createBoxSelection }, options: MAP_SELECTION_PLANTS, submenu: [...MAP_PARAMS["plants"]] });
-        const { listSelected: listProcess } = SelectionFormComponent(ELEMENTS.selectFormProcess, { events: { _newOne: createBoxSelection }, options: MAP_SELECTION_PROCESS }, ["_newAll"]);
-        function createBoxSelection() {
-            const box = document.createElement("div");
-            box.classList.add("box");
-            return box;
-        }
+        PreloadPanel(panel);
+        const { listSelected: listPlants } = SelectionGroupComponent(ELEMENTS.selectGroupPlants, { actions: ["_newOne", "_newAll", "_clear"], options: MAP_SELECTION_PLANTS, submenu: [...MAP_PARAMS["plants"]], classBox: "box" }, []);
+        const { listSelected: listProcess } = SelectionGroupComponent(ELEMENTS.selectGroupProcess, { actions: ["_newOne", "_newAll", "_clear"], classBox: "box", options: MAP_SELECTION_PROCESS }, []);
+        ELEMENTS.btUpload.addEventListener("click", () => {
+            console.log(listPlants, listProcess);
+        });
     };
     initComponents();
     return {};
@@ -2618,6 +2635,10 @@ function GuideScript(idPanel) {
     if (!panel) {
         return { error: { msg: "Panel not found" } };
     }
+    const initComponents = () => {
+        PreloadPanel(panel);
+    };
+    initComponents();
     return {};
 }
 function HistoryScript(idPanel) {
@@ -2633,8 +2654,8 @@ function HistoryScript(idPanel) {
         btLoadTable: panel.querySelector('.load-table'),
     };
     const initComponents = () => {
-        const { onLoad } = tableComponent({ table: ELEMENTS.tableHistory, headers: HEADERS_TABLE }, (listSelected) => {
-        });
+        PreloadPanel(panel);
+        const { onLoad } = tableComponent({ table: ELEMENTS.tableHistory, headers: HEADERS_TABLE }, listSelected => { });
         ELEMENTS.btLoadTable.addEventListener("click", () => onLoad(getListHistory()));
         onLoad(getListHistory());
     };
@@ -2998,4 +3019,8 @@ function NotificationControl(listNotificationEl) {
     return {
         newNotification
     };
+}
+function PreloadPanel(panel) {
+    const forms = panel.querySelectorAll("form");
+    forms.forEach(_form => _form.addEventListener("submit", ev => ev.preventDefault()));
 }

@@ -92,6 +92,7 @@ function FarmScript(idPanel: string) {
     }
 
     const initComponents = () => {
+        PreloadPanel(panel)
         loadForm()
 
         panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant)

@@ -39,6 +39,55 @@
     }
 }
 
+@mixin border-margin($direction, $color: $neutro-color) {
+    position: relative;
+    @if $direction=="top" {
+        margin-top: $margin-default;
+        padding-top: $margin-default;
+    }
+    @else if $direction=="left" {
+        margin-left: $margin-default;
+        padding-left: $margin-default;
+    }
+    @else if $direction=="right" {
+        margin-right: $margin-default;
+        padding-right: $margin-default;
+    }
+    @else if $direction=="bottom" {
+        margin-bottom: $margin-default;
+        padding-bottom: $margin-default;
+    }
+    &::before {
+        position: absolute;
+        content: '';
+        background-color: $color;
+        @if $direction=="top" {
+            top: 0;
+            width: calc(100% - ($margin-default * 2));
+            height: 1px;
+            margin-inline: $margin-default;
+        }
+        @else if $direction=="left" {
+            left: 0;
+            height: calc(100% - ($margin-default * 2));
+            width: 1px;
+            margin-block: $margin-default;
+        }
+        @else if $direction=="right" {
+            right: 0;
+            height: calc(100% - ($margin-default * 2));
+            width: 1px;
+            margin-block: $margin-default;
+        }
+        @else if $direction=="bottom" {
+            bottom: 0;
+            width: calc(100% - ($margin-default * 2));
+            height: 1px;
+            margin-inline: $margin-default;
+        }
+    }
+}
+
 @mixin scroll($type: "", $value: auto) {
     @if $type=="y" {
         overflow-y: $value;

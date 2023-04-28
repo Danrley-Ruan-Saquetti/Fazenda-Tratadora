@@ -14,9 +14,9 @@ function HistoryScript(idPanel: string) {
     }
 
     const initComponents = () => {
-        const { onLoad } = tableComponent({ table: ELEMENTS.tableHistory, headers: HEADERS_TABLE }, (listSelected) => {
+        PreloadPanel(panel)
 
-        })
+        const { onLoad } = tableComponent({ table: ELEMENTS.tableHistory, headers: HEADERS_TABLE }, listSelected => { })
 
         ELEMENTS.btLoadTable.addEventListener("click", () => onLoad(getListHistory()))
 

@@ -1,4 +1,5 @@
-.flex-column, [panel], .panel, [list-type=vertical], body {
+.flex-column, form .select-group-list .box,
+.form .select-group-list .box, [panel], .panel, [list-type=vertical], body {
   flex-direction: column;
 }
 
@@ -435,12 +436,33 @@ button[action=_view]:active,
   vertical-align: -0.125em !important;
 }
 
-form .selection-form-list,
-.form .selection-form-list {
+form .select-group-list,
+.form .select-group-list {
   gap: 1.25rem;
 }
-form .selection-form-list .box,
-.form .selection-form-list .box {
+form .select-group-list .box,
+.form .select-group-list .box {
+  display: flex;
+  justify-content: center;
+}
+form .select-group-list .box.parent:has(.sub-menu),
+.form .select-group-list .box.parent:has(.sub-menu) {
+  position: relative;
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+form .select-group-list .box.parent:has(.sub-menu)::before,
+.form .select-group-list .box.parent:has(.sub-menu)::before {
+  position: absolute;
+  content: "";
+  background-color: #b6b6b6;
+  top: 0;
+  width: calc(100% - 4rem);
+  height: 1px;
+  margin-inline: 2rem;
+}
+form .select-group-list .box .box-container,
+.form .select-group-list .box .box-container {
   display: flex;
   justify-content: center;
   gap: 1.25rem;

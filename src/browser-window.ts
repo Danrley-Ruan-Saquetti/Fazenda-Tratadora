@@ -1,7 +1,6 @@
-import { BrowserWindow, WebPreferences } from 'electron'
-const path = require("path")
+const { BrowserWindow } = require('electron')
 
-export function createWindow({ height, title, width, filePath, fullScreen }: { title: string, width: number, height: number, filePath: string, fullScreen?: boolean }) {
+function createBrowserWindow({ height, title, width, filePath, fullScreen }: { title: string, width: number, height: number, filePath: string, fullScreen?: boolean }) {
     const win = new BrowserWindow({
         width,
         height,
@@ -20,3 +19,5 @@ export function createWindow({ height, title, width, filePath, fullScreen }: { t
 
     return win
 }
+
+module.exports = { createWindow: createBrowserWindow }

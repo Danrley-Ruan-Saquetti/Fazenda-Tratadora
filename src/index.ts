@@ -1,5 +1,5 @@
-import { app, ipcMain } from "electron"
-import { createWindow } from "./browser-window.js"
+const { app, ipcMain } = require("electron")
+const createWindow = require("./browser-window.js")
 
 function App() {
     const win = createWindow({
@@ -21,4 +21,4 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
 })
 
-app.whenReady().then(App) 
+app.whenReady().then(App)

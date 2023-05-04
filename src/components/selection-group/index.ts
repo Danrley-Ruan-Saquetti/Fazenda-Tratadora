@@ -133,6 +133,7 @@ function SelectionGroupComponent(
     container.classList.add('select-group-actions');
 
     MAP_OPTIONS.forEach((_option) => {
+      //@ts-expect-error
       if (!props.actions.includes(_option.type)) {
         return;
       }

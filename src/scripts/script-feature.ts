@@ -1,5 +1,5 @@
 function FeatureScript(idPanel: string) {
-  const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`);
+  const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`)
 
   if (!panel) {
     return { error: { msg: 'Panel not found' } };
@@ -124,6 +124,7 @@ function FeatureScript(idPanel: string) {
             path: '.box-container.parent',
             inputs: [
               { type: 'plant-file', path: 'input[type="file"]' },
+              { type: 'plant-name', path: 'input[type="text"]' },
               { type: 'plant-type', path: 'select' },
             ],
           },
@@ -163,6 +164,8 @@ function FeatureScript(idPanel: string) {
     );
 
     ELEMENTS.btUpload.addEventListener('click', () => {
+      dataPlants.plants.splice(0, dataPlants.plants.length);
+
       getListPlants().map((_plants) => {
         const plant: {
           code: string;
@@ -173,14 +176,19 @@ function FeatureScript(idPanel: string) {
           code: '',
           file: null,
           headers: [],
-          name: 'Fazenda',
+          name: '',
         };
         _plants.forEach((_plant) => {
           _plant.values &&
             _plant.values.forEach((_valuesInput) => {
               _valuesInput.forEach((_value) => {
-                plant[_value.type == 'plant-type' ? 'code' : 'file'] =
-                  _value.value;
+                plant[
+                  _value.type == 'plant-type'
+                    ? 'code'
+                    : _value.type == 'plant-name'
+                    ? 'name'
+                    : 'file'
+                ] = _value.value;
               });
             });
 
@@ -219,6 +227,7 @@ function FeatureScript(idPanel: string) {
     const selectionProcess = document.createElement('select');
     const subMenu = document.createElement('div');
     const input = document.createElement('input');
+    const name = document.createElement('input');
 
     MAP_SELECTION_PLANTS.forEach((_option) => {
       const option = document.createElement('option');
@@ -239,6 +248,7 @@ function FeatureScript(idPanel: string) {
     btRemove.innerHTML = 'DEL';
 
     input.setAttribute('type', 'file');
+    name.setAttribute('type', 'text');
     btRemove.setAttribute('action', '_default');
     btRemove.onclick = () => {
       box.remove();
@@ -261,6 +271,7 @@ function FeatureScript(idPanel: string) {
       ['_newAll']
     );
 
+    selectionContent.appendChild(name);
     selectionContent.appendChild(selectionProcess);
     selectionContent.appendChild(input);
     selectionContent.appendChild(btRemove);

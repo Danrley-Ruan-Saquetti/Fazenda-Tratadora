@@ -1,204 +1,189 @@
 function SelectionGroupComponent(
-  form: HTMLElement,
-  props: {
-    actions: TOptionSelectionForm[];
-    options: TOptionSelection[];
-    isParent?: boolean;
-    updateList?: boolean;
-    classBox: string;
-    classMenu: string[];
-    pathsValue: {
-      values: { type: string; path: string }[];
-      childrens?: { type: string; path: string }[];
-    }[];
-    templates: {
-      _new: (
-        optionActive: string,
-        onChange?: () => void,
-        parentForm?: HTMLElement
-      ) => void;
-    };
-    listeners?: {
-      onUpdate?: () => void;
-    };
-  },
-  pre?: TOptionSelectionForm[]
+    form: HTMLElement,
+    props: {
+        actions: TOptionSelectionForm[]
+        options: TOptionSelection[]
+        isParent?: boolean
+        updateList?: boolean
+        classBox: string
+        classMenu: string[]
+        basePath: string,
+        pathsValue: { path: string, inputs: { path: string, type: string }[], children?: boolean }[]
+        templates: {
+            _new: (
+                optionActive: string,
+                onChange?: () => void,
+                parentForm?: HTMLElement
+            ) => void
+        }
+        listeners?: {
+            onUpdate?: () => void
+        }
+    },
+    pre?: TOptionSelectionForm[]
 ) {
-  const MAP_OPTIONS: {
-    type: TOptionSelectionForm;
-    icon: string;
-    _action: string;
-    content: string;
-  }[] = [
-    { type: '_newOne', icon: 'plus-lg', _action: '_new', content: 'Novo' },
-    {
-      type: '_newAll',
-      icon: 'list-ul',
-      _action: '_new',
-      content: 'Adicionar Tudo',
-    },
-    { type: '_clear', icon: 'x-lg', _action: '_cancel', content: 'Limpar' },
-  ];
+    const MAP_OPTIONS: {
+        type: TOptionSelectionForm
+        icon: string
+        _action: string
+        content: string
+    }[] = [
+            { type: "_newOne", icon: "plus-lg", _action: "_new", content: "Novo" },
+            {
+                type: "_newAll",
+                icon: "list-ul",
+                _action: "_new",
+                content: "Adicionar Tudo",
+            },
+            { type: "_clear", icon: "x-lg", _action: "_cancel", content: "Limpar" },
+        ]
 
-  const GET_VALUE = {
-    text: (el: HTMLInputElement) => {
-      return el.value;
-    },
-    'select-one': (el: HTMLInputElement) => {
-      return el.value;
-    },
-    file: (el: HTMLInputElement) => {
-      return el.files;
-    },
-  };
-
-  const listSelected: { value: string }[] = [];
-
-  if (typeof props.isParent == 'undefined') {
-    props.isParent = true;
-  }
-  if (typeof props.updateList == 'undefined') {
-    props.updateList = true;
-  }
-
-  const updateListSelected = () => {
-    if (!props.updateList) {
-      return (
-        props.listeners &&
-        props.listeners.onUpdate &&
-        props.listeners.onUpdate()
-      );
+    const GET_INPUT_VALUE = {
+        "text": (el: HTMLInputElement) => { return el.value },
+        "select-one": (el: HTMLInputElement) => { return el.value },
+        "file": (el: HTMLInputElement) => { return el.files },
     }
 
-    ///////////
-    const listPath: {
-      values: { value: string; type: string }[];
-      childrens: { value: string; type: string }[];
-    }[] = [];
+    const listSelected: any[] = []
 
-    props.pathsValue.forEach((_path) => {
-      const listValues: { value: any; type: string }[] = [];
-      const listChildrens: { value: any; type: string }[] = [];
+    if (typeof props.isParent == "undefined") {
+        props.isParent = true
+    }
+    if (typeof props.updateList == "undefined") {
+        props.updateList = true
+    }
 
-      _path.values.forEach((_pathValue) => {
-        const inputsEl = form.querySelectorAll(
-          `${_pathValue.path}`
-        ) as NodeListOf<HTMLInputElement>;
+    const updateListSelected = () => {
+        if (!props.updateList) {
+            return (
+                props.listeners &&
+                props.listeners.onUpdate &&
+                props.listeners.onUpdate()
+            )
+        }
 
-        inputsEl.forEach((_inputEl) => {
-          if (GET_VALUE[`${_inputEl.type}`]) {
-            listValues.push({
-              value: GET_VALUE[`${_inputEl.type}`](_inputEl),
-              type: _pathValue.type,
-            });
-          }
-        });
-      });
-      // _path.childrens.forEach((_pathChildren) => {
-      //   const inputsEl = form.querySelectorAll(
-      //     `${_pathChildren.path}`
-      //   ) as NodeListOf<HTMLInputElement>;
+        listSelected.splice(0, listSelected.length)
 
-      //   inputsEl.forEach((_inputEl) => {
-      //     if (GET_VALUE[`${_inputEl.type}`]) {
-      //       listChildrens.push({
-      //         value: GET_VALUE[`${_inputEl.type}`](_inputEl),
-      //         type: _pathChildren.type,
-      //       });
-      //     }
-      //   });
-      // });
+        const baseEl = form.querySelectorAll(`${props.basePath}`) as NodeListOf<HTMLElement>
 
-      listPath.push({ values: listValues, childrens: listChildrens });
-    });
+        baseEl.forEach(_base => {
+            const listBases: any[] = []
 
-    console.log(listPath);
+            props.pathsValue.forEach((_path) => {
+                const inputsEl = _base.querySelectorAll(`${_path.path}`) as NodeListOf<HTMLInputElement>
+                const values: any[] = []
 
-    const listEl = form.querySelectorAll(
-      '.' + props.classBox + '.parent'
-    ) as NodeListOf<HTMLElement>;
+                inputsEl.forEach(_inputsEl => {
+                    _path.inputs.forEach(_input => {
+                        const inputEl = _inputsEl.querySelector(`${_input.path}`) as HTMLInputElement
 
-    listSelected.splice(0, listSelected.length);
+                        // @ts-expect-error
+                        if (GET_INPUT_VALUE[`${inputEl.type}`]) {
+                            // @ts-expect-error
+                            const value = GET_INPUT_VALUE[`${inputEl.type}`](inputEl) || ""
 
-    listEl.forEach((_el) => {
-      const select = _el.querySelector('select') as HTMLSelectElement;
+                            values.push({ value, type: _input.type })
+                        }
+                    })
+                })
 
-      const value = select?.value || '';
+                if (!_path.children) {
+                    listBases.push({ values })
+                } else {
+                    listBases.push({ subMenu: values })
+                }
+            })
 
-      listSelected.push({ value });
-    });
+            listSelected.push(listBases)
+        })
 
-    props.listeners && props.listeners.onUpdate && props.listeners.onUpdate();
-  };
+        return
 
-  const MAP_OPTIONS_FUNCTION = {
-    _newOne: (actionProcessActive: string = '') => {
-      props.templates._new(actionProcessActive, updateListSelected, form);
-      updateListSelected();
-    },
-    _newAll: () => {
-      props.options.forEach((_option) => {
-        MAP_OPTIONS_FUNCTION['_newOne'](_option.action);
-      });
+        const listEl = form.querySelectorAll(
+            "." + props.classBox + ".parent"
+        ) as NodeListOf<HTMLElement>
 
-      updateListSelected();
-    },
-    _clear: () => {
-      const listEl = form.querySelectorAll(
-        '.' + props.classBox
-      ) as NodeListOf<HTMLElement>;
+        listSelected.splice(0, listSelected.length)
 
-      listEl.forEach((_el) => _el.remove());
+        listEl.forEach((_el) => {
+            const select = _el.querySelector("select") as HTMLSelectElement
 
-      updateListSelected();
-    },
-  };
+            const value = select?.value || ""
 
-  const createContainerActions = () => {
-    const container = document.createElement('div');
+            listSelected.push({ value })
+        })
 
-    container.setAttribute('button-container', '');
-    container.classList.add('select-group-actions');
+        // props.listeners && props.listeners.onUpdate && props.listeners.onUpdate()
+    }
 
-    MAP_OPTIONS.forEach((_option) => {
-      if (!props.actions.includes(_option.type)) {
-        return;
-      }
+    const MAP_OPTIONS_FUNCTION = {
+        _newOne: (actionProcessActive: string = "") => {
+            props.templates._new(actionProcessActive, updateListSelected, form)
+            updateListSelected()
+        },
+        _newAll: () => {
+            props.options.forEach((_option) => {
+                MAP_OPTIONS_FUNCTION["_newOne"](_option.action)
+            })
 
-      const bt = document.createElement('button');
-      const span = document.createElement('span');
+            updateListSelected()
+        },
+        _clear: () => {
+            const listEl = form.querySelectorAll(
+                "." + props.classBox
+            ) as NodeListOf<HTMLElement>
 
-      bt.onclick = () => MAP_OPTIONS_FUNCTION[_option.type]();
+            listEl.forEach((_el) => _el.remove())
 
-      bt.setAttribute('action', _option._action);
-      span.textContent = _option.content;
+            updateListSelected()
+        },
+    }
 
-      bt.appendChild(span);
-      container.appendChild(bt);
-    });
+    const createContainerActions = () => {
+        const container = document.createElement("div")
 
-    form.appendChild(container);
-  };
+        container.setAttribute("button-container", "")
+        container.classList.add("select-group-actions")
 
-  const createListOptions = () => {
-    const list = document.createElement('div');
+        MAP_OPTIONS.forEach((_option) => {
+            if (!props.actions.includes(_option.type)) {
+                return
+            }
 
-    list.setAttribute('list-type', 'vertical');
-    list.classList.add(...props.classMenu);
+            const bt = document.createElement("button")
+            const span = document.createElement("span")
 
-    form.appendChild(list);
-  };
+            bt.onclick = () => MAP_OPTIONS_FUNCTION[_option.type]()
 
-  const setup = () => {
-    createContainerActions();
-    createListOptions();
+            bt.setAttribute("action", _option._action)
+            span.textContent = _option.content
 
-    pre && pre.forEach((_preFunc) => MAP_OPTIONS_FUNCTION[_preFunc]());
-  };
+            bt.appendChild(span)
+            container.appendChild(bt)
+        })
 
-  setup();
+        form.appendChild(container)
+    }
 
-  return {
-    listSelected,
-  };
+    const createListOptions = () => {
+        const list = document.createElement("div")
+
+        list.setAttribute("list-type", "vertical")
+        list.classList.add(...props.classMenu)
+
+        form.appendChild(list)
+    }
+
+    const setup = () => {
+        createContainerActions()
+        createListOptions()
+
+        pre && pre.forEach((_preFunc) => MAP_OPTIONS_FUNCTION[_preFunc]())
+    }
+
+    setup()
+
+    return {
+        listSelected,
+    }
 }

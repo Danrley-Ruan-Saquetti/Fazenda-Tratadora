@@ -55,7 +55,7 @@ function NotificationControl(listNotificationEl: HTMLElement) {
         let cont = 0
         let stopCont = false
 
-        let timerCont: number
+        let timerCont: NodeJS.Timer
 
         notification.onmouseover = () => {
             stopCont = true

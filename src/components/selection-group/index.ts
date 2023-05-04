@@ -1,365 +1,180 @@
-function FeatureScript(idPanel: string) {
-  const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`);
+function SelectionGroupComponent(
+  form: HTMLElement,
+  props: {
+    actions: TOptionSelectionForm[];
+    options: TOptionSelection[];
+    isParent?: boolean;
+    updateList?: boolean;
+    classBox: string;
+    classMenu: string[];
+    basePath: string;
+    pathsValue: {
+      path: string;
+      inputs: { path: string; type: string }[];
+      children?: boolean;
+    }[];
+    templates: {
+      _new: (optionActive: string, parentForm?: HTMLElement) => void;
+    };
+  },
+  pre?: TOptionSelectionForm[]
+) {
+  const MAP_OPTIONS: {
+    type: TOptionSelectionForm;
+    icon: string;
+    _action: string;
+    content: string;
+  }[] = [
+    { type: '_newOne', icon: 'plus-lg', _action: '_new', content: 'Novo' },
+    {
+      type: '_newAll',
+      icon: 'list-ul',
+      _action: '_new',
+      content: 'Adicionar Tudo',
+    },
+    { type: '_clear', icon: 'x-lg', _action: '_cancel', content: 'Limpar' },
+  ];
 
-  if (!panel) {
-    return { error: { msg: 'Panel not found' } };
+  const GET_INPUT_VALUE = {
+    text: (el: HTMLInputElement) => {
+      return el.value || '';
+    },
+    'select-one': (el: HTMLInputElement) => {
+      return el.value || '';
+    },
+    file: (el: HTMLInputElement) => {
+      return el.files[0] || null;
+    },
+  };
+
+  if (typeof props.isParent == 'undefined') {
+    props.isParent = true;
+  }
+  if (typeof props.updateList == 'undefined') {
+    props.updateList = true;
   }
 
-  const ELEMENTS = {
-    selectGroupPlants: panel.querySelector(
-      '.select-group.plants'
-    ) as HTMLElement,
-    selectGroupProcess: panel.querySelector(
-      '.select-group.process'
-    ) as HTMLElement,
-    btUpload: panel.querySelector('#upload-files-plant') as HTMLElement,
-  };
+  const getDataList = () => {
+    const listSelected: {
+      values?: TFormResult[][];
+      subMenu?: TFormResult[][];
+    }[][] = [];
 
-  const dataPlants: {
-    plants: { code: string; file: Blob; headers: any[]; name: string }[];
-  } = {
-    plants: [],
-  };
+    const baseEl = form.querySelectorAll(
+      `${props.basePath}`
+    ) as NodeListOf<HTMLElement>;
 
-  const MAP_PARAMS = {
-    process: {
-      'create-farm': [],
-      'insert-values': [],
-      'deadline+D': [],
-      'contained-cep': [],
-      procv: [],
-      template: [],
-      rate: [],
-    },
-    plants: [
-      {
-        content: 'CEP de Origem Inicial',
-        type: 'cep.origin.initial',
-        action: 'cep.origin.initial',
-      },
-      {
-        content: 'CEP de Origem Final',
-        type: 'cep.origin.final',
-        action: 'cep.origin.final',
-      },
-      { content: 'CEP Inicial', type: 'cep.initial', action: 'cep.initial' },
-      { content: 'CEP Final', type: 'cep.final', action: 'cep.final' },
-      {
-        content: 'Critério de Seleção',
-        type: 'selection-criteria',
-        action: 'selection-criteria',
-      },
-      { content: 'Prazo', type: 'deadline', action: 'deadline' },
-      { content: 'Prazo+D', type: 'deadline+d', action: 'deadline+d' },
-      { content: 'Excedente', type: 'excess', action: 'excess' },
-      { content: 'Taxa', type: 'rate', action: 'rate' },
-    ],
-  };
+    baseEl.forEach((_base) => {
+      const listBases: {
+        values?: TFormResult[][];
+        subMenu?: TFormResult[][];
+      }[] = [];
 
-  const MAP_SELECTION_PLANTS: TOptionSelection[] = [
-    { action: 'deadline', content: 'Prazo', type: 'deadline' },
-    { action: 'price', content: 'Preço', type: 'price' },
-    { action: 'farm', content: 'Fazenda', type: 'farm' },
-  ];
+      props.pathsValue.forEach((_path) => {
+        const inputsEl = _base.querySelectorAll(
+          `${_path.path}`
+        ) as NodeListOf<HTMLInputElement>;
+        const values: TFormResult[][] = [];
 
-  const MAP_SELECTION_PROCESS: TOptionSelection[] = [
-    {
-      content: 'Criar Fazenda',
-      type: 'process',
-      action: 'create-farm',
-      submenu: [...MAP_PARAMS['process']['create-farm']],
-    },
-    {
-      content: 'Inserir valores',
-      type: 'process',
-      action: 'insert-values',
-      submenu: [...MAP_PARAMS['process']['insert-values']],
-    },
-    {
-      content: 'D+1',
-      type: 'process',
-      action: 'deadline+D',
-      submenu: [...MAP_PARAMS['process']['deadline+D']],
-    },
-    {
-      content: 'Verificar CEP contido',
-      type: 'process',
-      action: 'contained-cep',
-      submenu: [...MAP_PARAMS['process']['contained-cep']],
-    },
-    {
-      content: 'Procv',
-      type: 'process',
-      action: 'procv',
-      submenu: [...MAP_PARAMS['process']['procv']],
-    },
-    {
-      content: 'Gerar templates de Preço e Prazo',
-      type: 'process',
-      action: 'template',
-      submenu: [...MAP_PARAMS['process']['template']],
-    },
-    {
-      content: 'Gerar templates de taxas',
-      type: 'process',
-      action: 'rate',
-      submenu: [...MAP_PARAMS['process']['rate']],
-    },
-  ];
+        inputsEl.forEach((_inputsEl) => {
+          const inputGroups: TFormResult[] = [];
+          _path.inputs.forEach((_input) => {
+            const inputEl = _inputsEl.querySelector(
+              `${_input.path}`
+            ) as HTMLInputElement;
 
-  const initComponents = () => {
-    const forms = panel.querySelectorAll('form') as NodeListOf<HTMLElement>;
+            if (GET_INPUT_VALUE[`${inputEl.type}`]) {
+              const value = GET_INPUT_VALUE[`${inputEl.type}`](inputEl);
 
-    forms.forEach((_form) =>
-      _form.addEventListener('submit', (ev) => ev.preventDefault())
-    );
+              console.log(value, inputEl.type);
 
-    const { getData: getListPlants } = SelectionGroupComponent(
-      ELEMENTS.selectGroupPlants,
-      {
-        templates: { _new: templateSelectionPlantsParent },
-        basePath: '.box.parent',
-        pathsValue: [
-          {
-            path: '.box-container.parent',
-            inputs: [
-              { type: 'plant-file', path: 'input[type="file"]' },
-              { type: 'plant-type', path: 'select' },
-            ],
-          },
-          {
-            path: '.box-container.children',
-            children: true,
-            inputs: [
-              { type: 'header-name', path: 'input[type="text"]' },
-              { type: 'header-type', path: 'select' },
-            ],
-          },
-        ],
-        actions: ['_newOne', '_newAll', '_clear'],
-        options: MAP_SELECTION_PLANTS,
-        classBox: 'box',
-        classMenu: ['select-group-list', 'parent'],
-      },
-      ['_newOne']
-    );
-    const { getData: getListProcess } = SelectionGroupComponent(
-      ELEMENTS.selectGroupProcess,
-      {
-        templates: { _new: templateSelectionProcess },
-        basePath: '.box.parent',
-        pathsValue: [
-          {
-            path: '.box-container.parent',
-            inputs: [{ path: 'select', type: 'process' }],
-          },
-        ],
-        actions: ['_newOne', '_newAll', '_clear'],
-        classBox: 'box',
-        classMenu: ['select-group-list'],
-        options: MAP_SELECTION_PROCESS,
-      },
-      []
-    );
+              inputGroups.push({ value, type: _input.type });
+            }
+          });
 
-    ELEMENTS.btUpload.addEventListener('click', () => {
-      getListPlants().map((_plants) => {
-        const plant: {
-          code: string;
-          file: Blob;
-          headers: any[];
-          name: string;
-        } = {
-          code: '',
-          file: null,
-          headers: [],
-          name: 'Fazenda',
-        };
-        _plants.forEach((_plant) => {
-          _plant.values &&
-            _plant.values.forEach((_valuesInput) => {
-              _valuesInput.forEach((_value) => {
-                plant[_value.type == 'plant-type' ? 'code' : 'file'] =
-                  _value.value;
-              });
-            });
-
-          _plant.subMenu &&
-            _plant.subMenu.forEach((_valuesInput) => {
-              const header = {
-                header: '',
-                type: '',
-              };
-              _valuesInput.forEach((_value) => {
-                header[_value.type == 'header-type' ? 'type' : 'header'] =
-                  _value.value;
-              });
-
-              plant.headers.push(header);
-            });
+          values.push(inputGroups);
         });
 
-        dataPlants.plants.push(plant);
+        if (!_path.children) {
+          listBases.push({ values });
+        } else {
+          listBases.push({ subMenu: values });
+        }
       });
 
-      console.log(dataPlants);
+      listSelected.push(listBases);
     });
+
+    return listSelected;
   };
 
-  const templateSelectionPlantsParent = (actionProcessActive: string = '') => {
-    const box = document.createElement('div');
-    const list = ELEMENTS.selectGroupPlants.querySelector(
-      '.select-group-list.parent'
-    ) as HTMLElement;
+  const MAP_OPTIONS_FUNCTION = {
+    _newOne: (actionProcessActive: string = '') => {
+      props.templates._new(actionProcessActive, form);
+    },
+    _newAll: () => {
+      props.options.forEach((_option) => {
+        MAP_OPTIONS_FUNCTION['_newOne'](_option.action);
+      });
+    },
+    _clear: () => {
+      const listEl = form.querySelectorAll(
+        '.' + props.classBox
+      ) as NodeListOf<HTMLElement>;
 
-    box.classList.add('box', 'parent');
+      listEl.forEach((_el) => _el.remove());
+    },
+  };
 
-    const selectionContent = document.createElement('div');
-    const btRemove = document.createElement('button');
-    const selectionProcess = document.createElement('select');
-    const subMenu = document.createElement('div');
-    const input = document.createElement('input');
+  const createContainerActions = () => {
+    const container = document.createElement('div');
 
-    MAP_SELECTION_PLANTS.forEach((_option) => {
-      const option = document.createElement('option');
+    container.setAttribute('button-container', '');
+    container.classList.add('select-group-actions');
 
-      option.innerHTML = _option.content;
-      option.value = _option.action;
-
-      if (actionProcessActive == _option.action) {
-        option.selected = true;
+    MAP_OPTIONS.forEach((_option) => {
+      if (!props.actions.includes(_option.type)) {
+        return;
       }
 
-      selectionProcess.appendChild(option);
+      const bt = document.createElement('button');
+      const span = document.createElement('span');
+
+      bt.onclick = () => MAP_OPTIONS_FUNCTION[_option.type]();
+
+      bt.setAttribute('action', _option._action);
+      span.textContent = _option.content;
+
+      bt.appendChild(span);
+      container.appendChild(bt);
     });
 
-    selectionContent.classList.add('box-container', 'parent');
-    subMenu.classList.add('sub-menu');
-
-    btRemove.innerHTML = 'DEL';
-
-    input.setAttribute('type', 'file');
-    btRemove.setAttribute('action', '_default');
-    btRemove.onclick = () => {
-      box.remove();
-    };
-    SelectionGroupComponent(
-      subMenu,
-      {
-        templates: {
-          _new: templateSelectionPlantsChildren,
-        },
-        basePath: '',
-        pathsValue: [],
-        actions: ['_newOne', '_newAll', '_clear'],
-        options: [...MAP_PARAMS['plants']],
-        isParent: false,
-        updateList: false,
-        classBox: 'box',
-        classMenu: ['select-group-list', 'children'],
-      },
-      ['_newAll']
-    );
-
-    selectionContent.appendChild(selectionProcess);
-    selectionContent.appendChild(input);
-    selectionContent.appendChild(btRemove);
-    box.appendChild(selectionContent);
-    list.appendChild(box);
-    box.appendChild(subMenu);
+    form.appendChild(container);
   };
 
-  const templateSelectionPlantsChildren = (
-    actionProcessActive: string = '',
-    parentForm?: HTMLElement
-  ) => {
-    if (!parentForm) {
-      return;
-    }
+  const createListOptions = () => {
+    const list = document.createElement('div');
 
-    const box = document.createElement('div');
-    const list = parentForm.querySelector(
-      '.select-group-list.children'
-    ) as HTMLElement;
+    list.setAttribute('list-type', 'vertical');
+    list.classList.add(...props.classMenu);
 
-    box.classList.add('box', 'children');
-
-    const selectionContent = document.createElement('div');
-    const btRemove = document.createElement('button');
-    const selectionProcess = document.createElement('select');
-    const input = document.createElement('input');
-
-    MAP_PARAMS['plants'].forEach((_option) => {
-      const option = document.createElement('option');
-
-      option.innerHTML = _option.content;
-      option.value = _option.action;
-
-      if (actionProcessActive == _option.action) {
-        option.selected = true;
-      }
-
-      selectionProcess.appendChild(option);
-    });
-
-    selectionContent.classList.add('box-container', 'children');
-
-    btRemove.innerHTML = 'DEL';
-
-    input.setAttribute('type', 'text');
-    btRemove.setAttribute('action', '_default');
-    btRemove.onclick = () => {
-      box.remove();
-    };
-
-    selectionContent.appendChild(selectionProcess);
-    selectionContent.appendChild(input);
-    selectionContent.appendChild(btRemove);
-    box.appendChild(selectionContent);
-    list.appendChild(box);
+    form.appendChild(list);
   };
 
-  const templateSelectionProcess = (actionProcessActive: string = '') => {
-    const box = document.createElement('div');
-    const list = ELEMENTS.selectGroupProcess.querySelector(
-      '.select-group-list'
-    ) as HTMLElement;
+  const setup = () => {
+    createContainerActions();
+    createListOptions();
 
-    box.classList.add('box', 'parent');
-
-    const selectionContent = document.createElement('div');
-    const btRemove = document.createElement('button');
-    const selectionProcess = document.createElement('select');
-
-    MAP_SELECTION_PROCESS.forEach((_option) => {
-      const option = document.createElement('option');
-
-      option.innerHTML = _option.content;
-      option.value = _option.action;
-
-      if (actionProcessActive == _option.action) {
-        option.selected = true;
-      }
-
-      selectionProcess.appendChild(option);
-    });
-
-    selectionContent.classList.add('box-container', 'parent');
-
-    btRemove.innerHTML = 'DEL';
-
-    btRemove.setAttribute('action', '_default');
-    btRemove.onclick = () => {
-      box.remove();
-    };
-
-    selectionContent.appendChild(selectionProcess);
-    selectionContent.appendChild(btRemove);
-    box.appendChild(selectionContent);
-    list.appendChild(box);
+    pre && pre.forEach((_preFunc) => MAP_OPTIONS_FUNCTION[_preFunc]());
   };
 
-  initComponents();
+  const getData = () => {
+    return getDataList();
+  };
 
-  return {};
+  setup();
+
+  return {
+    getData,
+  };
 }

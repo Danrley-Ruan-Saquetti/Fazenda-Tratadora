@@ -587,48 +587,51 @@ function tableComponent({ table: tableEl, headers }, onSelection, colResizablePr
 }
 function SelectionGroupComponent(form, props, pre) {
     const MAP_OPTIONS = [
-        { type: "_newOne", icon: "plus-lg", _action: "_new", content: "Novo" },
+        { type: '_newOne', icon: 'plus-lg', _action: '_new', content: 'Novo' },
         {
-            type: "_newAll",
-            icon: "list-ul",
-            _action: "_new",
-            content: "Adicionar Tudo",
+            type: '_newAll',
+            icon: 'list-ul',
+            _action: '_new',
+            content: 'Adicionar Tudo',
         },
-        { type: "_clear", icon: "x-lg", _action: "_cancel", content: "Limpar" },
+        { type: '_clear', icon: 'x-lg', _action: '_cancel', content: 'Limpar' },
     ];
     const GET_INPUT_VALUE = {
-        "text": (el) => { return el.value; },
-        "select-one": (el) => { return el.value; },
-        "file": (el) => { return el.files; },
+        text: (el) => {
+            return el.value || '';
+        },
+        'select-one': (el) => {
+            return el.value || '';
+        },
+        file: (el) => {
+            return el.files[0] || null;
+        },
     };
-    const listSelected = [];
-    if (typeof props.isParent == "undefined") {
+    if (typeof props.isParent == 'undefined') {
         props.isParent = true;
     }
-    if (typeof props.updateList == "undefined") {
+    if (typeof props.updateList == 'undefined') {
         props.updateList = true;
     }
-    const updateListSelected = () => {
-        if (!props.updateList) {
-            return (props.listeners &&
-                props.listeners.onUpdate &&
-                props.listeners.onUpdate());
-        }
-        listSelected.splice(0, listSelected.length);
+    const getDataList = () => {
+        const listSelected = [];
         const baseEl = form.querySelectorAll(`${props.basePath}`);
-        baseEl.forEach(_base => {
+        baseEl.forEach((_base) => {
             const listBases = [];
             props.pathsValue.forEach((_path) => {
                 const inputsEl = _base.querySelectorAll(`${_path.path}`);
                 const values = [];
-                inputsEl.forEach(_inputsEl => {
-                    _path.inputs.forEach(_input => {
+                inputsEl.forEach((_inputsEl) => {
+                    const inputGroups = [];
+                    _path.inputs.forEach((_input) => {
                         const inputEl = _inputsEl.querySelector(`${_input.path}`);
                         if (GET_INPUT_VALUE[`${inputEl.type}`]) {
-                            const value = GET_INPUT_VALUE[`${inputEl.type}`](inputEl) || "";
-                            values.push({ value, type: _input.type });
+                            const value = GET_INPUT_VALUE[`${inputEl.type}`](inputEl);
+                            console.log(value, inputEl.type);
+                            inputGroups.push({ value, type: _input.type });
                         }
                     });
+                    values.push(inputGroups);
                 });
                 if (!_path.children) {
                     listBases.push({ values });
@@ -639,44 +642,35 @@ function SelectionGroupComponent(form, props, pre) {
             });
             listSelected.push(listBases);
         });
-        return;
-        const listEl = form.querySelectorAll("." + props.classBox + ".parent");
-        listSelected.splice(0, listSelected.length);
-        listEl.forEach((_el) => {
-            const select = _el.querySelector("select");
-            const value = select?.value || "";
-            listSelected.push({ value });
-        });
+        return listSelected;
     };
     const MAP_OPTIONS_FUNCTION = {
-        _newOne: (actionProcessActive = "") => {
-            props.templates._new(actionProcessActive, updateListSelected, form);
-            updateListSelected();
+        _newOne: (actionProcessActive = '') => {
+            props.templates._new(actionProcessActive, form);
         },
         _newAll: () => {
             props.options.forEach((_option) => {
-                MAP_OPTIONS_FUNCTION["_newOne"](_option.action);
+                MAP_OPTIONS_FUNCTION['_newOne'](_option.action);
             });
-            updateListSelected();
         },
         _clear: () => {
-            const listEl = form.querySelectorAll("." + props.classBox);
+            const listEl = form.querySelectorAll('.' + props.classBox);
             listEl.forEach((_el) => _el.remove());
-            updateListSelected();
         },
     };
     const createContainerActions = () => {
-        const container = document.createElement("div");
-        container.setAttribute("button-container", "");
-        container.classList.add("select-group-actions");
+        const container = document.createElement('div');
+        container.setAttribute('button-container', '');
+        container.classList.add('select-group-actions');
         MAP_OPTIONS.forEach((_option) => {
+            //@ts-expect-error
             if (!props.actions.includes(_option.type)) {
                 return;
             }
-            const bt = document.createElement("button");
-            const span = document.createElement("span");
+            const bt = document.createElement('button');
+            const span = document.createElement('span');
             bt.onclick = () => MAP_OPTIONS_FUNCTION[_option.type]();
-            bt.setAttribute("action", _option._action);
+            bt.setAttribute('action', _option._action);
             span.textContent = _option.content;
             bt.appendChild(span);
             container.appendChild(bt);
@@ -684,8 +678,8 @@ function SelectionGroupComponent(form, props, pre) {
         form.appendChild(container);
     };
     const createListOptions = () => {
-        const list = document.createElement("div");
-        list.setAttribute("list-type", "vertical");
+        const list = document.createElement('div');
+        list.setAttribute('list-type', 'vertical');
         list.classList.add(...props.classMenu);
         form.appendChild(list);
     };
@@ -694,9 +688,12 @@ function SelectionGroupComponent(form, props, pre) {
         createListOptions();
         pre && pre.forEach((_preFunc) => MAP_OPTIONS_FUNCTION[_preFunc]());
     };
+    const getData = () => {
+        return getDataList();
+    };
     setup();
     return {
-        listSelected,
+        getData,
     };
 }
 function FarmRepository() {
@@ -2531,145 +2528,192 @@ function FarmScript(idPanel) {
 function FeatureScript(idPanel) {
     const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`);
     if (!panel) {
-        return { error: { msg: "Panel not found" } };
+        return { error: { msg: 'Panel not found' } };
     }
     const ELEMENTS = {
-        selectGroupPlants: panel.querySelector(".select-group.plants"),
-        selectGroupProcess: panel.querySelector(".select-group.process"),
-        btUpload: panel.querySelector("#upload-files-plant"),
+        selectGroupPlants: panel.querySelector('.select-group.plants'),
+        selectGroupProcess: panel.querySelector('.select-group.process'),
+        btUpload: panel.querySelector('#upload-files-plant'),
+    };
+    const dataPlants = {
+        plants: [],
     };
     const MAP_PARAMS = {
         process: {
-            "create-farm": [],
-            "insert-values": [],
-            "deadline+D": [],
-            "contained-cep": [],
+            'create-farm': [],
+            'insert-values': [],
+            'deadline+D': [],
+            'contained-cep': [],
             procv: [],
             template: [],
             rate: [],
         },
         plants: [
             {
-                content: "CEP de Origem Inicial",
-                type: "cep.origin.initial",
-                action: "cep.origin.initial",
+                content: 'CEP de Origem Inicial',
+                type: 'cep.origin.initial',
+                action: 'cep.origin.initial',
             },
             {
-                content: "CEP de Origem Final",
-                type: "cep.origin.final",
-                action: "cep.origin.final",
+                content: 'CEP de Origem Final',
+                type: 'cep.origin.final',
+                action: 'cep.origin.final',
             },
-            { content: "CEP Inicial", type: "cep.initial", action: "cep.initial" },
-            { content: "CEP Final", type: "cep.final", action: "cep.final" },
+            { content: 'CEP Inicial', type: 'cep.initial', action: 'cep.initial' },
+            { content: 'CEP Final', type: 'cep.final', action: 'cep.final' },
             {
-                content: "Critério de Seleção",
-                type: "selection-criteria",
-                action: "selection-criteria",
+                content: 'Critério de Seleção',
+                type: 'selection-criteria',
+                action: 'selection-criteria',
             },
-            { content: "Prazo", type: "deadline", action: "deadline" },
-            { content: "Prazo+D", type: "deadline+d", action: "deadline+d" },
-            { content: "Excedente", type: "excess", action: "excess" },
-            { content: "Taxa", type: "rate", action: "rate" },
+            { content: 'Prazo', type: 'deadline', action: 'deadline' },
+            { content: 'Prazo+D', type: 'deadline+d', action: 'deadline+d' },
+            { content: 'Excedente', type: 'excess', action: 'excess' },
+            { content: 'Taxa', type: 'rate', action: 'rate' },
         ],
     };
     const MAP_SELECTION_PLANTS = [
-        { action: "deadline", content: "Prazo", type: "deadline" },
-        { action: "price", content: "Preço", type: "price" },
-        { action: "farm", content: "Fazenda", type: "farm" },
+        { action: 'deadline', content: 'Prazo', type: 'deadline' },
+        { action: 'price', content: 'Preço', type: 'price' },
+        { action: 'farm', content: 'Fazenda', type: 'farm' },
     ];
     const MAP_SELECTION_PROCESS = [
         {
-            content: "Criar Fazenda",
-            type: "process",
-            action: "create-farm",
-            submenu: [...MAP_PARAMS["process"]["create-farm"]],
+            content: 'Criar Fazenda',
+            type: 'process',
+            action: 'create-farm',
+            submenu: [...MAP_PARAMS['process']['create-farm']],
         },
         {
-            content: "Inserir valores",
-            type: "process",
-            action: "insert-values",
-            submenu: [...MAP_PARAMS["process"]["insert-values"]],
+            content: 'Inserir valores',
+            type: 'process',
+            action: 'insert-values',
+            submenu: [...MAP_PARAMS['process']['insert-values']],
         },
         {
-            content: "D+1",
-            type: "process",
-            action: "deadline+D",
-            submenu: [...MAP_PARAMS["process"]["deadline+D"]],
+            content: 'D+1',
+            type: 'process',
+            action: 'deadline+D',
+            submenu: [...MAP_PARAMS['process']['deadline+D']],
         },
         {
-            content: "Verificar CEP contido",
-            type: "process",
-            action: "contained-cep",
-            submenu: [...MAP_PARAMS["process"]["contained-cep"]],
+            content: 'Verificar CEP contido',
+            type: 'process',
+            action: 'contained-cep',
+            submenu: [...MAP_PARAMS['process']['contained-cep']],
         },
         {
-            content: "Procv",
-            type: "process",
-            action: "procv",
-            submenu: [...MAP_PARAMS["process"]["procv"]],
+            content: 'Procv',
+            type: 'process',
+            action: 'procv',
+            submenu: [...MAP_PARAMS['process']['procv']],
         },
         {
-            content: "Gerar templates de Preço e Prazo",
-            type: "process",
-            action: "template",
-            submenu: [...MAP_PARAMS["process"]["template"]],
+            content: 'Gerar templates de Preço e Prazo',
+            type: 'process',
+            action: 'template',
+            submenu: [...MAP_PARAMS['process']['template']],
         },
         {
-            content: "Gerar templates de taxas",
-            type: "process",
-            action: "rate",
-            submenu: [...MAP_PARAMS["process"]["rate"]],
+            content: 'Gerar templates de taxas',
+            type: 'process',
+            action: 'rate',
+            submenu: [...MAP_PARAMS['process']['rate']],
         },
     ];
     const initComponents = () => {
-        const forms = panel.querySelectorAll("form");
-        forms.forEach((_form) => _form.addEventListener("submit", (ev) => ev.preventDefault()));
-        const { listSelected: listPlants } = SelectionGroupComponent(ELEMENTS.selectGroupPlants, {
-            templates: { _new: templateSelectionPlantsParent, },
-            basePath: ".box.parent",
+        const forms = panel.querySelectorAll('form');
+        forms.forEach((_form) => _form.addEventListener('submit', (ev) => ev.preventDefault()));
+        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS.selectGroupPlants, {
+            templates: { _new: templateSelectionPlantsParent },
+            basePath: '.box.parent',
             pathsValue: [
                 {
                     path: '.box-container.parent',
-                    inputs: [{ type: "plant-file", path: 'input[type="file"]' }, { type: "plant-type", path: 'select' }]
+                    inputs: [
+                        { type: 'plant-file', path: 'input[type="file"]' },
+                        { type: 'plant-name', path: 'input[type="text"]' },
+                        { type: 'plant-type', path: 'select' },
+                    ],
                 },
                 {
                     path: '.box-container.children',
                     children: true,
-                    inputs: [{ type: "header-name", path: 'input[type="text"]' }, { type: "header-type", path: 'select' }]
+                    inputs: [
+                        { type: 'header-name', path: 'input[type="text"]' },
+                        { type: 'header-type', path: 'select' },
+                    ],
                 },
             ],
-            actions: ["_newOne", "_newAll", "_clear"],
+            actions: ['_newOne', '_newAll', '_clear'],
             options: MAP_SELECTION_PLANTS,
-            classBox: "box",
-            classMenu: ["select-group-list", "parent"],
-        }, ["_newOne"]);
-        const { listSelected: listProcess } = SelectionGroupComponent(ELEMENTS.selectGroupProcess, {
-            templates: { _new: templateSelectionProcess, },
-            basePath: ".box.parent",
-            pathsValue: [{
-                    path: ".box-container.parent",
-                    inputs: [{ path: "select", type: "process" }]
-                }],
-            actions: ["_newOne", "_newAll", "_clear"],
-            classBox: "box",
-            classMenu: ["select-group-list"],
+            classBox: 'box',
+            classMenu: ['select-group-list', 'parent'],
+        }, ['_newOne']);
+        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS.selectGroupProcess, {
+            templates: { _new: templateSelectionProcess },
+            basePath: '.box.parent',
+            pathsValue: [
+                {
+                    path: '.box-container.parent',
+                    inputs: [{ path: 'select', type: 'process' }],
+                },
+            ],
+            actions: ['_newOne', '_newAll', '_clear'],
+            classBox: 'box',
+            classMenu: ['select-group-list'],
             options: MAP_SELECTION_PROCESS,
         }, []);
-        ELEMENTS.btUpload.addEventListener("click", () => {
-            console.log(listPlants);
+        ELEMENTS.btUpload.addEventListener('click', () => {
+            dataPlants.plants.splice(0, dataPlants.plants.length);
+            getListPlants().map((_plants) => {
+                const plant = {
+                    code: '',
+                    file: null,
+                    headers: [],
+                    name: '',
+                };
+                _plants.forEach((_plant) => {
+                    _plant.values &&
+                        _plant.values.forEach((_valuesInput) => {
+                            _valuesInput.forEach((_value) => {
+                                plant[_value.type == 'plant-type'
+                                    ? 'code'
+                                    : _value.type == 'plant-name'
+                                        ? 'name'
+                                        : 'file'] = _value.value;
+                            });
+                        });
+                    _plant.subMenu &&
+                        _plant.subMenu.forEach((_valuesInput) => {
+                            const header = {
+                                header: '',
+                                type: '',
+                            };
+                            _valuesInput.forEach((_value) => {
+                                header[_value.type == 'header-type' ? 'type' : 'header'] =
+                                    _value.value;
+                            });
+                            plant.headers.push(header);
+                        });
+                });
+                dataPlants.plants.push(plant);
+            });
+            console.log(dataPlants);
         });
     };
-    const templateSelectionPlantsParent = (actionProcessActive = "", onChange) => {
-        const box = document.createElement("div");
-        const list = ELEMENTS.selectGroupPlants.querySelector(".select-group-list.parent");
-        box.classList.add("box", "parent");
-        const selectionContent = document.createElement("div");
-        const btRemove = document.createElement("button");
-        const selectionProcess = document.createElement("select");
-        const subMenu = document.createElement("div");
-        const input = document.createElement("input");
+    const templateSelectionPlantsParent = (actionProcessActive = '') => {
+        const box = document.createElement('div');
+        const list = ELEMENTS.selectGroupPlants.querySelector('.select-group-list.parent');
+        box.classList.add('box', 'parent');
+        const selectionContent = document.createElement('div');
+        const btRemove = document.createElement('button');
+        const selectionProcess = document.createElement('select');
+        const subMenu = document.createElement('div');
+        const input = document.createElement('input');
+        const name = document.createElement('input');
         MAP_SELECTION_PLANTS.forEach((_option) => {
-            const option = document.createElement("option");
+            const option = document.createElement('option');
             option.innerHTML = _option.content;
             option.value = _option.action;
             if (actionProcessActive == _option.action) {
@@ -2677,30 +2721,29 @@ function FeatureScript(idPanel) {
             }
             selectionProcess.appendChild(option);
         });
-        selectionContent.classList.add("box-container", "parent");
-        subMenu.classList.add("sub-menu");
-        btRemove.innerHTML = "DEL";
-        input.setAttribute("type", "file");
-        btRemove.setAttribute("action", "_default");
-        selectionProcess.onchange = () => onChange && onChange();
+        selectionContent.classList.add('box-container', 'parent');
+        subMenu.classList.add('sub-menu');
+        btRemove.innerHTML = 'DEL';
+        input.setAttribute('type', 'file');
+        name.setAttribute('type', 'text');
+        btRemove.setAttribute('action', '_default');
         btRemove.onclick = () => {
             box.remove();
-            onChange && onChange();
         };
         SelectionGroupComponent(subMenu, {
             templates: {
                 _new: templateSelectionPlantsChildren,
             },
-            basePath: "",
+            basePath: '',
             pathsValue: [],
-            actions: ["_newOne", "_newAll", "_clear"],
-            options: [...MAP_PARAMS["plants"]],
+            actions: ['_newOne', '_newAll', '_clear'],
+            options: [...MAP_PARAMS['plants']],
             isParent: false,
             updateList: false,
-            classBox: "box",
-            classMenu: ["select-group-list", "children"],
-            listeners: { onUpdate: onChange },
-        }, ["_newAll"]);
+            classBox: 'box',
+            classMenu: ['select-group-list', 'children'],
+        }, ['_newAll']);
+        selectionContent.appendChild(name);
         selectionContent.appendChild(selectionProcess);
         selectionContent.appendChild(input);
         selectionContent.appendChild(btRemove);
@@ -2708,19 +2751,19 @@ function FeatureScript(idPanel) {
         list.appendChild(box);
         box.appendChild(subMenu);
     };
-    const templateSelectionPlantsChildren = (actionProcessActive = "", onChange, parentForm) => {
+    const templateSelectionPlantsChildren = (actionProcessActive = '', parentForm) => {
         if (!parentForm) {
             return;
         }
-        const box = document.createElement("div");
-        const list = parentForm.querySelector(".select-group-list.children");
-        box.classList.add("box", "children");
-        const selectionContent = document.createElement("div");
-        const btRemove = document.createElement("button");
-        const selectionProcess = document.createElement("select");
-        const input = document.createElement("input");
-        MAP_PARAMS["plants"].forEach((_option) => {
-            const option = document.createElement("option");
+        const box = document.createElement('div');
+        const list = parentForm.querySelector('.select-group-list.children');
+        box.classList.add('box', 'children');
+        const selectionContent = document.createElement('div');
+        const btRemove = document.createElement('button');
+        const selectionProcess = document.createElement('select');
+        const input = document.createElement('input');
+        MAP_PARAMS['plants'].forEach((_option) => {
+            const option = document.createElement('option');
             option.innerHTML = _option.content;
             option.value = _option.action;
             if (actionProcessActive == _option.action) {
@@ -2728,14 +2771,12 @@ function FeatureScript(idPanel) {
             }
             selectionProcess.appendChild(option);
         });
-        selectionContent.classList.add("box-container", "children");
-        btRemove.innerHTML = "DEL";
-        input.setAttribute("type", "text");
-        btRemove.setAttribute("action", "_default");
-        selectionProcess.onchange = () => onChange && onChange();
+        selectionContent.classList.add('box-container', 'children');
+        btRemove.innerHTML = 'DEL';
+        input.setAttribute('type', 'text');
+        btRemove.setAttribute('action', '_default');
         btRemove.onclick = () => {
             box.remove();
-            onChange && onChange();
         };
         selectionContent.appendChild(selectionProcess);
         selectionContent.appendChild(input);
@@ -2743,15 +2784,15 @@ function FeatureScript(idPanel) {
         box.appendChild(selectionContent);
         list.appendChild(box);
     };
-    const templateSelectionProcess = (actionProcessActive = "", onChange) => {
-        const box = document.createElement("div");
-        const list = ELEMENTS.selectGroupProcess.querySelector(".select-group-list");
-        box.classList.add("box", "parent");
-        const selectionContent = document.createElement("div");
-        const btRemove = document.createElement("button");
-        const selectionProcess = document.createElement("select");
+    const templateSelectionProcess = (actionProcessActive = '') => {
+        const box = document.createElement('div');
+        const list = ELEMENTS.selectGroupProcess.querySelector('.select-group-list');
+        box.classList.add('box', 'parent');
+        const selectionContent = document.createElement('div');
+        const btRemove = document.createElement('button');
+        const selectionProcess = document.createElement('select');
         MAP_SELECTION_PROCESS.forEach((_option) => {
-            const option = document.createElement("option");
+            const option = document.createElement('option');
             option.innerHTML = _option.content;
             option.value = _option.action;
             if (actionProcessActive == _option.action) {
@@ -2759,13 +2800,11 @@ function FeatureScript(idPanel) {
             }
             selectionProcess.appendChild(option);
         });
-        selectionContent.classList.add("box-container", "parent");
-        btRemove.innerHTML = "DEL";
-        btRemove.setAttribute("action", "_default");
-        selectionProcess.onchange = () => onChange && onChange();
+        selectionContent.classList.add('box-container', 'parent');
+        btRemove.innerHTML = 'DEL';
+        btRemove.setAttribute('action', '_default');
         btRemove.onclick = () => {
             box.remove();
-            onChange && onChange();
         };
         selectionContent.appendChild(selectionProcess);
         selectionContent.appendChild(btRemove);

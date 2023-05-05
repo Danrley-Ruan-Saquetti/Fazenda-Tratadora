@@ -179,7 +179,7 @@ const GLOBAL_ROUTERS: TItemRoute[] = [
     { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript", __dev: true, active: false }
 ]
 
-const GLOBAL_ROUTERS_OPEN: TRouterName[] = ["farm"]
+const GLOBAL_ROUTERS_OPEN: TRouterName[] = ["feature", "farm"]
 
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`
 

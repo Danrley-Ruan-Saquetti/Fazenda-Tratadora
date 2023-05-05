@@ -22,9 +22,9 @@ function FeatureScript(idPanel: string) {
             "insert-values": [],
             "deadline+D": [],
             "contained-cep": [],
-            "procv": [],
-            "template": [],
-            "rate": [],
+            procv: [],
+            template: [],
+            rate: [],
         },
         plants: [
             { content: "CEP de Origem Inicial", type: "cep.origin.initial", action: "cep.origin.initial", },
@@ -46,25 +46,114 @@ function FeatureScript(idPanel: string) {
     ]
 
     const MAP_SELECTION_PROCESS: TOptionSelection[] = [
-        { content: "Criar Fazenda", type: "process", action: "create-farm" },
-        { content: "Inserir valores", type: "process", action: "insert-values" },
-        { content: "D+1", type: "process", action: "deadline+D" },
-        { content: "Verificar CEP contido", type: "process", action: "contained-cep" },
-        { content: "Procv", type: "process", action: "procv" },
-        { content: "Gerar templates de Preço e Prazo", type: "process", action: "template" },
-        { content: "Gerar templates de taxas", type: "process", action: "rate" },
+        {
+            content: "Criar Fazenda",
+            type: "process",
+            action: "create-farm",
+            submenu: [...MAP_PARAMS["process"]["create-farm"]],
+        },
+        {
+            content: "Inserir valores",
+            type: "process",
+            action: "insert-values",
+            submenu: [...MAP_PARAMS["process"]["insert-values"]],
+        },
+        {
+            content: "D+1",
+            type: "process",
+            action: "deadline+D",
+            submenu: [...MAP_PARAMS["process"]["deadline+D"]],
+        },
+        {
+            content: "Verificar CEP contido",
+            type: "process",
+            action: "contained-cep",
+            submenu: [...MAP_PARAMS["process"]["contained-cep"]],
+        },
+        {
+            content: "Procv",
+            type: "process",
+            action: "procv",
+            submenu: [...MAP_PARAMS["process"]["procv"]],
+        },
+        {
+            content: "Gerar templates de Preço e Prazo",
+            type: "process",
+            action: "template",
+            submenu: [...MAP_PARAMS["process"]["template"]],
+        },
+        {
+            content: "Gerar templates de taxas",
+            type: "process",
+            action: "rate",
+            submenu: [...MAP_PARAMS["process"]["rate"]],
+        },
     ]
+
+    const PARAMS: ISettingsTemplate = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
+        "settings": {
+            "table": {
+                "cep.initial": "CEP INICIAL",
+                "cep.final": "CEP FINAL",
+                "deadline": "Prazo",
+                "excess": "Exce",
+                "rate": {
+                    "deadline": "",
+                    "price": ""
+                },
+                "selection.criteria": {
+                    "price": "UF,REGIAO",
+                    "deadline": "UF,REGIAO"
+                }
+            },
+            "process": {
+                "deadline+D": 1,
+                "criteria.selection": {
+                    "join": " "
+                },
+                "converterStringTable": {
+                    "separatorLine": /\r?\n/,
+                    "separatorColumn": ";",
+                    "configSeparatorColumn": {
+                        "separator": ",",
+                        "searchValue": ",",
+                        "replaceValue": "?",
+                        "betweenText": "\""
+                    }
+                }
+            },
+            "template": {
+                "rateValue": {
+                    "cep.origin.initial": "1000000",
+                    "cep.origin.final": "99999999"
+                },
+                "headerName": {
+                    "cep.origin.initial": "Inicio  Origem",
+                    "cep.origin.final": "Fim  Origem",
+                    "cep.initial": "Inicio  Destino",
+                    "cep.final": "Fim  Destino",
+                    "deadline+D": "Dias",
+                    "excess": "Excedente"
+                },
+                "cepOriginValue": {
+                    "cep.origin.final": "89140000",
+                    "cep.origin.initial": "89140000"
+                }
+            }
+        },
+        "process": [
+            "create-farm",
+            "insert-values",
+            "deadline+D",
+            "contained-cep",
+            "procv",
+            "template",
+            "rate"
+        ]
+    }
 
     const initComponents = () => {
         PreloadPanel(panel)
-
-        panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant)
-        panel.querySelector("#download-files")?.addEventListener("click", downloadFiles)
-        panel.querySelector("#save-farm")?.addEventListener("click", saveFarm)
-        panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel))
-        panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory)
-        panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm)
-        panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings)
 
         const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, {
             templates: { _new: templateSelectionPlantsParent },
@@ -97,10 +186,9 @@ function FeatureScript(idPanel: string) {
             classBox: "box",
             classMenu: ["select-group-list"],
             options: MAP_SELECTION_PROCESS,
-        }, []
-        )
+        }, ["_newAll"])
 
-        ELEMENTS_FORM.btUpload.addEventListener("click", () => {
+        panel.querySelector("#upload-files-plant")?.addEventListener("click", () => {
             dataPlants.plants.splice(0, dataPlants.plants.length)
             dataPlants.process.splice(0, dataPlants.process.length)
 
@@ -138,9 +226,16 @@ function FeatureScript(idPanel: string) {
                     })
                 })
             })
-        })
-    }
 
+            updateFilesPlant()
+        })
+        panel.querySelector("#download-files")?.addEventListener("click", downloadFiles)
+        panel.querySelector("#save-farm")?.addEventListener("click", saveFarm)
+        panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel))
+        panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory)
+        panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm)
+        panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings)
+    }
 
     // const uploadSettings = () => {
     //     const fileSettingsInput = ELEMENTS_FORM.fileSettings?.files ? ELEMENTS_FORM.fileSettings?.files[0] : null
@@ -163,8 +258,6 @@ function FeatureScript(idPanel: string) {
     // }
 
     const updateFilesPlant = () => {
-        console.log(dataPlants)
-
         mainControl.setupFarm(dataPlants, () => {
             mainControl.processFarm()
             prepareForDownload()
@@ -243,7 +336,7 @@ function FeatureScript(idPanel: string) {
             updateList: false,
             classBox: "box",
             classMenu: ["select-group-list", "children"],
-        }, ["_newOne"]
+        }, ["_newAll"]
         )
 
         selectionContent.appendChild(name)
@@ -282,7 +375,6 @@ function FeatureScript(idPanel: string) {
         selectionContent.classList.add("box-container", "children")
 
         btRemove.innerHTML = "DEL"
-
         input.setAttribute("type", "text")
         btRemove.setAttribute("action", "_default")
         btRemove.onclick = () => box.remove()

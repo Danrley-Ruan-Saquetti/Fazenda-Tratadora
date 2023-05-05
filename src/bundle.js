@@ -266,7 +266,7 @@ const GLOBAL_ROUTERS = [
     { icon: "gear", title: "Configurações", name: "setting", router: "routers/panel-setting.html", script: "SettingScript", active: false },
     { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript", __dev: true, active: false }
 ];
-const GLOBAL_ROUTERS_OPEN = ["feature"];
+const GLOBAL_ROUTERS_OPEN = ["farm"];
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`;
 const GLOBAL_ROUTERS_ROUTER = {
     "routers/panel.feature.html": `<div class="select-container">
@@ -587,30 +587,19 @@ function tableComponent({ table: tableEl, headers }, onSelection, colResizablePr
 }
 function SelectionGroupComponent(form, props, pre) {
     const MAP_OPTIONS = [
-        { type: '_newOne', icon: 'plus-lg', _action: '_new', content: 'Novo' },
-        {
-            type: '_newAll',
-            icon: 'list-ul',
-            _action: '_new',
-            content: 'Adicionar Tudo',
-        },
-        { type: '_clear', icon: 'x-lg', _action: '_cancel', content: 'Limpar' },
+        { type: "_newOne", icon: "plus-lg", _action: "_new", content: "Novo" },
+        { type: "_newAll", icon: "list-ul", _action: "_new", content: "Adicionar Tudo", },
+        { type: "_clear", icon: "x-lg", _action: "_cancel", content: "Limpar" },
     ];
     const GET_INPUT_VALUE = {
-        text: (el) => {
-            return el.value || '';
-        },
-        'select-one': (el) => {
-            return el.value || '';
-        },
-        file: (el) => {
-            return el.files[0] || null;
-        },
+        text: (el) => { return el.value || ""; },
+        "select-one": (el) => { return el.value || ""; },
+        file: (el) => { return el.files ? el.files[0] || null : null; },
     };
-    if (typeof props.isParent == 'undefined') {
+    if (typeof props.isParent == "undefined") {
         props.isParent = true;
     }
-    if (typeof props.updateList == 'undefined') {
+    if (typeof props.updateList == "undefined") {
         props.updateList = true;
     }
     const getDataList = () => {
@@ -627,7 +616,6 @@ function SelectionGroupComponent(form, props, pre) {
                         const inputEl = _inputsEl.querySelector(`${_input.path}`);
                         if (GET_INPUT_VALUE[`${inputEl.type}`]) {
                             const value = GET_INPUT_VALUE[`${inputEl.type}`](inputEl);
-                            console.log(value, inputEl.type);
                             inputGroups.push({ value, type: _input.type });
                         }
                     });
@@ -645,32 +633,31 @@ function SelectionGroupComponent(form, props, pre) {
         return listSelected;
     };
     const MAP_OPTIONS_FUNCTION = {
-        _newOne: (actionProcessActive = '') => {
+        _newOne: (actionProcessActive = "") => {
             props.templates._new(actionProcessActive, form);
         },
         _newAll: () => {
             props.options.forEach((_option) => {
-                MAP_OPTIONS_FUNCTION['_newOne'](_option.action);
+                MAP_OPTIONS_FUNCTION["_newOne"](_option.action);
             });
         },
         _clear: () => {
-            const listEl = form.querySelectorAll('.' + props.classBox);
+            const listEl = form.querySelectorAll("." + props.classBox);
             listEl.forEach((_el) => _el.remove());
         },
     };
     const createContainerActions = () => {
-        const container = document.createElement('div');
-        container.setAttribute('button-container', '');
-        container.classList.add('select-group-actions');
+        const container = document.createElement("div");
+        container.setAttribute("button-container", "");
+        container.classList.add("select-group-actions");
         MAP_OPTIONS.forEach((_option) => {
-            //@ts-expect-error
             if (!props.actions.includes(_option.type)) {
                 return;
             }
-            const bt = document.createElement('button');
-            const span = document.createElement('span');
+            const bt = document.createElement("button");
+            const span = document.createElement("span");
             bt.onclick = () => MAP_OPTIONS_FUNCTION[_option.type]();
-            bt.setAttribute('action', _option._action);
+            bt.setAttribute("action", _option._action);
             span.textContent = _option.content;
             bt.appendChild(span);
             container.appendChild(bt);
@@ -678,8 +665,8 @@ function SelectionGroupComponent(form, props, pre) {
         form.appendChild(container);
     };
     const createListOptions = () => {
-        const list = document.createElement('div');
-        list.setAttribute('list-type', 'vertical');
+        const list = document.createElement("div");
+        list.setAttribute("list-type", "vertical");
         list.classList.add(...props.classMenu);
         form.appendChild(list);
     };
@@ -688,9 +675,7 @@ function SelectionGroupComponent(form, props, pre) {
         createListOptions();
         pre && pre.forEach((_preFunc) => MAP_OPTIONS_FUNCTION[_preFunc]());
     };
-    const getData = () => {
-        return getDataList();
-    };
+    const getData = () => { return getDataList(); };
     setup();
     return {
         getData,
@@ -2184,9 +2169,6 @@ function MainControl() {
         farmControl.setupProcess({ process });
         uploadFilesPlants({ plants }, callback);
     };
-    const processRepoTable = (props) => {
-        return farmControl.processFarm(props) || null;
-    };
     const processFarm = () => {
         const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]);
         const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0]);
@@ -2203,6 +2185,9 @@ function MainControl() {
         console.log("$Finish");
         farm && farmControl.setup(farm);
         return farm || null;
+    };
+    const processRepoTable = (props) => {
+        return farmControl.processFarm(props) || null;
     };
     const saveFarm = (name) => {
         const { id } = historyTableControl.addHistory({ tables: farmControl.getData().tables, name, settings: farmControl.getData().settings, process: farmControl.getData().process }, farmControl.getData().id);
@@ -2314,25 +2299,82 @@ function FarmScript(idPanel) {
     const mainControl = MainControl();
     const renderControl = RenderControl();
     const ELEMENTS_FORM = {
-        plantDeadline: panel.querySelector("#input-file-plant-deadline"),
-        plantPrice: panel.querySelector("#input-file-plant-price"),
-        plantFarm: panel.querySelector("#input-file-farm"),
-        fileSettings: panel.querySelector("#input-file-settings"),
-        paramCepInitial: panel.querySelector("#param-cep-initial"),
-        paramCepFinal: panel.querySelector("#param-cep-final"),
-        paramCepOriginInitial: panel.querySelector("#param-cep-origin-initial"),
-        paramCepOriginFinal: panel.querySelector("#param-cep-origin-final"),
-        paramDeadline: panel.querySelector("#param-deadline"),
-        paramRateDeadline: panel.querySelector("#param-rate-deadline"),
-        paramRatePrice: panel.querySelector("#param-rate-price"),
-        paramSelectionCriteriaDeadline: panel.querySelector("#param-selection-criteria-deadline"),
-        paramSelectionCriteriaPrice: panel.querySelector("#param-selection-criteria-price"),
-        paramExcess: panel.querySelector("#param-excess"),
-        nameFarm: panel.querySelector("#param-name-farm"),
+        selectGroupPlants: panel.querySelector(".select-group.plants"),
+        selectGroupProcess: panel.querySelector(".select-group.process"),
+        btUpload: panel.querySelector("#upload-files-plant"),
     };
-    plantFarmTest;
-    plantDeadlineTest;
-    plantPriceTest;
+    const dataPlants = { plants: [], process: [], settings: _.cloneDeep(GLOBAL_SETTINGS) };
+    const MAP_PARAMS = {
+        process: {
+            "create-farm": [],
+            "insert-values": [],
+            "deadline+D": [],
+            "contained-cep": [],
+            procv: [],
+            template: [],
+            rate: [],
+        },
+        plants: [
+            { content: "CEP de Origem Inicial", type: "cep.origin.initial", action: "cep.origin.initial", },
+            { content: "CEP de Origem Final", type: "cep.origin.final", action: "cep.origin.final", },
+            { content: "CEP Inicial", type: "cep.initial", action: "cep.initial" },
+            { content: "CEP Final", type: "cep.final", action: "cep.final" },
+            { content: "Critério de Seleção", type: "selection-criteria", action: "selection-criteria", },
+            { content: "Prazo", type: "deadline", action: "deadline" },
+            { content: "Prazo+D", type: "deadline+d", action: "deadline+d" },
+            { content: "Excedente", type: "excess", action: "excess" },
+            { content: "Taxa", type: "rate", action: "rate" },
+        ],
+    };
+    const MAP_SELECTION_PLANTS = [
+        { action: "deadline", content: "Prazo", type: "deadline" },
+        { action: "price", content: "Preço", type: "price" },
+        { action: "farm", content: "Fazenda", type: "farm" },
+    ];
+    const MAP_SELECTION_PROCESS = [
+        {
+            content: "Criar Fazenda",
+            type: "process",
+            action: "create-farm",
+            submenu: [...MAP_PARAMS["process"]["create-farm"]],
+        },
+        {
+            content: "Inserir valores",
+            type: "process",
+            action: "insert-values",
+            submenu: [...MAP_PARAMS["process"]["insert-values"]],
+        },
+        {
+            content: "D+1",
+            type: "process",
+            action: "deadline+D",
+            submenu: [...MAP_PARAMS["process"]["deadline+D"]],
+        },
+        {
+            content: "Verificar CEP contido",
+            type: "process",
+            action: "contained-cep",
+            submenu: [...MAP_PARAMS["process"]["contained-cep"]],
+        },
+        {
+            content: "Procv",
+            type: "process",
+            action: "procv",
+            submenu: [...MAP_PARAMS["process"]["procv"]],
+        },
+        {
+            content: "Gerar templates de Preço e Prazo",
+            type: "process",
+            action: "template",
+            submenu: [...MAP_PARAMS["process"]["template"]],
+        },
+        {
+            content: "Gerar templates de taxas",
+            type: "process",
+            action: "rate",
+            submenu: [...MAP_PARAMS["process"]["rate"]],
+        },
+    ];
     const PARAMS = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
         "settings": {
             "table": {
@@ -2389,114 +2431,86 @@ function FarmScript(idPanel) {
             "insert-values",
             "deadline+D",
             "contained-cep",
+            "procv",
             "template",
             "rate"
         ]
     };
     const initComponents = () => {
         PreloadPanel(panel);
-        loadForm();
-        panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
+        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, {
+            templates: { _new: templateSelectionPlantsParent },
+            basePath: ".box.parent",
+            pathsValue: [
+                {
+                    path: ".box-container.parent", inputs: [
+                        { type: "plant-file", path: 'input[type="file"]' },
+                        { type: "plant-name", path: 'input[type="text"]' },
+                        { type: "plant-type", path: "select" },
+                    ],
+                },
+                {
+                    path: ".box-container.children", children: true, inputs: [
+                        { type: "header-name", path: 'input[type="text"]' },
+                        { type: "header-type", path: "select" },
+                    ],
+                },
+            ],
+            actions: ["_newOne", "_newAll", "_clear"],
+            options: MAP_SELECTION_PLANTS,
+            classBox: "box",
+            classMenu: ["select-group-list", "parent"],
+        }, ["_newOne"]);
+        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupProcess, {
+            templates: { _new: templateSelectionProcess },
+            basePath: ".box.parent",
+            pathsValue: [{ path: ".box-container.parent", inputs: [{ path: "select", type: "process" }] }],
+            actions: ["_newOne", "_newAll", "_clear"],
+            classBox: "box",
+            classMenu: ["select-group-list"],
+            options: MAP_SELECTION_PROCESS,
+        }, ["_newAll"]);
+        panel.querySelector("#upload-files-plant")?.addEventListener("click", () => {
+            dataPlants.plants.splice(0, dataPlants.plants.length);
+            dataPlants.process.splice(0, dataPlants.process.length);
+            getListPlants().map((_plants) => {
+                const plant = { code: "", file: new Blob([], { type: "text/plain" }), headers: [], name: "", };
+                _plants.forEach((_plant) => {
+                    _plant.values && _plant.values.forEach((_valuesInput) => {
+                        _valuesInput.forEach((_value) => {
+                            plant[_value.type == "plant-type" ? "code" : _value.type == "plant-name" ? "name" : "file"] = _value.value;
+                        });
+                    });
+                    _plant.subMenu && _plant.subMenu.forEach((_valuesInput) => {
+                        let header = { header: "", type: "" };
+                        _valuesInput.forEach((_value) => {
+                            header[_value.type == "header-type" ? "type" : "header"] = _value.value;
+                        });
+                        plant.headers.push(header);
+                    });
+                });
+                dataPlants.plants.push(plant);
+            });
+            getListProcess().forEach(_process => {
+                _process.forEach(_pro => {
+                    _pro.values && _pro.values.forEach(_values => {
+                        _values.forEach(_value => {
+                            dataPlants.process.push(_value.value);
+                        });
+                    });
+                });
+            });
+            updateFilesPlant();
+        });
         panel.querySelector("#download-files")?.addEventListener("click", downloadFiles);
         panel.querySelector("#save-farm")?.addEventListener("click", saveFarm);
         panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel));
         panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory);
         panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm);
         panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings);
-        ELEMENTS_FORM.fileSettings.addEventListener("change", uploadSettings);
-    };
-    const loadForm = () => {
-        ELEMENTS_FORM.paramCepInitial.value = PARAMS.settings.table["cep.initial"];
-        ELEMENTS_FORM.paramCepFinal.value = PARAMS.settings.table["cep.final"];
-        ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.settings.template.cepOriginValue["cep.origin.initial"];
-        ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.settings.template.cepOriginValue["cep.origin.final"];
-        ELEMENTS_FORM.paramDeadline.value = PARAMS.settings.table.deadline;
-        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.settings.table.rate.deadline;
-        ELEMENTS_FORM.paramRatePrice.value = PARAMS.settings.table.rate.price;
-        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.settings.table["selection.criteria"].deadline;
-        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.settings.table["selection.criteria"].price;
-        ELEMENTS_FORM.paramExcess.value = PARAMS.settings.table.excess;
-    };
-    const uploadSettings = () => {
-        const fileSettingsInput = ELEMENTS_FORM.fileSettings?.files ? ELEMENTS_FORM.fileSettings?.files[0] : null;
-        if (!fileSettingsInput) {
-            return;
-        }
-        const fileSettings = mainControl.createFile({ content: [fileSettingsInput], type: fileSettingsInput.type });
-        mainControl.getContentFile(fileSettings, (result) => {
-            const contentSettings = converterStringToJSON(result, ["separatorLine"]);
-            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE)) {
-                return console.log("Template incorrect");
-            }
-            Object.assign(PARAMS, contentSettings);
-            loadForm();
-        });
-    };
-    const getDataOfForm = () => {
-        const plantFarm = ELEMENTS_FORM.plantFarm?.files ? ELEMENTS_FORM.plantFarm?.files[0] : null;
-        const plantDeadline = ELEMENTS_FORM.plantDeadline?.files ? ELEMENTS_FORM.plantDeadline?.files[0] : null;
-        const plantPrice = ELEMENTS_FORM.plantPrice?.files ? ELEMENTS_FORM.plantPrice?.files[0] : null;
-        const paramCepInitial = `${ELEMENTS_FORM.paramCepInitial?.value}`;
-        const paramCepFinal = `${ELEMENTS_FORM.paramCepFinal?.value}`;
-        const paramCepOriginInitial = `${ELEMENTS_FORM.paramCepOriginInitial?.value}`;
-        const paramCepOriginFinal = `${ELEMENTS_FORM.paramCepOriginFinal?.value}`;
-        const paramDeadline = `${ELEMENTS_FORM.paramDeadline?.value}`;
-        const paramRateDeadline = `${ELEMENTS_FORM.paramRateDeadline?.value}`;
-        const paramRatePrice = `${ELEMENTS_FORM.paramRatePrice?.value}`;
-        const paramSelectionCriteriaDeadline = `${ELEMENTS_FORM.paramSelectionCriteriaDeadline?.value}`;
-        const paramSelectionCriteriaPrice = `${ELEMENTS_FORM.paramSelectionCriteriaPrice?.value}`;
-        const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`;
-        const dataPlants = {
-            plants: [],
-            ...PARAMS
-        };
-        if ((GLOBAL_DEPENDENCE == "production" && plantFarm) || GLOBAL_DEPENDENCE == "development")
-            dataPlants.plants.push({
-                code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
-                headers: [
-                    { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
-                    { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
-                    { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
-                    { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
-                    { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
-                    { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
-                ],
-                name: "Fazenda"
-            });
-        if ((GLOBAL_DEPENDENCE == "production" && plantDeadline) || GLOBAL_DEPENDENCE == "development")
-            dataPlants.plants.push({
-                code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
-                headers: [
-                    { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
-                    { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
-                    { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
-                    { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
-                    { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
-                ],
-                name: "Planta Prazo"
-            });
-        if ((GLOBAL_DEPENDENCE == "production" && plantPrice) || GLOBAL_DEPENDENCE == "development")
-            dataPlants.plants.push({
-                code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
-                headers: [
-                    { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
-                    { header: paramSelectionCriteriaPrice || PARAMS.settings.table["selection.criteria"].price, type: "selection-criteria" },
-                    { header: paramRatePrice || PARAMS.settings.table.rate.price, type: "rate" },
-                ],
-                name: "Planta Preço"
-            });
-        return dataPlants;
     };
     const updateFilesPlant = () => {
-        const bodyForm = getDataOfForm();
-        if (!bodyForm) {
-            return;
-        }
-        mainControl.setupFarm({
-            plants: bodyForm.plants,
-            settings: bodyForm.settings,
-            process: bodyForm.process,
-        }, () => {
+        mainControl.setupFarm(dataPlants, () => {
             mainControl.processFarm();
             prepareForDownload();
         });
@@ -2510,7 +2524,7 @@ function FarmScript(idPanel) {
         if (mainControl.getData().tables.length == 0) {
             return;
         }
-        const nameInput = `${ELEMENTS_FORM.nameFarm.value}`;
+        const nameInput = `Fazenda`;
         mainControl.saveFarm(`Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`);
     };
     const clearHistory = () => {
@@ -2522,198 +2536,18 @@ function FarmScript(idPanel) {
     const clearSettings = () => {
         mainControl.clearSettings();
     };
-    initComponents();
-    return {};
-}
-function FeatureScript(idPanel) {
-    const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`);
-    if (!panel) {
-        return { error: { msg: 'Panel not found' } };
-    }
-    const ELEMENTS = {
-        selectGroupPlants: panel.querySelector('.select-group.plants'),
-        selectGroupProcess: panel.querySelector('.select-group.process'),
-        btUpload: panel.querySelector('#upload-files-plant'),
-    };
-    const dataPlants = {
-        plants: [],
-    };
-    const MAP_PARAMS = {
-        process: {
-            'create-farm': [],
-            'insert-values': [],
-            'deadline+D': [],
-            'contained-cep': [],
-            procv: [],
-            template: [],
-            rate: [],
-        },
-        plants: [
-            {
-                content: 'CEP de Origem Inicial',
-                type: 'cep.origin.initial',
-                action: 'cep.origin.initial',
-            },
-            {
-                content: 'CEP de Origem Final',
-                type: 'cep.origin.final',
-                action: 'cep.origin.final',
-            },
-            { content: 'CEP Inicial', type: 'cep.initial', action: 'cep.initial' },
-            { content: 'CEP Final', type: 'cep.final', action: 'cep.final' },
-            {
-                content: 'Critério de Seleção',
-                type: 'selection-criteria',
-                action: 'selection-criteria',
-            },
-            { content: 'Prazo', type: 'deadline', action: 'deadline' },
-            { content: 'Prazo+D', type: 'deadline+d', action: 'deadline+d' },
-            { content: 'Excedente', type: 'excess', action: 'excess' },
-            { content: 'Taxa', type: 'rate', action: 'rate' },
-        ],
-    };
-    const MAP_SELECTION_PLANTS = [
-        { action: 'deadline', content: 'Prazo', type: 'deadline' },
-        { action: 'price', content: 'Preço', type: 'price' },
-        { action: 'farm', content: 'Fazenda', type: 'farm' },
-    ];
-    const MAP_SELECTION_PROCESS = [
-        {
-            content: 'Criar Fazenda',
-            type: 'process',
-            action: 'create-farm',
-            submenu: [...MAP_PARAMS['process']['create-farm']],
-        },
-        {
-            content: 'Inserir valores',
-            type: 'process',
-            action: 'insert-values',
-            submenu: [...MAP_PARAMS['process']['insert-values']],
-        },
-        {
-            content: 'D+1',
-            type: 'process',
-            action: 'deadline+D',
-            submenu: [...MAP_PARAMS['process']['deadline+D']],
-        },
-        {
-            content: 'Verificar CEP contido',
-            type: 'process',
-            action: 'contained-cep',
-            submenu: [...MAP_PARAMS['process']['contained-cep']],
-        },
-        {
-            content: 'Procv',
-            type: 'process',
-            action: 'procv',
-            submenu: [...MAP_PARAMS['process']['procv']],
-        },
-        {
-            content: 'Gerar templates de Preço e Prazo',
-            type: 'process',
-            action: 'template',
-            submenu: [...MAP_PARAMS['process']['template']],
-        },
-        {
-            content: 'Gerar templates de taxas',
-            type: 'process',
-            action: 'rate',
-            submenu: [...MAP_PARAMS['process']['rate']],
-        },
-    ];
-    const initComponents = () => {
-        const forms = panel.querySelectorAll('form');
-        forms.forEach((_form) => _form.addEventListener('submit', (ev) => ev.preventDefault()));
-        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS.selectGroupPlants, {
-            templates: { _new: templateSelectionPlantsParent },
-            basePath: '.box.parent',
-            pathsValue: [
-                {
-                    path: '.box-container.parent',
-                    inputs: [
-                        { type: 'plant-file', path: 'input[type="file"]' },
-                        { type: 'plant-name', path: 'input[type="text"]' },
-                        { type: 'plant-type', path: 'select' },
-                    ],
-                },
-                {
-                    path: '.box-container.children',
-                    children: true,
-                    inputs: [
-                        { type: 'header-name', path: 'input[type="text"]' },
-                        { type: 'header-type', path: 'select' },
-                    ],
-                },
-            ],
-            actions: ['_newOne', '_newAll', '_clear'],
-            options: MAP_SELECTION_PLANTS,
-            classBox: 'box',
-            classMenu: ['select-group-list', 'parent'],
-        }, ['_newOne']);
-        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS.selectGroupProcess, {
-            templates: { _new: templateSelectionProcess },
-            basePath: '.box.parent',
-            pathsValue: [
-                {
-                    path: '.box-container.parent',
-                    inputs: [{ path: 'select', type: 'process' }],
-                },
-            ],
-            actions: ['_newOne', '_newAll', '_clear'],
-            classBox: 'box',
-            classMenu: ['select-group-list'],
-            options: MAP_SELECTION_PROCESS,
-        }, []);
-        ELEMENTS.btUpload.addEventListener('click', () => {
-            dataPlants.plants.splice(0, dataPlants.plants.length);
-            getListPlants().map((_plants) => {
-                const plant = {
-                    code: '',
-                    file: null,
-                    headers: [],
-                    name: '',
-                };
-                _plants.forEach((_plant) => {
-                    _plant.values &&
-                        _plant.values.forEach((_valuesInput) => {
-                            _valuesInput.forEach((_value) => {
-                                plant[_value.type == 'plant-type'
-                                    ? 'code'
-                                    : _value.type == 'plant-name'
-                                        ? 'name'
-                                        : 'file'] = _value.value;
-                            });
-                        });
-                    _plant.subMenu &&
-                        _plant.subMenu.forEach((_valuesInput) => {
-                            const header = {
-                                header: '',
-                                type: '',
-                            };
-                            _valuesInput.forEach((_value) => {
-                                header[_value.type == 'header-type' ? 'type' : 'header'] =
-                                    _value.value;
-                            });
-                            plant.headers.push(header);
-                        });
-                });
-                dataPlants.plants.push(plant);
-            });
-            console.log(dataPlants);
-        });
-    };
-    const templateSelectionPlantsParent = (actionProcessActive = '') => {
-        const box = document.createElement('div');
-        const list = ELEMENTS.selectGroupPlants.querySelector('.select-group-list.parent');
-        box.classList.add('box', 'parent');
-        const selectionContent = document.createElement('div');
-        const btRemove = document.createElement('button');
-        const selectionProcess = document.createElement('select');
-        const subMenu = document.createElement('div');
-        const input = document.createElement('input');
-        const name = document.createElement('input');
+    const templateSelectionPlantsParent = (actionProcessActive = "") => {
+        const box = document.createElement("div");
+        const list = ELEMENTS_FORM.selectGroupPlants.querySelector(".select-group-list.parent");
+        box.classList.add("box", "parent");
+        const selectionContent = document.createElement("div");
+        const btRemove = document.createElement("button");
+        const selectionProcess = document.createElement("select");
+        const subMenu = document.createElement("div");
+        const input = document.createElement("input");
+        const name = document.createElement("input");
         MAP_SELECTION_PLANTS.forEach((_option) => {
-            const option = document.createElement('option');
+            const option = document.createElement("option");
             option.innerHTML = _option.content;
             option.value = _option.action;
             if (actionProcessActive == _option.action) {
@@ -2721,28 +2555,24 @@ function FeatureScript(idPanel) {
             }
             selectionProcess.appendChild(option);
         });
-        selectionContent.classList.add('box-container', 'parent');
-        subMenu.classList.add('sub-menu');
-        btRemove.innerHTML = 'DEL';
-        input.setAttribute('type', 'file');
-        name.setAttribute('type', 'text');
-        btRemove.setAttribute('action', '_default');
-        btRemove.onclick = () => {
-            box.remove();
-        };
+        selectionContent.classList.add("box-container", "parent");
+        subMenu.classList.add("sub-menu");
+        btRemove.innerHTML = "DEL";
+        input.setAttribute("type", "file");
+        name.setAttribute("type", "text");
+        btRemove.setAttribute("action", "_default");
+        btRemove.onclick = () => box.remove();
         SelectionGroupComponent(subMenu, {
-            templates: {
-                _new: templateSelectionPlantsChildren,
-            },
-            basePath: '',
+            templates: { _new: templateSelectionPlantsChildren, },
+            basePath: "",
             pathsValue: [],
-            actions: ['_newOne', '_newAll', '_clear'],
-            options: [...MAP_PARAMS['plants']],
+            actions: ["_newOne", "_newAll", "_clear"],
+            options: [...MAP_PARAMS["plants"]],
             isParent: false,
             updateList: false,
-            classBox: 'box',
-            classMenu: ['select-group-list', 'children'],
-        }, ['_newAll']);
+            classBox: "box",
+            classMenu: ["select-group-list", "children"],
+        }, ["_newAll"]);
         selectionContent.appendChild(name);
         selectionContent.appendChild(selectionProcess);
         selectionContent.appendChild(input);
@@ -2751,19 +2581,19 @@ function FeatureScript(idPanel) {
         list.appendChild(box);
         box.appendChild(subMenu);
     };
-    const templateSelectionPlantsChildren = (actionProcessActive = '', parentForm) => {
+    const templateSelectionPlantsChildren = (actionProcessActive = "", parentForm) => {
         if (!parentForm) {
             return;
         }
-        const box = document.createElement('div');
-        const list = parentForm.querySelector('.select-group-list.children');
-        box.classList.add('box', 'children');
-        const selectionContent = document.createElement('div');
-        const btRemove = document.createElement('button');
-        const selectionProcess = document.createElement('select');
-        const input = document.createElement('input');
-        MAP_PARAMS['plants'].forEach((_option) => {
-            const option = document.createElement('option');
+        const box = document.createElement("div");
+        const list = parentForm.querySelector(".select-group-list.children");
+        box.classList.add("box", "children");
+        const selectionContent = document.createElement("div");
+        const btRemove = document.createElement("button");
+        const selectionProcess = document.createElement("select");
+        const input = document.createElement("input");
+        MAP_PARAMS["plants"].forEach((_option) => {
+            const option = document.createElement("option");
             option.innerHTML = _option.content;
             option.value = _option.action;
             if (actionProcessActive == _option.action) {
@@ -2771,28 +2601,26 @@ function FeatureScript(idPanel) {
             }
             selectionProcess.appendChild(option);
         });
-        selectionContent.classList.add('box-container', 'children');
-        btRemove.innerHTML = 'DEL';
-        input.setAttribute('type', 'text');
-        btRemove.setAttribute('action', '_default');
-        btRemove.onclick = () => {
-            box.remove();
-        };
+        selectionContent.classList.add("box-container", "children");
+        btRemove.innerHTML = "DEL";
+        input.setAttribute("type", "text");
+        btRemove.setAttribute("action", "_default");
+        btRemove.onclick = () => box.remove();
         selectionContent.appendChild(selectionProcess);
         selectionContent.appendChild(input);
         selectionContent.appendChild(btRemove);
         box.appendChild(selectionContent);
         list.appendChild(box);
     };
-    const templateSelectionProcess = (actionProcessActive = '') => {
-        const box = document.createElement('div');
-        const list = ELEMENTS.selectGroupProcess.querySelector('.select-group-list');
-        box.classList.add('box', 'parent');
-        const selectionContent = document.createElement('div');
-        const btRemove = document.createElement('button');
-        const selectionProcess = document.createElement('select');
+    const templateSelectionProcess = (actionProcessActive = "") => {
+        const box = document.createElement("div");
+        const list = ELEMENTS_FORM.selectGroupProcess.querySelector(".select-group-list");
+        box.classList.add("box", "parent");
+        const selectionContent = document.createElement("div");
+        const btRemove = document.createElement("button");
+        const selectionProcess = document.createElement("select");
         MAP_SELECTION_PROCESS.forEach((_option) => {
-            const option = document.createElement('option');
+            const option = document.createElement("option");
             option.innerHTML = _option.content;
             option.value = _option.action;
             if (actionProcessActive == _option.action) {
@@ -2800,12 +2628,265 @@ function FeatureScript(idPanel) {
             }
             selectionProcess.appendChild(option);
         });
-        selectionContent.classList.add('box-container', 'parent');
-        btRemove.innerHTML = 'DEL';
-        btRemove.setAttribute('action', '_default');
-        btRemove.onclick = () => {
-            box.remove();
-        };
+        selectionContent.classList.add("box-container", "parent");
+        btRemove.innerHTML = "DEL";
+        btRemove.setAttribute("action", "_default");
+        btRemove.onclick = () => box.remove();
+        selectionContent.appendChild(selectionProcess);
+        selectionContent.appendChild(btRemove);
+        box.appendChild(selectionContent);
+        list.appendChild(box);
+    };
+    initComponents();
+    return {};
+}
+function FeatureScript(idPanel) {
+    const panel = document.querySelector(`[panel="feature"][id="${idPanel}"]`);
+    if (!panel) {
+        return { error: { msg: "Panel not found" } };
+    }
+    const notificationControl = NotificationControl(document.querySelector(".list-notification"));
+    const mainControl = MainControl();
+    const renderControl = RenderControl();
+    const ELEMENTS_FORM = {
+        selectGroupPlants: panel.querySelector(".select-group.plants"),
+        selectGroupProcess: panel.querySelector(".select-group.process"),
+        btUpload: panel.querySelector("#upload-files-plant"),
+    };
+    const dataPlants = { plants: [], process: [], settings: _.cloneDeep(GLOBAL_SETTINGS) };
+    const MAP_PARAMS = {
+        process: {
+            "create-farm": [],
+            "insert-values": [],
+            "deadline+D": [],
+            "contained-cep": [],
+            "procv": [],
+            "template": [],
+            "rate": [],
+        },
+        plants: [
+            { content: "CEP de Origem Inicial", type: "cep.origin.initial", action: "cep.origin.initial", },
+            { content: "CEP de Origem Final", type: "cep.origin.final", action: "cep.origin.final", },
+            { content: "CEP Inicial", type: "cep.initial", action: "cep.initial" },
+            { content: "CEP Final", type: "cep.final", action: "cep.final" },
+            { content: "Critério de Seleção", type: "selection-criteria", action: "selection-criteria", },
+            { content: "Prazo", type: "deadline", action: "deadline" },
+            { content: "Prazo+D", type: "deadline+d", action: "deadline+d" },
+            { content: "Excedente", type: "excess", action: "excess" },
+            { content: "Taxa", type: "rate", action: "rate" },
+        ],
+    };
+    const MAP_SELECTION_PLANTS = [
+        { action: "deadline", content: "Prazo", type: "deadline" },
+        { action: "price", content: "Preço", type: "price" },
+        { action: "farm", content: "Fazenda", type: "farm" },
+    ];
+    const MAP_SELECTION_PROCESS = [
+        { content: "Criar Fazenda", type: "process", action: "create-farm" },
+        { content: "Inserir valores", type: "process", action: "insert-values" },
+        { content: "D+1", type: "process", action: "deadline+D" },
+        { content: "Verificar CEP contido", type: "process", action: "contained-cep" },
+        { content: "Procv", type: "process", action: "procv" },
+        { content: "Gerar templates de Preço e Prazo", type: "process", action: "template" },
+        { content: "Gerar templates de taxas", type: "process", action: "rate" },
+    ];
+    const initComponents = () => {
+        PreloadPanel(panel);
+        panel.querySelector("#upload-files-plant")?.addEventListener("click", updateFilesPlant);
+        panel.querySelector("#download-files")?.addEventListener("click", downloadFiles);
+        panel.querySelector("#save-farm")?.addEventListener("click", saveFarm);
+        panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel));
+        panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory);
+        panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm);
+        panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings);
+        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, {
+            templates: { _new: templateSelectionPlantsParent },
+            basePath: ".box.parent",
+            pathsValue: [
+                {
+                    path: ".box-container.parent", inputs: [
+                        { type: "plant-file", path: 'input[type="file"]' },
+                        { type: "plant-name", path: 'input[type="text"]' },
+                        { type: "plant-type", path: "select" },
+                    ],
+                },
+                {
+                    path: ".box-container.children", children: true, inputs: [
+                        { type: "header-name", path: 'input[type="text"]' },
+                        { type: "header-type", path: "select" },
+                    ],
+                },
+            ],
+            actions: ["_newOne", "_newAll", "_clear"],
+            options: MAP_SELECTION_PLANTS,
+            classBox: "box",
+            classMenu: ["select-group-list", "parent"],
+        }, ["_newOne"]);
+        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupProcess, {
+            templates: { _new: templateSelectionProcess },
+            basePath: ".box.parent",
+            pathsValue: [{ path: ".box-container.parent", inputs: [{ path: "select", type: "process" }] }],
+            actions: ["_newOne", "_newAll", "_clear"],
+            classBox: "box",
+            classMenu: ["select-group-list"],
+            options: MAP_SELECTION_PROCESS,
+        }, []);
+        ELEMENTS_FORM.btUpload.addEventListener("click", () => {
+            dataPlants.plants.splice(0, dataPlants.plants.length);
+            dataPlants.process.splice(0, dataPlants.process.length);
+            getListPlants().map((_plants) => {
+                const plant = { code: "", file: new Blob([], { type: "text/plain" }), headers: [], name: "", };
+                _plants.forEach((_plant) => {
+                    _plant.values && _plant.values.forEach((_valuesInput) => {
+                        _valuesInput.forEach((_value) => {
+                            plant[_value.type == "plant-type" ? "code" : _value.type == "plant-name" ? "name" : "file"] = _value.value;
+                        });
+                    });
+                    _plant.subMenu && _plant.subMenu.forEach((_valuesInput) => {
+                        let header = { header: "", type: "" };
+                        _valuesInput.forEach((_value) => {
+                            header[_value.type == "header-type" ? "type" : "header"] = _value.value;
+                        });
+                        plant.headers.push(header);
+                    });
+                });
+                dataPlants.plants.push(plant);
+            });
+            getListProcess().forEach(_process => {
+                _process.forEach(_pro => {
+                    _pro.values && _pro.values.forEach(_values => {
+                        _values.forEach(_value => {
+                            dataPlants.process.push(_value.value);
+                        });
+                    });
+                });
+            });
+        });
+    };
+    const updateFilesPlant = () => {
+        console.log(dataPlants);
+        mainControl.setupFarm(dataPlants, () => {
+            mainControl.processFarm();
+            prepareForDownload();
+        });
+        notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: "Tratamento concluído" });
+    };
+    const prepareForDownload = () => {
+        mainControl.prepareForDownload();
+    };
+    const downloadFiles = () => { };
+    const saveFarm = () => {
+        if (mainControl.getData().tables.length == 0) {
+            return;
+        }
+        const nameInput = `Fazenda`;
+        mainControl.saveFarm(`Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`);
+    };
+    const clearHistory = () => {
+        mainControl.clearHistory();
+    };
+    const clearFarm = () => {
+        mainControl.clearFarm();
+    };
+    const clearSettings = () => {
+        mainControl.clearSettings();
+    };
+    const templateSelectionPlantsParent = (actionProcessActive = "") => {
+        const box = document.createElement("div");
+        const list = ELEMENTS_FORM.selectGroupPlants.querySelector(".select-group-list.parent");
+        box.classList.add("box", "parent");
+        const selectionContent = document.createElement("div");
+        const btRemove = document.createElement("button");
+        const selectionProcess = document.createElement("select");
+        const subMenu = document.createElement("div");
+        const input = document.createElement("input");
+        const name = document.createElement("input");
+        MAP_SELECTION_PLANTS.forEach((_option) => {
+            const option = document.createElement("option");
+            option.innerHTML = _option.content;
+            option.value = _option.action;
+            if (actionProcessActive == _option.action) {
+                option.selected = true;
+            }
+            selectionProcess.appendChild(option);
+        });
+        selectionContent.classList.add("box-container", "parent");
+        subMenu.classList.add("sub-menu");
+        btRemove.innerHTML = "DEL";
+        input.setAttribute("type", "file");
+        name.setAttribute("type", "text");
+        btRemove.setAttribute("action", "_default");
+        btRemove.onclick = () => box.remove();
+        SelectionGroupComponent(subMenu, {
+            templates: { _new: templateSelectionPlantsChildren, },
+            basePath: "",
+            pathsValue: [],
+            actions: ["_newOne", "_newAll", "_clear"],
+            options: [...MAP_PARAMS["plants"]],
+            isParent: false,
+            updateList: false,
+            classBox: "box",
+            classMenu: ["select-group-list", "children"],
+        }, ["_newOne"]);
+        selectionContent.appendChild(name);
+        selectionContent.appendChild(selectionProcess);
+        selectionContent.appendChild(input);
+        selectionContent.appendChild(btRemove);
+        box.appendChild(selectionContent);
+        list.appendChild(box);
+        box.appendChild(subMenu);
+    };
+    const templateSelectionPlantsChildren = (actionProcessActive = "", parentForm) => {
+        if (!parentForm) {
+            return;
+        }
+        const box = document.createElement("div");
+        const list = parentForm.querySelector(".select-group-list.children");
+        box.classList.add("box", "children");
+        const selectionContent = document.createElement("div");
+        const btRemove = document.createElement("button");
+        const selectionProcess = document.createElement("select");
+        const input = document.createElement("input");
+        MAP_PARAMS["plants"].forEach((_option) => {
+            const option = document.createElement("option");
+            option.innerHTML = _option.content;
+            option.value = _option.action;
+            if (actionProcessActive == _option.action) {
+                option.selected = true;
+            }
+            selectionProcess.appendChild(option);
+        });
+        selectionContent.classList.add("box-container", "children");
+        btRemove.innerHTML = "DEL";
+        input.setAttribute("type", "text");
+        btRemove.setAttribute("action", "_default");
+        btRemove.onclick = () => box.remove();
+        selectionContent.appendChild(selectionProcess);
+        selectionContent.appendChild(input);
+        selectionContent.appendChild(btRemove);
+        box.appendChild(selectionContent);
+        list.appendChild(box);
+    };
+    const templateSelectionProcess = (actionProcessActive = "") => {
+        const box = document.createElement("div");
+        const list = ELEMENTS_FORM.selectGroupProcess.querySelector(".select-group-list");
+        box.classList.add("box", "parent");
+        const selectionContent = document.createElement("div");
+        const btRemove = document.createElement("button");
+        const selectionProcess = document.createElement("select");
+        MAP_SELECTION_PROCESS.forEach((_option) => {
+            const option = document.createElement("option");
+            option.innerHTML = _option.content;
+            option.value = _option.action;
+            if (actionProcessActive == _option.action) {
+                option.selected = true;
+            }
+            selectionProcess.appendChild(option);
+        });
+        selectionContent.classList.add("box-container", "parent");
+        btRemove.innerHTML = "DEL";
+        btRemove.setAttribute("action", "_default");
+        btRemove.onclick = () => box.remove();
         selectionContent.appendChild(selectionProcess);
         selectionContent.appendChild(btRemove);
         box.appendChild(selectionContent);

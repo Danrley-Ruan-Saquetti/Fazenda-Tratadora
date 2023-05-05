@@ -99,10 +99,6 @@ function MainControl() {
         uploadFilesPlants({ plants }, callback)
     }
 
-    const processRepoTable = (props: { settings: ISettingsGeneral, modelTables: ITableModel[], process: TFarmProcess[] }) => {
-        return farmControl.processFarm(props) || null
-    }
-
     const processFarm = () => {
         const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0])
         const plantPrice = _.cloneDeep(farmControl.getTable({ code: "plant.price" })[0])
@@ -125,6 +121,10 @@ function MainControl() {
         farm && farmControl.setup(farm)
 
         return farm || null
+    }
+
+    const processRepoTable = (props: { settings: ISettingsGeneral, modelTables: ITableModel[], process: TFarmProcess[] }) => {
+        return farmControl.processFarm(props) || null
     }
 
     // History

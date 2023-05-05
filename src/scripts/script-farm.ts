@@ -26,10 +26,8 @@ function FarmScript(idPanel: string) {
         nameFarm: panel.querySelector("#param-name-farm") as HTMLInputElement,
     }
 
-    plantFarmTest
-    plantDeadlineTest
-    plantPriceTest
     const PARAMS: ISettingsTemplate = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
+        "plants": [],
         "settings": {
             "table": {
                 "cep.initial": "CEP INICIAL",
@@ -129,7 +127,7 @@ function FarmScript(idPanel: string) {
             const contentSettings = converterStringToJSON<ISettingsTemplate>(result, ["separatorLine"])
 
             if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE)) {
-                return console.log("Template incorrect")
+                console.log("Template incorrect")
             }
 
             Object.assign(PARAMS, contentSettings)
@@ -153,8 +151,7 @@ function FarmScript(idPanel: string) {
         const paramSelectionCriteriaPrice = `${ELEMENTS_FORM.paramSelectionCriteriaPrice?.value}`
         const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`
 
-        const dataPlants: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[] } & ISettingsTemplate = {
-            plants: [],
+        const dataPlants: ISettingsTemplate = {
             ...PARAMS
         }
 

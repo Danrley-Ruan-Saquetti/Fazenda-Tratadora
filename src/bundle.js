@@ -95,6 +95,7 @@ function ControlDataBase() {
     };
 }
 const GLOBAL_TEMPLATE = {
+    "plants": [],
     "settings": {
         "table": {
             "cep.initial": "",
@@ -2315,10 +2316,8 @@ function FarmScript(idPanel) {
         paramExcess: panel.querySelector("#param-excess"),
         nameFarm: panel.querySelector("#param-name-farm"),
     };
-    plantFarmTest;
-    plantDeadlineTest;
-    plantPriceTest;
     const PARAMS = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
+        "plants": [],
         "settings": {
             "table": {
                 "cep.initial": "CEP INICIAL",
@@ -2411,7 +2410,7 @@ function FarmScript(idPanel) {
         mainControl.getContentFile(fileSettings, (result) => {
             const contentSettings = converterStringToJSON(result, ["separatorLine"]);
             if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE)) {
-                return console.log("Template incorrect");
+                console.log("Template incorrect");
             }
             Object.assign(PARAMS, contentSettings);
             loadForm();
@@ -2432,7 +2431,6 @@ function FarmScript(idPanel) {
         const paramSelectionCriteriaPrice = `${ELEMENTS_FORM.paramSelectionCriteriaPrice?.value}`;
         const paramExcess = `${ELEMENTS_FORM.paramExcess?.value}`;
         const dataPlants = {
-            plants: [],
             ...PARAMS
         };
         if ((GLOBAL_DEPENDENCE == "production" && plantFarm) || GLOBAL_DEPENDENCE == "development")
@@ -2595,67 +2593,6 @@ function FeatureScript(idPanel) {
             submenu: [...MAP_PARAMS["process"]["rate"]],
         },
     ];
-    const PARAMS = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
-        "settings": {
-            "table": {
-                "cep.initial": "CEP INICIAL",
-                "cep.final": "CEP FINAL",
-                "deadline": "Prazo",
-                "excess": "Exce",
-                "rate": {
-                    "deadline": "",
-                    "price": ""
-                },
-                "selection.criteria": {
-                    "price": "UF,REGIAO",
-                    "deadline": "UF,REGIAO"
-                }
-            },
-            "process": {
-                "deadline+D": 1,
-                "criteria.selection": {
-                    "join": " "
-                },
-                "converterStringTable": {
-                    "separatorLine": /\r?\n/,
-                    "separatorColumn": ";",
-                    "configSeparatorColumn": {
-                        "separator": ",",
-                        "searchValue": ",",
-                        "replaceValue": "?",
-                        "betweenText": "\""
-                    }
-                }
-            },
-            "template": {
-                "rateValue": {
-                    "cep.origin.initial": "1000000",
-                    "cep.origin.final": "99999999"
-                },
-                "headerName": {
-                    "cep.origin.initial": "Inicio  Origem",
-                    "cep.origin.final": "Fim  Origem",
-                    "cep.initial": "Inicio  Destino",
-                    "cep.final": "Fim  Destino",
-                    "deadline+D": "Dias",
-                    "excess": "Excedente"
-                },
-                "cepOriginValue": {
-                    "cep.origin.final": "89140000",
-                    "cep.origin.initial": "89140000"
-                }
-            }
-        },
-        "process": [
-            "create-farm",
-            "insert-values",
-            "deadline+D",
-            "contained-cep",
-            "procv",
-            "template",
-            "rate"
-        ]
-    };
     const initComponents = () => {
         PreloadPanel(panel);
         const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, {

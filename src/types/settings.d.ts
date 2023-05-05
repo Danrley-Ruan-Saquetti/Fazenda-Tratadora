@@ -61,10 +61,19 @@ interface ISettingsProcessConfig {
         converterStringTable: ISettingsConverterStringTable,
     }
 }
+type TSettingsPlant = { code: TTableCode, file: Blob, headers: THeader[], name: string }
+type TSettingsPlantTemplate = { code: TTableCode, file?: Blob, headers: THeader[], name: string }
+interface ISettingsPlant {
+    plants: TSettingsPlant[]
+}
+interface ISettingsPlantTemplate {
+    plants: TSettingsPlantTemplate[]
+}
 interface ISettingsProcess {
     process: TFarmProcessTypeSelection[]
 }
 interface ISettingsGeneral extends ISettingsTable, ISettingsProcessConfig, ISettingsTableTemplate { }
 interface ISettingsAdvanced extends ISettingsProcessConfig, ISettingsTableTemplate { }
 interface ISettingsFarm extends ISettingsGeneral { isActive?: Boolean }
-interface ISettingsTemplate extends ISettingsProcess { settings: ISettingsGeneral }
+interface ISettingsTemplate extends ISettingsProcess, ISettingsPlant { settings: ISettingsGeneral }
+interface ISettingsForm extends ISettingsProcess, ISettingsPlantTemplate { settings: ISettingsGeneral }

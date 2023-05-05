@@ -1,4 +1,5 @@
 const GLOBAL_TEMPLATE: ISettingsTemplate = {
+    "plants": [],
     "settings": {
         "table": {
             "cep.initial": "",

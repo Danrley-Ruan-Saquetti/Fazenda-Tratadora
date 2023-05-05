@@ -14,7 +14,7 @@ function FeatureScript(idPanel: string) {
         btUpload: panel.querySelector("#upload-files-plant") as HTMLElement,
     }
 
-    const dataPlants: { plants: { code: TTableCode, file: Blob, headers: any[], name: string }[], process: TFarmProcessTypeSelection[], settings: ISettingsGeneral } = { plants: [], process: [], settings: _.cloneDeep(GLOBAL_SETTINGS) }
+    const dataPlants: ISettingsPlant & { process: TFarmProcessTypeSelection[], settings: ISettingsGeneral } = { plants: [], process: [], settings: _.cloneDeep(GLOBAL_SETTINGS) }
 
     const MAP_PARAMS = {
         process: {
@@ -89,68 +89,6 @@ function FeatureScript(idPanel: string) {
             submenu: [...MAP_PARAMS["process"]["rate"]],
         },
     ]
-
-    const PARAMS: ISettingsTemplate = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
-        "settings": {
-            "table": {
-                "cep.initial": "CEP INICIAL",
-                "cep.final": "CEP FINAL",
-                "deadline": "Prazo",
-                "excess": "Exce",
-                "rate": {
-                    "deadline": "",
-                    "price": ""
-                },
-                "selection.criteria": {
-                    "price": "UF,REGIAO",
-                    "deadline": "UF,REGIAO"
-                }
-            },
-            "process": {
-                "deadline+D": 1,
-                "criteria.selection": {
-                    "join": " "
-                },
-                "converterStringTable": {
-                    "separatorLine": /\r?\n/,
-                    "separatorColumn": ";",
-                    "configSeparatorColumn": {
-                        "separator": ",",
-                        "searchValue": ",",
-                        "replaceValue": "?",
-                        "betweenText": "\""
-                    }
-                }
-            },
-            "template": {
-                "rateValue": {
-                    "cep.origin.initial": "1000000",
-                    "cep.origin.final": "99999999"
-                },
-                "headerName": {
-                    "cep.origin.initial": "Inicio  Origem",
-                    "cep.origin.final": "Fim  Origem",
-                    "cep.initial": "Inicio  Destino",
-                    "cep.final": "Fim  Destino",
-                    "deadline+D": "Dias",
-                    "excess": "Excedente"
-                },
-                "cepOriginValue": {
-                    "cep.origin.final": "89140000",
-                    "cep.origin.initial": "89140000"
-                }
-            }
-        },
-        "process": [
-            "create-farm",
-            "insert-values",
-            "deadline+D",
-            "contained-cep",
-            "procv",
-            "template",
-            "rate"
-        ]
-    }
 
     const initComponents = () => {
         PreloadPanel(panel)

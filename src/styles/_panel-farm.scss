@@ -10,14 +10,32 @@
             }
         }
     }
+    [model-window] {
+        [model-body] {
+            @include scroll();
+        }
+    }
     .form-config-advanced {
         @include flex(true);
         height: 100%;
-        .inputs-wrapper {
+        .list-inputs-wrapper {
+            padding: $padding-default;
             height: 100%;
+            .inputs-wrapper {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(25rem, 1fr));
+                grid-auto-rows: min-content;
+                z-index: 30;
+                height: auto;
+                &:first-child {
+                    margin-top: 0;
+                }
+            }
         }
         .actions-config-advanced {
             @include border("top");
+            z-index: 120;
+            background-color: $bg-neutro;
         }
     }
 }

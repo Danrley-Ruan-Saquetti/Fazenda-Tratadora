@@ -2,7 +2,7 @@ function RenderControl() {
     const historyTableControl = HistoryTableControl()
     const mainControl = MainControl()
     const panelControl = PanelControl()
-    const modelWindowControl = ModelWindowControl()
+    const modelWindow = ModelWindowComponent()
 
     const ELEMENTS = {
         sideBarList: document.querySelector(".side-bar [list]") as HTMLElement,

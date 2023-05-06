@@ -6,7 +6,7 @@ function FeatureScript(idPanel: string) {
     const notificationControl = NotificationControl(document.querySelector(".list-notification") as HTMLElement)
 
     const mainControl = MainControl()
-    const modelWindowControl = ModelWindowControl()
+    const modelWindow = ModelWindowComponent()
 
     const ELEMENTS_FORM = {
         selectGroupPlants: panel.querySelector(".select-group.plants") as HTMLElement,
@@ -105,17 +105,77 @@ function FeatureScript(idPanel: string) {
     }
 
     const openModelConfigAdvanced = () => {
-        const modelWindow = modelWindowControl.createModel(configAdvanced(), "Configurações Avançadas")
+        const model = modelWindow.createModel(configAdvanced(), "Configurações Avançadas")
 
-        panel.appendChild(modelWindow)
+        panel.appendChild(model)
     }
 
     const configAdvanced = () => {
-        const div = document.createElement("div")
+        const FORM_CONTENT_HTML = `<div class="list-inputs-wrapper" list-content>
+            <div class="inputs-wrapper" list-type="vertical">
+                <div class="input-group">
+                    <input class="input" required="required" type="number" min="0" name="input-d+1">
+                    <label>D+1</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-criteria.selection.join">
+                    <label>Junção de Critério de Seleção</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-cep.origin.initial">
+                    <label>Nome do Cabeçalho: Inicio Origem</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.cep.origin.final">
+                    <label>Nome do Cabeçalho: Fim Origem</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.cep.initial">
+                    <label>Nome do Cabeçalho: Inicio Destino</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.cep.final">
+                    <label>Nome do Cabeçalho: Fim Destino</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.deadline+D">
+                    <label>Nome do Cabeçalho: Dias</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.excess">
+                    <label>Nome do Cabeçalho: Excedente</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.final">
+                    <label>Valor do CEP de Inicio Origem</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.initial">
+                    <label>Valor do CEP de Fim Origem</label>
+                    <i class="field-input"></i>
+                </div>
+            </div>
+        </div>
+        <div button-container="end" class="actions-config-advanced">
+            <button type="button" action="_cancel" id="cancel-config-advanced"><i class="bi-x-lg" icon></i><span>Cancelar</span></button>
+            <button type="button" action="_new" id="save-config-advanced"><i class="bi-plus-circle" icon></i><span>Salvar</span></button>
+        </div>`
+        const form = document.createElement("form")
 
-        div.innerHTML = "Hello World"
+        form.innerHTML = FORM_CONTENT_HTML
 
-        return div
+        form.classList.add("form-config-advanced")
+
+        return form
     }
 
     // const uploadSettings = () => {

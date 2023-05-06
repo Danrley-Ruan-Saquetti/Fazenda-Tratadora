@@ -1,4 +1,4 @@
-function ModelWindowControl() {
+function ModelWindowComponent() {
 
     const createModel = (children: HTMLElement, title: string = "") => {
         const model = document.createElement("div")
@@ -22,7 +22,7 @@ function ModelWindowControl() {
 
         titleEl.innerHTML = title
 
-        headerModel.classList.add("header-model")
+        headerModel.classList.add("model-header")
         btClose.onclick = () => closeModel(model)
 
         btClose.appendChild(createIcon("x-lg"))
@@ -88,10 +88,11 @@ function ModelWindowControl() {
     }
 
     const closeModel = (model: HTMLElement) => {
-        model.setAttribute("model-window", "disabled")
+        model.remove()
     }
 
     return {
-        createModel
+        createModel,
+        setupMoveModel
     }
 }

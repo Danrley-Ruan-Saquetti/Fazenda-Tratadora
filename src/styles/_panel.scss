@@ -34,9 +34,6 @@
         height: 100% !important;
         @include scroll("y", hidden);
     }
-    input[type="text"] {
-        @include border("bottom");
-    }
     // button:hover,
     // a:hover {
     //     background-color: $neutro-color;

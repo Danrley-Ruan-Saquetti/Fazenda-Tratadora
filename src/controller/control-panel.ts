@@ -1,5 +1,5 @@
 function PanelControl() {
-    const modelWindowControl = ModelWindowControl()
+    const modelWindow = ModelWindowComponent()
     const routerControl = RouterControl()
 
     let panelList: HTMLElement

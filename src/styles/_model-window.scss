@@ -26,7 +26,10 @@
     @include scroll("x");
     @include scroll("y");
     @include shadow("filter", 10px, 10px);
-    .header-model {
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    .model-header {
         position: sticky;
         @include flex;
         justify-content: space-between;
@@ -35,18 +38,19 @@
         height: 3rem;
         background-color: $main-color;
         color: get-text-color($main-color);
-        &>* {
-            white-space: nowrap;
-        }
         padding-left: 1rem;
+        z-index: 20;
         cursor: move;
         &>* {
+            white-space: nowrap;
             color: get-text-color($main-color);
         }
     }
     [model-body] {
         width: 100%;
         height: calc(100% - 3rem);
+        @include scroll("y");
+        z-index: 15;
     }
 }
 

@@ -1783,82 +1783,8 @@ function TestControl() {
         getIndexByCep,
     };
 }
-function ModelWindowControl() {
-    const createModel = (children, title = "") => {
-        const model = document.createElement("div");
-        const modelBody = document.createElement("div");
-        model.setAttribute("model-window", "enabled");
-        modelBody.setAttribute("model-body", "");
-        setupModel(model, title);
-        modelBody.appendChild(children);
-        model.appendChild(modelBody);
-        return model;
-    };
-    const setupModel = (model, title) => {
-        const headerModel = document.createElement("div");
-        const titleEl = document.createElement("span");
-        const btClose = document.createElement("button");
-        titleEl.innerHTML = title;
-        headerModel.classList.add("header-model");
-        btClose.onclick = () => closeModel(model);
-        btClose.appendChild(createIcon("x-lg"));
-        headerModel.appendChild(titleEl);
-        headerModel.appendChild(btClose);
-        model.appendChild(headerModel);
-        setupMoveModel(headerModel, model);
-        openModel(model);
-    };
-    const setupMoveModel = (header, model) => {
-        let mouseX, mouseY, elementX, elementY;
-        let isPressed = false;
-        const move = (ev) => {
-            if (!isPressed) {
-                return;
-            }
-            const parent = model.parentElement;
-            const deltaX = ev.clientX - mouseX;
-            const deltaY = ev.clientY - mouseY;
-            const newElementX = elementX + deltaX;
-            const newElementY = elementY + deltaY;
-            const width = model.clientWidth;
-            const height = model.clientHeight;
-            const x = newElementX <= 0 ? 0 : parent ? newElementX + width >= parent.clientWidth ? parent.clientWidth - width : newElementX : newElementX;
-            const y = newElementY <= 0 ? 0 : parent ? newElementY + height >= parent.clientHeight ? parent.clientHeight - height : newElementY : newElementY;
-            model.style.left = x + "px";
-            model.style.top = y + "px";
-        };
-        header.addEventListener("mousedown", (ev) => {
-            ev.preventDefault();
-            if (model.getAttribute("model-window") != "enabled") {
-                return;
-            }
-            mouseX = ev.clientX;
-            mouseY = ev.clientY;
-            elementX = model.offsetLeft;
-            elementY = model.offsetTop;
-            isPressed = true;
-        });
-        window.addEventListener("mouseup", () => {
-            isPressed = false;
-        });
-        window.addEventListener("mousemove", move);
-    };
-    const openModel = (model) => {
-        model.setAttribute("model-window", "enabled");
-        const headerModel = model.querySelector(".header");
-        if (!headerModel) {
-            return;
-        }
-    };
-    const closeModel = (model) => {
-        model.setAttribute("model-window", "disabled");
-    };
-    return {
-        createModel
-    };
-}
 function PanelControl() {
-    const modelWindowControl = ModelWindowControl();
+    const modelWindow = ModelWindowComponent();
     const routerControl = RouterControl();
     let panelList;
     let abaList;
@@ -2216,7 +2142,7 @@ function RenderControl() {
     const historyTableControl = HistoryTableControl();
     const mainControl = MainControl();
     const panelControl = PanelControl();
-    const modelWindowControl = ModelWindowControl();
+    const modelWindow = ModelWindowComponent();
     const ELEMENTS = {
         sideBarList: document.querySelector(".side-bar [list]"),
         panelControl: document.querySelector(".panel-control"),
@@ -2471,7 +2397,7 @@ function FeatureScript(idPanel) {
     }
     const notificationControl = NotificationControl(document.querySelector(".list-notification"));
     const mainControl = MainControl();
-    const modelWindowControl = ModelWindowControl();
+    const modelWindow = ModelWindowComponent();
     const ELEMENTS_FORM = {
         selectGroupPlants: panel.querySelector(".select-group.plants"),
         selectGroupProcess: panel.querySelector(".select-group.process"),
@@ -2552,13 +2478,72 @@ function FeatureScript(idPanel) {
         });
     };
     const openModelConfigAdvanced = () => {
-        const modelWindow = modelWindowControl.createModel(configAdvanced(), "Configurações Avançadas");
-        panel.appendChild(modelWindow);
+        const model = modelWindow.createModel(configAdvanced(), "Configurações Avançadas");
+        panel.appendChild(model);
     };
     const configAdvanced = () => {
-        const div = document.createElement("div");
-        div.innerHTML = "Hello World";
-        return div;
+        const FORM_CONTENT_HTML = `<div class="list-inputs-wrapper" list-content>
+            <div class="inputs-wrapper" list-type="vertical">
+                <div class="input-group">
+                    <input class="input" required="required" type="number" min="0" name="input-d+1">
+                    <label>D+1</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-criteria.selection.join">
+                    <label>Junção de Critério de Seleção</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-cep.origin.initial">
+                    <label>Nome do Cabeçalho: Inicio Origem</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.cep.origin.final">
+                    <label>Nome do Cabeçalho: Fim Origem</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.cep.initial">
+                    <label>Nome do Cabeçalho: Inicio Destino</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.cep.final">
+                    <label>Nome do Cabeçalho: Fim Destino</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.deadline+D">
+                    <label>Nome do Cabeçalho: Dias</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-headerName.excess">
+                    <label>Nome do Cabeçalho: Excedente</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.final">
+                    <label>Valor do CEP de Inicio Origem</label>
+                    <i class="field-input"></i>
+                </div>
+                <div class="input-group">
+                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.initial">
+                    <label>Valor do CEP de Fim Origem</label>
+                    <i class="field-input"></i>
+                </div>
+            </div>
+        </div>
+        <div button-container="end" class="actions-config-advanced">
+            <button type="button" action="_cancel" id="cancel-config-advanced"><i class="bi-x-lg" icon></i><span>Cancelar</span></button>
+            <button type="button" action="_new" id="save-config-advanced"><i class="bi-plus-circle" icon></i><span>Salvar</span></button>
+        </div>`;
+        const form = document.createElement("form");
+        form.innerHTML = FORM_CONTENT_HTML;
+        form.classList.add("form-config-advanced");
+        return form;
     };
     const updateFilesPlant = () => {
         mainControl.setupFarm(dataPlants, () => {
@@ -2982,6 +2967,81 @@ function App() {
     return initComponents();
 }
 window.onload = App;
+function ModelWindowComponent() {
+    const createModel = (children, title = "") => {
+        const model = document.createElement("div");
+        const modelBody = document.createElement("div");
+        model.setAttribute("model-window", "enabled");
+        modelBody.setAttribute("model-body", "");
+        setupModel(model, title);
+        modelBody.appendChild(children);
+        model.appendChild(modelBody);
+        return model;
+    };
+    const setupModel = (model, title) => {
+        const headerModel = document.createElement("div");
+        const titleEl = document.createElement("span");
+        const btClose = document.createElement("button");
+        titleEl.innerHTML = title;
+        headerModel.classList.add("model-header");
+        btClose.onclick = () => closeModel(model);
+        btClose.appendChild(createIcon("x-lg"));
+        headerModel.appendChild(titleEl);
+        headerModel.appendChild(btClose);
+        model.appendChild(headerModel);
+        setupMoveModel(headerModel, model);
+        openModel(model);
+    };
+    const setupMoveModel = (header, model) => {
+        let mouseX, mouseY, elementX, elementY;
+        let isPressed = false;
+        const move = (ev) => {
+            if (!isPressed) {
+                return;
+            }
+            const parent = model.parentElement;
+            const deltaX = ev.clientX - mouseX;
+            const deltaY = ev.clientY - mouseY;
+            const newElementX = elementX + deltaX;
+            const newElementY = elementY + deltaY;
+            const width = model.clientWidth;
+            const height = model.clientHeight;
+            const x = newElementX <= 0 ? 0 : parent ? newElementX + width >= parent.clientWidth ? parent.clientWidth - width : newElementX : newElementX;
+            const y = newElementY <= 0 ? 0 : parent ? newElementY + height >= parent.clientHeight ? parent.clientHeight - height : newElementY : newElementY;
+            model.style.left = x + "px";
+            model.style.top = y + "px";
+        };
+        header.addEventListener("mousedown", (ev) => {
+            ev.preventDefault();
+            if (model.getAttribute("model-window") != "enabled") {
+                return;
+            }
+            mouseX = ev.clientX;
+            mouseY = ev.clientY;
+            elementX = model.offsetLeft;
+            elementY = model.offsetTop;
+            isPressed = true;
+        });
+        window.addEventListener("mouseup", () => {
+            isPressed = false;
+        });
+        window.addEventListener("mousemove", move);
+    };
+    const openModel = (model) => {
+        model.setAttribute("model-window", "enabled");
+        const headerModel = model.querySelector(".header");
+        if (!headerModel) {
+            return;
+        }
+    };
+    const closeModel = (model) => {
+        model.remove();
+    };
+    return {
+        createModel,
+        setupMoveModel
+    };
+}
 function NotificationControl(listNotificationEl) {
     const MAP_TYPES_NOTIFICATIONS = {
         "_success": {
@@ -3075,6 +3135,12 @@ function NotificationControl(listNotificationEl) {
     };
 }
 function PreloadPanel(panel) {
+    const modelWindow = ModelWindowComponent();
     const forms = panel.querySelectorAll("form");
+    const models = panel.querySelectorAll("[model-window]");
     forms.forEach(_form => _form.addEventListener("submit", ev => ev.preventDefault()));
+    models.forEach(_model => {
+        const header = _model.querySelector(".model-header");
+        modelWindow.setupMoveModel(header, _model);
+    });
 }

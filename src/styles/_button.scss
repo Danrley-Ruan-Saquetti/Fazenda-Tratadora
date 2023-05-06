@@ -6,6 +6,10 @@ $bt-actions: ( _default: #cacaca, _confirm: $main-color, _cancel: #cc3a3a, _new:
     flex-wrap: wrap;
 }
 
+[button-container="end"] {
+    justify-content: flex-end
+}
+
 button,
 .bt {
     @extend [icon-parent];

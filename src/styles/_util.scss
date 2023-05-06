@@ -114,12 +114,3 @@
 .flex-column {
     flex-direction: column;
 }
-
-.header {
-    @include flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: $main-color;
-    color: get-text-color($main-color);
-    height: 15px;
-}

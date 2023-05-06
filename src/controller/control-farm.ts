@@ -567,8 +567,8 @@ function FarmControl(farmRepository: IFarmRepository) {
     const validateContainedCEP = ({ table }: { table: { table: TTable, code: TTableCode, headers: THeader[] } }) => {
         const logs: TLog[] = []
 
-        const indexHeaderCepInitial = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: table, types: ["cep.initial"] })[0].header, where: { array: table.table[0] } })
-        const indexHeaderCepFinal = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: table, types: ["cep.final"] })[0].header, where: { array: table.table[0] } })
+        const indexHeaderCepInitial = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: table, types: ["cep.initial"] })[0]?.header || "", where: { array: table.table[0] } })
+        const indexHeaderCepFinal = tableControl.getIndex({ valueSearch: getHeaders({ tableModel: table, types: ["cep.final"] })[0]?.header || "", where: { array: table.table[0] } })
 
         if (indexHeaderCepInitial < 0 || indexHeaderCepFinal < 0) {
             indexHeaderCepInitial < 0 && logs.push({ type: "error", message: `"${getHeaders({ tableModel: table, types: ["cep.initial"] })[0]?.header || "Cep initial"}" not found` })

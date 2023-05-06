@@ -1,20 +1,5 @@
 const GLOBAL_TEMPLATE: ISettingsTemplate = {
-    "plants": [],
     "settings": {
-        "table": {
-            "cep.initial": "",
-            "cep.final": "",
-            "deadline": "",
-            "excess": "",
-            "rate": {
-                "deadline": "",
-                "price": ""
-            },
-            "selection.criteria": {
-                "price": "",
-                "deadline": ""
-            }
-        },
         "process": {
             "deadline+D": 1,
             "criteria.selection": {
@@ -48,7 +33,32 @@ const GLOBAL_TEMPLATE: ISettingsTemplate = {
                 "cep.origin.final": "",
                 "cep.origin.initial": ""
             }
-        }
+        },
+        /*
+        plants:
+            code:
+                farm
+                plant.deadline
+                plant.price
+                template.deadline
+                template.price
+                template.rate
+            headers:
+                type:
+                    selection-criteria
+                    selection-criteria.value
+                    cep.initial
+                    cep.final
+                    cep.origin.initial
+                    cep.origin.final
+                    excess
+                    deadline
+                    deadline+D
+                    rate
+                    weight
+                    extra
+        */
+        "plants": []
     },
     "process": [
         "create-farm",
@@ -61,23 +71,7 @@ const GLOBAL_TEMPLATE: ISettingsTemplate = {
     ]
 }
 
-
-
 const GLOBAL_SETTINGS: ISettingsGeneral = {
-    "table": {
-        "cep.initial": "",
-        "cep.final": "",
-        "deadline": "",
-        "excess": "",
-        "rate": {
-            "deadline": "",
-            "price": ""
-        },
-        "selection.criteria": {
-            "price": "",
-            "deadline": ""
-        }
-    },
     "process": {
         "deadline+D": 1,
         "criteria.selection": {
@@ -111,24 +105,11 @@ const GLOBAL_SETTINGS: ISettingsGeneral = {
             "cep.origin.final": "",
             "cep.origin.initial": ""
         }
-    }
+    },
+    "plants": []
 }
 
-const GLOBAL_SETTINGS_RESET = {
-    table: {
-        "cep.final": "",
-        "cep.initial": "",
-        "selection.criteria": {
-            deadline: "",
-            price: ""
-        },
-        deadline: "",
-        excess: "",
-        rate: {
-            deadline: "",
-            price: ""
-        }
-    },
+const GLOBAL_SETTINGS_RESET: ISettingsGeneral = {
     process: {
         "criteria.selection": {
             join: ""
@@ -162,7 +143,8 @@ const GLOBAL_SETTINGS_RESET = {
             "cep.origin.final": "",
             "cep.origin.initial": ""
         }
-    }
+    },
+    plants: []
 }
 
 const isDev = ControlDataBase().getItem<Boolean>("dev.edition") || false
@@ -180,23 +162,32 @@ const GLOBAL_ROUTERS: TItemRoute[] = [
     { icon: "code", title: "null", name: "feature", router: "routers/panel.feature.html", script: "FeatureScript", __dev: true, active: false }
 ]
 
-const GLOBAL_ROUTERS_OPEN: TRouterName[] = ["feature", "farm"]
+const GLOBAL_ROUTERS_OPEN: TRouterName[] = ["feature"]
 
 const GLOBAL_ROUTER_NOT_FOUND = `<h1>Router not found</h1>`
 
 const GLOBAL_ROUTERS_ROUTER: TDependenceRouter = {
-    "routers/panel.feature.html": `<div class="select-container">
-	<div class="header-selection">
-		<button class="add-box-selection">ADD</button>
-		<button class="submit">Send</button>
-		<button class="add-all">All</button>
-		<button class="clear-all">Clear</button>
-	</div>
-	
-	<div class="list-box-selection">
-		
-	</div>
-</div>`,
+    "routers/panel.feature.html": `<form>
+    <div button-container>
+        <button type="button" action="_new" id="upload-files-plant">Upload</button>
+        <button type="button" action="_view" id="get-data">Fazenda</button>
+        <a action="_new" href="#" id="download-files" class="bt" download>Download</a>
+        <button type="button" action="_new" id="save-farm">Salvar</button>
+        <button type="button" action="_new" id="clear-ls">Limpar Histórico</button>
+        <button type="button" action="_new" id="clear-farm">Limpar Fazenda</button>
+        <button type="button" action="_new" id="clear-settings">Limpar Configurações</button>
+    </div>
+
+    <h2># Tabelas</h2>
+    <div class="select-group plants" list-content></div>
+
+    <div line="horizontal" line-width="margin"></div>
+
+    <h2># Processos</h2>
+    <div class="select-group process" list-content></div>
+
+    <div line="horizontal" line-width="margin"></div>
+</form>`,
     "routers/panel-history.html": `<div button-container>
     <button action="_confirm" class="load-table"><i class="bi-arrow-clockwise" icon></i>Atualizar</button>
     <button action="_new" class="new-farm"><i class="bi-plus-lg" icon></i>Nova Fazenda</button>

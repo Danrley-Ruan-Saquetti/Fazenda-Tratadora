@@ -25,7 +25,7 @@ function SelectionGroupComponent(form: HTMLElement, props: {
   if (typeof props.updateList == "undefined") { props.updateList = true }
 
   const getDataList = () => {
-    const listSelected: { values?: TFormResult[][], subMenu?: TFormResult[][] }[][] = []
+    const listSelected: IFormResult = []
 
     const baseEl = form.querySelectorAll(`${props.basePath}`) as NodeListOf<HTMLElement>
     baseEl.forEach((_base) => {
@@ -91,12 +91,14 @@ function SelectionGroupComponent(form: HTMLElement, props: {
 
       const bt = document.createElement("button")
       const span = document.createElement("span")
+      const icon = createIcon(_option.icon)
 
       bt.onclick = () => MAP_OPTIONS_FUNCTION[_option.type]()
 
       bt.setAttribute("action", _option._action)
       span.textContent = _option.content
 
+      bt.appendChild(icon)
       bt.appendChild(span)
       container.appendChild(bt)
     })

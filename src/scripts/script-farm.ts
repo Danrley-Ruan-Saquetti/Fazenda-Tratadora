@@ -27,22 +27,7 @@ function FarmScript(idPanel: string) {
     }
 
     const PARAMS: ISettingsTemplate = GLOBAL_DEPENDENCE == "production" ? _.cloneDeep(GLOBAL_TEMPLATE) : {
-        "plants": [],
         "settings": {
-            "table": {
-                "cep.initial": "CEP INICIAL",
-                "cep.final": "CEP FINAL",
-                "deadline": "Prazo",
-                "excess": "Exce",
-                "rate": {
-                    "deadline": "",
-                    "price": ""
-                },
-                "selection.criteria": {
-                    "price": "UF,REGIAO",
-                    "deadline": "UF,REGIAO"
-                }
-            },
             "process": {
                 "deadline+D": 1,
                 "criteria.selection": {
@@ -73,17 +58,18 @@ function FarmScript(idPanel: string) {
                     "excess": "Excedente"
                 },
                 "cepOriginValue": {
-                    "cep.origin.final": "89140000",
-                    "cep.origin.initial": "89140000"
+                    "cep.origin.final": "",
+                    "cep.origin.initial": ""
                 }
-            }
+            },
+            "plants": []
         },
         "process": [
             "create-farm",
             "insert-values",
             "deadline+D",
             "contained-cep",
-            // "procv",
+            "procv",
             "template",
             "rate"
         ]
@@ -104,16 +90,8 @@ function FarmScript(idPanel: string) {
     }
 
     const loadForm = () => {
-        ELEMENTS_FORM.paramCepInitial.value = PARAMS.settings.table["cep.initial"]
-        ELEMENTS_FORM.paramCepFinal.value = PARAMS.settings.table["cep.final"]
         ELEMENTS_FORM.paramCepOriginInitial.value = PARAMS.settings.template.cepOriginValue["cep.origin.initial"]
         ELEMENTS_FORM.paramCepOriginFinal.value = PARAMS.settings.template.cepOriginValue["cep.origin.final"]
-        ELEMENTS_FORM.paramDeadline.value = PARAMS.settings.table.deadline
-        ELEMENTS_FORM.paramRateDeadline.value = PARAMS.settings.table.rate.deadline
-        ELEMENTS_FORM.paramRatePrice.value = PARAMS.settings.table.rate.price
-        ELEMENTS_FORM.paramSelectionCriteriaDeadline.value = PARAMS.settings.table["selection.criteria"].deadline
-        ELEMENTS_FORM.paramSelectionCriteriaPrice.value = PARAMS.settings.table["selection.criteria"].price
-        ELEMENTS_FORM.paramExcess.value = PARAMS.settings.table.excess
     }
 
     const uploadSettings = () => {
@@ -158,32 +136,32 @@ function FarmScript(idPanel: string) {
         if ((GLOBAL_DEPENDENCE == "production" && plantFarm) || GLOBAL_DEPENDENCE == "development") dataPlants.plants.push({
             code: "farm", file: plantFarm || mainControl.createFile({ content: [plantFarmTest] }),
             headers: [
-                { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
-                { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
-                { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
-                { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
-                { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
-                { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
+                { header: paramCepFinal, type: "cep.final" },
+                { header: paramCepInitial, type: "cep.initial" },
+                { header: paramDeadline, type: "deadline" },
+                { header: paramRateDeadline, type: "rate" },
+                { header: paramExcess, type: "excess" },
+                { header: paramSelectionCriteriaDeadline, type: "selection-criteria" },
             ],
             name: "Fazenda"
         })
         if ((GLOBAL_DEPENDENCE == "production" && plantDeadline) || GLOBAL_DEPENDENCE == "development") dataPlants.plants.push({
             code: "plant.deadline", file: plantDeadline || mainControl.createFile({ content: [plantDeadlineTest] }),
             headers: [
-                { header: paramCepFinal || PARAMS.settings.table["cep.final"], type: "cep.final" },
-                { header: paramCepInitial || PARAMS.settings.table["cep.initial"], type: "cep.initial" },
-                { header: paramDeadline || PARAMS.settings.table.deadline, type: "deadline" },
-                { header: paramSelectionCriteriaDeadline || PARAMS.settings.table["selection.criteria"].deadline, type: "selection-criteria" },
-                { header: paramRateDeadline || PARAMS.settings.table.rate.deadline, type: "rate" },
+                { header: paramCepFinal, type: "cep.final" },
+                { header: paramCepInitial, type: "cep.initial" },
+                { header: paramDeadline, type: "deadline" },
+                { header: paramSelectionCriteriaDeadline, type: "selection-criteria" },
+                { header: paramRateDeadline, type: "rate" },
             ],
             name: "Planta Prazo"
         })
         if ((GLOBAL_DEPENDENCE == "production" && plantPrice) || GLOBAL_DEPENDENCE == "development") dataPlants.plants.push({
             code: "plant.price", file: plantPrice || mainControl.createFile({ content: [plantPriceTest] }),
             headers: [
-                { header: paramExcess || PARAMS.settings.table.excess, type: "excess" },
-                { header: paramSelectionCriteriaPrice || PARAMS.settings.table["selection.criteria"].price, type: "selection-criteria" },
-                { header: paramRatePrice || PARAMS.settings.table.rate.price, type: "rate" },
+                { header: paramExcess, type: "excess" },
+                { header: paramSelectionCriteriaPrice, type: "selection-criteria" },
+                { header: paramRatePrice, type: "rate" },
             ],
             name: "Planta Preço"
         })

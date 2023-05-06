@@ -1,19 +1,5 @@
 {
     "settings": {
-        "table": {
-            "cep.initial": "",
-            "cep.final": "",
-            "deadline": "",
-            "excess": "",
-            "rate": {
-                "deadline": "",
-                "price": ""
-            },
-            "selection.criteria": {
-                "price": "",
-                "deadline": ""
-            }
-        },
         "process": {
             "deadline+D": 1,
             "criteria.selection": {
@@ -47,7 +33,14 @@
                 "cep.origin.final": "",
                 "cep.origin.initial": ""
             }
-        }
+        },
+        "plants": [{
+            "code": "",
+            "name": "",
+            "headers": [
+                { "header": "", "type": "", "value": "" }
+            ]
+        }]
     },
     "process": [
         "create-farm",

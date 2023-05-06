@@ -17,6 +17,8 @@
     position: absolute;
     width: 50%;
     height: 50%;
+    max-height: 95%;
+    max-width: 95%;
     pointer-events: none;
     z-index: 100;
     background-color: $bg-neutro;
@@ -24,8 +26,27 @@
     @include scroll("x");
     @include scroll("y");
     @include shadow("filter", 10px, 10px);
-    .header {
+    .header-model {
+        position: sticky;
+        @include flex;
+        justify-content: space-between;
+        align-items: center;
+        top: 0;
+        height: 3rem;
+        background-color: $main-color;
+        color: get-text-color($main-color);
+        &>* {
+            white-space: nowrap;
+        }
+        padding-left: 1rem;
         cursor: move;
+        &>* {
+            color: get-text-color($main-color);
+        }
+    }
+    [model-body] {
+        width: 100%;
+        height: calc(100% - 3rem);
     }
 }
 

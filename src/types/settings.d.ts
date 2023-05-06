@@ -44,9 +44,9 @@ interface ISettingsHeadersTable {
         deadline: string
     }
 }
-interface ISettingsTable {
-    table: ISettingsHeadersTable
-}
+// interface ISettingsTable {
+//     table: ISettingsHeadersTable
+// }
 interface ISettingsTableTemplate {
     template: {
         rateValue: ISettingsTemplateRateValue
@@ -72,8 +72,8 @@ interface ISettingsPlantTemplate {
 interface ISettingsProcess {
     process: TFarmProcessTypeSelection[]
 }
-interface ISettingsGeneral extends ISettingsTable, ISettingsProcessConfig, ISettingsTableTemplate { }
+interface ISettingsGeneral extends ISettingsProcessConfig, ISettingsTableTemplate, ISettingsPlant { }
 interface ISettingsAdvanced extends ISettingsProcessConfig, ISettingsTableTemplate { }
 interface ISettingsFarm extends ISettingsGeneral { isActive?: Boolean }
-interface ISettingsTemplate extends ISettingsProcess, ISettingsPlant { settings: ISettingsGeneral }
+interface ISettingsTemplate extends ISettingsProcess { settings: ISettingsGeneral }
 interface ISettingsForm extends ISettingsProcess, ISettingsPlantTemplate { settings: ISettingsGeneral }

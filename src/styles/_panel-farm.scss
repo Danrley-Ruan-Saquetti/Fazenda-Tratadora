@@ -10,4 +10,14 @@
             }
         }
     }
+    .form-config-advanced {
+        @include flex(true);
+        height: 100%;
+        .inputs-wrapper {
+            height: 100%;
+        }
+        .actions-config-advanced {
+            @include border("top");
+        }
+    }
 }

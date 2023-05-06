@@ -7,3 +7,4 @@ type TOptionSelection = {
   submenu?: any[];
 };
 type TFormResult = { value: any; type: string };
+type IFormResult = { values?: TFormResult[][], subMenu?: TFormResult[][] }[][]

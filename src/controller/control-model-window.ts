@@ -1,29 +1,35 @@
 function ModelWindowControl() {
 
-    const createModel = (children: HTMLElement) => {
+    const createModel = (children: HTMLElement, title: string = "") => {
         const model = document.createElement("div")
+        const modelBody = document.createElement("div")
 
         model.setAttribute("model-window", "enabled")
+        modelBody.setAttribute("model-body", "")
 
-        model.appendChild(children)
+        setupModel(model, title)
 
-        setupModel(model)
+        modelBody.appendChild(children)
+        model.appendChild(modelBody)
 
         return model
     }
 
-    const setupModel = (model: HTMLElement) => {
+    const setupModel = (model: HTMLElement, title: string) => {
         const headerModel = document.createElement("div")
+        const titleEl = document.createElement("span")
         const btClose = document.createElement("button")
 
+        titleEl.innerHTML = title
+
+        headerModel.classList.add("header-model")
         btClose.onclick = () => closeModel(model)
 
-        btClose.appendChild(createIcon("x"))
+        btClose.appendChild(createIcon("x-lg"))
+        headerModel.appendChild(titleEl)
         headerModel.appendChild(btClose)
 
-        headerModel.classList.add("header")
-
-        model.insertBefore(headerModel, model.firstChild)
+        model.appendChild(headerModel)
 
         setupMoveModel(headerModel, model)
         openModel(model)

@@ -38,9 +38,9 @@ button,
 [panel] {
     button,
     .bt {
-        padding: $padding-2 $padding-1;
+        padding: $padding-3 $padding-1;
+        gap: $gap-2;
         [icon] {
-            margin-right: .5rem;
             font-size: 1.4rem;
             &::before {
                 vertical-align: -0.125em !important;

@@ -4,7 +4,7 @@ function generatedId() {
     const VALUE_MAX = 9999
     const now = new Date()
 
-    return `${now.getFullYear()}${`${now.getMonth() + 1}`.padStart(2, "0")}${`${Math.floor(Math.random() * VALUE_MAX)}`.padStart(`${VALUE_MAX}`.length, "0")}`
+    return `${now.getFullYear()}${`${now.getMonth() + 1}`.padStart(2, "0")}${`${now.getDate()}`.padStart(2, "0")}${`${Math.floor(Math.random() * VALUE_MAX)}`.padStart(`${VALUE_MAX}`.length, "0")}`
 }
 
 function replaceText({ replaceValue, searchValue, val, betweenText }: { val: string, searchValue: string, replaceValue: string, betweenText?: string }) {

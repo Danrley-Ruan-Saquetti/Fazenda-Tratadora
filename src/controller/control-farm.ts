@@ -272,9 +272,8 @@ function FarmControl(farmRepository: IFarmRepository) {
                 if (!modelTableFarm || !modelTablePlantDeadline || !modelTablePlantPrice) { return { result: null } }
 
                 const headerPlantValueDeadlineToFarm: THeader[] = [
-                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
-                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "excess", "rate"] }),
-                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final", "deadline"] }),
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["selection-criteria", "excess", "rate"] }),
                 ]
 
                 const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm })
@@ -328,6 +327,8 @@ function FarmControl(farmRepository: IFarmRepository) {
                 const modelTableFarm = repoControl.getTable({ code: "farm" })[0]
 
                 if (!modelTableFarm) { return { result: null } }
+
+                PROCESS["remove-character"]()
 
                 const indexColumn = tableControl.getIndex({ valueSearch: repoControl.getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } })
 
@@ -457,6 +458,8 @@ function FarmControl(farmRepository: IFarmRepository) {
                         const rateValues = tableControl.getDistinctColumnValues({ table: _modelHeaderRate.table, columnIndex: indexHeader, excludes: { line: 0 } })
 
                         if (rateValues.length == 1) {
+                            if (!rateValues[0]) { continue }
+
                             const name = `Template Taxa - ${_headerRate.header + ": " + rateValues[0]} _G`
 
                             const modelTable: ITableModel = { table: [], headers: [], code: "template.rate", name }

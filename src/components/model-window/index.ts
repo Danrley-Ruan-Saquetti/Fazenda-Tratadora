@@ -12,7 +12,7 @@ function ModelWindowComponent() {
         modelBody.appendChild(children)
         model.appendChild(modelBody)
 
-        model.style.width = "80%"
+        model.style.width = "100%"
         model.style.height = "450px"
         model.style.top = "20px"
         model.style.left = "50%"

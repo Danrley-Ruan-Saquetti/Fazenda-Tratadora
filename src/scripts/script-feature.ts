@@ -32,9 +32,9 @@ function FeatureScript(idPanel: string) {
     }
 
     const MAP_SELECTION_PLANTS: TOptionSelection[] = [
-        { action: "deadline", content: "Prazo", type: "deadline" },
-        { action: "price", content: "Preço", type: "price" },
-        { action: "farm", content: "Fazenda", type: "farm" },
+        { action: "plant.deadline", content: "Prazo", type: "deadline" },
+        { action: "plant.price", content: "Preço", type: "price" },
+        { action: "plant.farm", content: "Fazenda", type: "farm" },
     ]
 
     const MAP_SELECTION_PROCESS: TOptionSelection[] = [
@@ -50,8 +50,8 @@ function FeatureScript(idPanel: string) {
     const initComponents = () => {
         PreloadPanel(panel)
 
-        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, { templates: { _new: templateSelectionPlantsParent }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ type: "plant-file", path: 'input[type="file"]' }, { type: "plant-name", path: 'input[type="text"]' }, { type: "plant-type", path: "select" },] }, { path: ".box-container.children", children: true, inputs: [{ type: "header-name", path: 'input[type="text"]' }, { type: "header-type", path: "select" },] },], actions: ["_newOne", "_newAll", "_clear"], options: MAP_SELECTION_PLANTS, classBox: "box", classMenu: ["select-group-list", "parent"] }, ["_newOne"])
-        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupProcess, { templates: { _new: templateSelectionProcess }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ path: "select", type: "process" }] }], actions: ["_newOne", "_newAll", "_clear"], classBox: "box", classMenu: ["select-group-list"], options: MAP_SELECTION_PROCESS }, ["_newAll"])
+        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, { templates: { _new: templateSelectionPlantsParent }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ type: "plant-file", path: 'input[type="file"]' }, { type: "plant-name", path: 'input[type="text"]' }, { type: "plant-type", path: "select" },] }, { path: ".box-container.children", children: true, inputs: [{ type: "header-name", path: 'input[type="text"]' }, { type: "header-type", path: "select" },] },], actions: ["_newOne", "_newAll", "_clear"], options: MAP_SELECTION_PLANTS, classBox: "box", classMenu: ["select-group-list", "parent"] }, [])
+        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupProcess, { templates: { _new: templateSelectionProcess }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ path: "select", type: "process" }] }], actions: ["_newOne", "_newAll", "_clear"], classBox: "box", classMenu: ["select-group-list"], options: MAP_SELECTION_PROCESS }, [])
 
         panel.querySelector("#download-files")?.addEventListener("click", downloadFiles)
         panel.querySelector("#save-farm")?.addEventListener("click", saveFarm)
@@ -59,17 +59,19 @@ function FeatureScript(idPanel: string) {
         panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory)
         panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm)
         panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings)
-        panel.querySelector("#process-files-plant")?.addEventListener("click", updateFilesPlant)
+        panel.querySelector("#process-files-plant")?.addEventListener("click", () => {
+            uploadPlants(getListPlants(), getListProcess())
+            updateFilesPlant()
+        })
         panel.querySelector("#setting-advanced")?.addEventListener("click", openModelConfigAdvanced)
         panel.querySelector("#upload-files-plant")?.addEventListener("click", () => {
-            uploadPlants(getListPlants(), getListProcess())
             const input = panel.querySelector('input[name="input-file-setting-advanced"]') as HTMLInputElement
 
             const file = input.files ? input.files[0] : null
 
             if (!file) { return }
 
-            uploadSettings(file)
+            uploadSettings(file, loadValuesPlantsProcess)
         })
     }
 
@@ -277,13 +279,28 @@ function FeatureScript(idPanel: string) {
         })
     }
 
+    const loadValuesPlantsProcess = () => {
+        const listPlants = ELEMENTS_FORM.selectGroupPlants.querySelector(".select-group-list") as HTMLElement
+        const listProcess = ELEMENTS_FORM.selectGroupProcess.querySelector(".select-group-list") as HTMLElement
+
+        listPlants.innerHTML = ""
+        listProcess.innerHTML = ""
+
+        dataPlants.settings.plants.forEach(_plant => {
+            templateSelectionPlantsParent({ name: _plant.name, type: _plant.code, headers: _plant.headers })
+        })
+        dataPlants.process.forEach(_process => {
+            templateSelectionProcess(_process)
+        })
+    }
+
     const resetConfigAdvanced = () => {
         dataPlants.settings = mainControl.getSettings({ storage: true }).settings || mainControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS)
 
         notificationControl.newNotification({ title: "Configurações Avançadas", body: "Configurações resetadas", type: "_success" })
     }
 
-    const uploadSettings = (file: File) => {
+    const uploadSettings = (file: File, callback?: () => void) => {
         const fileSettings = mainControl.createFile({ content: [file], type: file.type })
 
         mainControl.getContentFile(fileSettings, (result) => {
@@ -295,6 +312,8 @@ function FeatureScript(idPanel: string) {
 
             Object.assign(dataPlants, contentSettings)
 
+            callback && callback()
+
             notificationControl.newNotification({ title: "Upload de Configurações", body: "Configurações importadas com sucesso", type: "_success" })
         })
     }
@@ -303,9 +322,10 @@ function FeatureScript(idPanel: string) {
         mainControl.setupFarm(dataPlants, () => {
             mainControl.processFarm()
             prepareForDownload()
+
+            notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: "Tratamento concluído" })
         })
 
-        notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: "Tratamento concluído" })
     }
 
     const prepareForDownload = () => {
@@ -335,7 +355,7 @@ function FeatureScript(idPanel: string) {
     }
 
     // Form
-    const templateSelectionPlantsParent = (actionProcessActive: string = "") => {
+    const templateSelectionPlantsParent = ({ name: nameValue, type, headers }: { name?: string, type?: TTableCode, headers?: THeader[] } = {}) => {
         const box = document.createElement("div")
         const list = ELEMENTS_FORM.selectGroupPlants.querySelector(".select-group-list.parent") as HTMLElement
 
@@ -355,10 +375,12 @@ function FeatureScript(idPanel: string) {
             option.innerHTML = _option.content
             option.value = _option.action
 
-            if (actionProcessActive == _option.action) { option.selected = true }
+            if (type && type == _option.action) { option.selected = true }
 
             selectionProcess.appendChild(option)
         })
+
+        name.value = nameValue || ""
 
         selectionContent.classList.add("box-container", "parent")
         subMenu.classList.add("sub-menu")
@@ -367,7 +389,11 @@ function FeatureScript(idPanel: string) {
         name.setAttribute("type", "text")
         btRemove.setAttribute("action", "_default")
         btRemove.onclick = () => box.remove()
-        SelectionGroupComponent(subMenu, { templates: { _new: templateSelectionPlantsChildren }, basePath: "", pathsValue: [], actions: ["_newOne", "_newAll", "_clear"], options: [...MAP_PARAMS["plants"]], isParent: false, updateList: false, classBox: "box", classMenu: ["select-group-list", "children"] }, ["_newAll"])
+        SelectionGroupComponent(subMenu, { templates: { _new: templateSelectionPlantsChildren }, basePath: "", pathsValue: [], actions: ["_newOne", "_newAll", "_clear"], options: [...MAP_PARAMS["plants"]], isParent: false, updateList: false, classBox: "box", classMenu: ["select-group-list", "children"] }, [])
+
+        headers && headers.forEach(_header => {
+            templateSelectionPlantsChildren(_header, subMenu)
+        })
 
         btRemove.appendChild(iconRemove)
         selectionContent.appendChild(name)
@@ -379,7 +405,7 @@ function FeatureScript(idPanel: string) {
         box.appendChild(subMenu)
     }
 
-    const templateSelectionPlantsChildren = (actionProcessActive: string = "", parentForm?: HTMLElement) => {
+    const templateSelectionPlantsChildren = ({ header, type }: { header?: string, type?: THeaderCellType } = {}, parentForm?: HTMLElement) => {
         if (!parentForm) { return }
 
         const box = document.createElement("div")
@@ -393,13 +419,15 @@ function FeatureScript(idPanel: string) {
         const input = document.createElement("input")
         const iconRemove = createIcon("trash")
 
+        input.value = header || ""
+
         MAP_PARAMS["plants"].forEach((_option) => {
             const option = document.createElement("option")
 
             option.innerHTML = _option.content
             option.value = _option.action
 
-            if (actionProcessActive == _option.action) { option.selected = true }
+            if (type == _option.action) { option.selected = true }
 
             selectionProcess.appendChild(option)
         })

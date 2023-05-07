@@ -445,11 +445,11 @@ button[action=_view]:active,
 
 [panel] button,
 [panel] .bt {
-  padding: 0.8rem 1.2rem;
+  padding: 0.6rem 1.2rem;
+  gap: 0.85rem;
 }
 [panel] button [icon],
 [panel] .bt [icon] {
-  margin-right: 0.5rem;
   font-size: 1.4rem;
 }
 [panel] button [icon]::before,
@@ -575,7 +575,7 @@ form .inputs-wrapper .input-group .field-input,
   position: absolute;
   bottom: 0;
   right: 0;
-  width: min(40%, 40rem);
+  width: clamp(20rem, 50%, 40rem);
   height: auto;
   padding: 10px;
   overflow: hidden;
@@ -590,6 +590,7 @@ form .inputs-wrapper .input-group .field-input,
 .notification-container .list-notification .notification-content {
   display: flex;
   justify-content: end;
+  width: 100%;
   gap: 10px;
 }
 .notification-container .list-notification .notification-content.hidden {
@@ -599,7 +600,7 @@ form .inputs-wrapper .input-group .field-input,
 .notification-container .list-notification .notification-content .notification {
   position: relative;
   display: flex;
-  width: max(80%, 50px);
+  width: 100%;
   background-color: rgba(0, 0, 0, 0.7882352941);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);

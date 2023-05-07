@@ -7,7 +7,7 @@ function SelectionGroupComponent(form: HTMLElement, props: {
   classMenu: string[]
   basePath: string
   pathsValue: { path: string, inputs: { path: string, type: string }[], children?: boolean }[]
-  templates: { _new: (optionActive: string, parentForm?: HTMLElement) => void }
+  templates: { _new: (preValue: any, parentForm?: HTMLElement) => void }
 }, pre?: TOptionSelectionForm[]) {
   const MAP_OPTIONS: { type: TOptionSelectionForm, icon: string, _action: string, content: string, }[] = [
     { type: "_newOne", icon: "plus-lg", _action: "_new", content: "Novo" },

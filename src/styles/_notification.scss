@@ -3,7 +3,7 @@ $notifications-type: (_success: #04a704, _error: #ff2828, _warning: #ffb224, _in
     position: absolute;
     bottom: 0;
     right: 0;
-    width: min(40%, 40rem);
+    width: clamp(20rem, 50%, 40rem);
     height: auto;
     padding: 10px;
     overflow: hidden;
@@ -16,6 +16,7 @@ $notifications-type: (_success: #04a704, _error: #ff2828, _warning: #ffb224, _in
         .notification-content {
             display: flex;
             justify-content: end;
+            width: 100%;
             gap: 10px;
             &.hidden {
                 animation: slideOut .3s ease-in;
@@ -24,7 +25,7 @@ $notifications-type: (_success: #04a704, _error: #ff2828, _warning: #ffb224, _in
             .notification {
                 position: relative;
                 display: flex;
-                width: max(80%, 50px);
+                width: 100%;
                 background-color: #000000c9;
                 backdrop-filter: blur(5px);
                 -webkit-backdrop-filter: blur(5px);

@@ -313,7 +313,7 @@ function isNumber(str) { return !isNaN(parseFloat(str)); }
 function generatedId() {
     const VALUE_MAX = 9999;
     const now = new Date();
-    return `${now.getFullYear()}${`${now.getMonth() + 1}`.padStart(2, "0")}${`${Math.floor(Math.random() * VALUE_MAX)}`.padStart(`${VALUE_MAX}`.length, "0")}`;
+    return `${now.getFullYear()}${`${now.getMonth() + 1}`.padStart(2, "0")}${`${now.getDate()}`.padStart(2, "0")}${`${Math.floor(Math.random() * VALUE_MAX)}`.padStart(`${VALUE_MAX}`.length, "0")}`;
 }
 function replaceText({ replaceValue, searchValue, val, betweenText }) {
     let value = val;
@@ -757,7 +757,7 @@ function ModelWindowComponent() {
         setupModel(model, title, move);
         modelBody.appendChild(children);
         model.appendChild(modelBody);
-        model.style.width = "80%";
+        model.style.width = "100%";
         model.style.height = "450px";
         model.style.top = "20px";
         model.style.left = "50%";
@@ -1152,9 +1152,8 @@ function FarmControl(farmRepository) {
                     return { result: null };
                 }
                 const headerPlantValueDeadlineToFarm = [
-                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["cep.initial", "cep.final", "deadline"] }),
-                    ...repoControl.getHeaders({ code: "plant.deadline", types: ["selection-criteria", "excess", "rate"] }),
-                    ...repoControl.getHeadersWeight({ table: [modelTablePlantPrice.table[0]] })
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["cep.initial", "cep.final", "deadline"] }),
+                    ...repoControl.getHeaders({ tableModel: modelTablePlantDeadline, types: ["selection-criteria", "excess", "rate"] }),
                 ];
                 const { logs: logsInsertValues } = insertValues({ table: modelTableFarm.table, tablePlant: modelTablePlantDeadline.table, headers: headerPlantValueDeadlineToFarm });
                 const processResult = { logs: logsInsertValues, type: "insert-values", situation: "finalized" };
@@ -1194,6 +1193,7 @@ function FarmControl(farmRepository) {
                 if (!modelTableFarm) {
                     return { result: null };
                 }
+                PROCESS["remove-character"]();
                 const indexColumn = tableControl.getIndex({ valueSearch: repoControl.getHeaders({ tableModel: { table: modelTableFarm.table, headers: modelTableFarm.headers }, types: ["cep.initial"] })[0]?.header, where: { array: modelTableFarm.table[0] } });
                 modelTableFarm.table = tableControl.orderTable({ table: modelTableFarm.table, column: indexColumn });
                 const processResult = { logs: [{ type: "success", message: `Table farm ordered with successfully` }], type: "order-table", situation: "finalized" };
@@ -1294,6 +1294,9 @@ function FarmControl(farmRepository) {
                         }
                         const rateValues = tableControl.getDistinctColumnValues({ table: _modelHeaderRate.table, columnIndex: indexHeader, excludes: { line: 0 } });
                         if (rateValues.length == 1) {
+                            if (!rateValues[0]) {
+                                continue;
+                            }
                             const name = `Template Taxa - ${_headerRate.header + ": " + rateValues[0]} _G`;
                             const modelTable = { table: [], headers: [], code: "template.rate", name };
                             repoControl.addTable({ tableModel: modelTable, saveOld: true });
@@ -2608,9 +2611,9 @@ function FeatureScript(idPanel) {
         ],
     };
     const MAP_SELECTION_PLANTS = [
-        { action: "deadline", content: "Prazo", type: "deadline" },
-        { action: "price", content: "Preço", type: "price" },
-        { action: "farm", content: "Fazenda", type: "farm" },
+        { action: "plant.deadline", content: "Prazo", type: "deadline" },
+        { action: "plant.price", content: "Preço", type: "price" },
+        { action: "plant.farm", content: "Fazenda", type: "farm" },
     ];
     const MAP_SELECTION_PROCESS = [
         { content: "Criar Fazenda", type: "process", action: "create-farm", submenu: [...MAP_PARAMS["process"]["create-farm"]] },
@@ -2623,24 +2626,26 @@ function FeatureScript(idPanel) {
     ];
     const initComponents = () => {
         PreloadPanel(panel);
-        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, { templates: { _new: templateSelectionPlantsParent }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ type: "plant-file", path: 'input[type="file"]' }, { type: "plant-name", path: 'input[type="text"]' }, { type: "plant-type", path: "select" },] }, { path: ".box-container.children", children: true, inputs: [{ type: "header-name", path: 'input[type="text"]' }, { type: "header-type", path: "select" },] },], actions: ["_newOne", "_newAll", "_clear"], options: MAP_SELECTION_PLANTS, classBox: "box", classMenu: ["select-group-list", "parent"] }, ["_newOne"]);
-        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupProcess, { templates: { _new: templateSelectionProcess }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ path: "select", type: "process" }] }], actions: ["_newOne", "_newAll", "_clear"], classBox: "box", classMenu: ["select-group-list"], options: MAP_SELECTION_PROCESS }, ["_newAll"]);
+        const { getData: getListPlants } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupPlants, { templates: { _new: templateSelectionPlantsParent }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ type: "plant-file", path: 'input[type="file"]' }, { type: "plant-name", path: 'input[type="text"]' }, { type: "plant-type", path: "select" },] }, { path: ".box-container.children", children: true, inputs: [{ type: "header-name", path: 'input[type="text"]' }, { type: "header-type", path: "select" },] },], actions: ["_newOne", "_newAll", "_clear"], options: MAP_SELECTION_PLANTS, classBox: "box", classMenu: ["select-group-list", "parent"] }, []);
+        const { getData: getListProcess } = SelectionGroupComponent(ELEMENTS_FORM.selectGroupProcess, { templates: { _new: templateSelectionProcess }, basePath: ".box.parent", pathsValue: [{ path: ".box-container.parent", inputs: [{ path: "select", type: "process" }] }], actions: ["_newOne", "_newAll", "_clear"], classBox: "box", classMenu: ["select-group-list"], options: MAP_SELECTION_PROCESS }, []);
         panel.querySelector("#download-files")?.addEventListener("click", downloadFiles);
         panel.querySelector("#save-farm")?.addEventListener("click", saveFarm);
         panel.querySelector("#get-data")?.addEventListener("click", () => mainControl.getData(idPanel));
         panel.querySelector("#clear-ls")?.addEventListener("click", clearHistory);
         panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm);
         panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings);
-        panel.querySelector("#process-files-plant")?.addEventListener("click", updateFilesPlant);
+        panel.querySelector("#process-files-plant")?.addEventListener("click", () => {
+            uploadPlants(getListPlants(), getListProcess());
+            updateFilesPlant();
+        });
         panel.querySelector("#setting-advanced")?.addEventListener("click", openModelConfigAdvanced);
         panel.querySelector("#upload-files-plant")?.addEventListener("click", () => {
-            uploadPlants(getListPlants(), getListProcess());
             const input = panel.querySelector('input[name="input-file-setting-advanced"]');
             const file = input.files ? input.files[0] : null;
             if (!file) {
                 return;
             }
-            uploadSettings(file);
+            uploadSettings(file, loadValuesPlantsProcess);
         });
     };
     const uploadPlants = (plants, process) => {
@@ -2816,11 +2821,23 @@ function FeatureScript(idPanel) {
             _input.value = value;
         });
     };
+    const loadValuesPlantsProcess = () => {
+        const listPlants = ELEMENTS_FORM.selectGroupPlants.querySelector(".select-group-list");
+        const listProcess = ELEMENTS_FORM.selectGroupProcess.querySelector(".select-group-list");
+        listPlants.innerHTML = "";
+        listProcess.innerHTML = "";
+        dataPlants.settings.plants.forEach(_plant => {
+            templateSelectionPlantsParent({ name: _plant.name, type: _plant.code, headers: _plant.headers });
+        });
+        dataPlants.process.forEach(_process => {
+            templateSelectionProcess(_process);
+        });
+    };
     const resetConfigAdvanced = () => {
         dataPlants.settings = mainControl.getSettings({ storage: true }).settings || mainControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS);
         notificationControl.newNotification({ title: "Configurações Avançadas", body: "Configurações resetadas", type: "_success" });
     };
-    const uploadSettings = (file) => {
+    const uploadSettings = (file, callback) => {
         const fileSettings = mainControl.createFile({ content: [file], type: file.type });
         mainControl.getContentFile(fileSettings, (result) => {
             const contentSettings = converterStringToJSON(result, ["separatorLine"]);
@@ -2828,6 +2845,7 @@ function FeatureScript(idPanel) {
                 return notificationControl.newNotification({ title: "Upload de Configurações", body: "Template de configurações incorreto", type: "_error" });
             }
             Object.assign(dataPlants, contentSettings);
+            callback && callback();
             notificationControl.newNotification({ title: "Upload de Configurações", body: "Configurações importadas com sucesso", type: "_success" });
         });
     };
@@ -2835,8 +2853,8 @@ function FeatureScript(idPanel) {
         mainControl.setupFarm(dataPlants, () => {
             mainControl.processFarm();
             prepareForDownload();
+            notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: "Tratamento concluído" });
         });
-        notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: "Tratamento concluído" });
     };
     const prepareForDownload = () => {
         mainControl.prepareForDownload();
@@ -2858,7 +2876,7 @@ function FeatureScript(idPanel) {
     const clearSettings = () => {
         mainControl.clearSettings();
     };
-    const templateSelectionPlantsParent = (actionProcessActive = "") => {
+    const templateSelectionPlantsParent = ({ name: nameValue, type, headers } = {}) => {
         const box = document.createElement("div");
         const list = ELEMENTS_FORM.selectGroupPlants.querySelector(".select-group-list.parent");
         box.classList.add("box", "parent");
@@ -2873,18 +2891,22 @@ function FeatureScript(idPanel) {
             const option = document.createElement("option");
             option.innerHTML = _option.content;
             option.value = _option.action;
-            if (actionProcessActive == _option.action) {
+            if (type && type == _option.action) {
                 option.selected = true;
             }
             selectionProcess.appendChild(option);
         });
+        name.value = nameValue || "";
         selectionContent.classList.add("box-container", "parent");
         subMenu.classList.add("sub-menu");
         input.setAttribute("type", "file");
         name.setAttribute("type", "text");
         btRemove.setAttribute("action", "_default");
         btRemove.onclick = () => box.remove();
-        SelectionGroupComponent(subMenu, { templates: { _new: templateSelectionPlantsChildren }, basePath: "", pathsValue: [], actions: ["_newOne", "_newAll", "_clear"], options: [...MAP_PARAMS["plants"]], isParent: false, updateList: false, classBox: "box", classMenu: ["select-group-list", "children"] }, ["_newAll"]);
+        SelectionGroupComponent(subMenu, { templates: { _new: templateSelectionPlantsChildren }, basePath: "", pathsValue: [], actions: ["_newOne", "_newAll", "_clear"], options: [...MAP_PARAMS["plants"]], isParent: false, updateList: false, classBox: "box", classMenu: ["select-group-list", "children"] }, []);
+        headers && headers.forEach(_header => {
+            templateSelectionPlantsChildren(_header, subMenu);
+        });
         btRemove.appendChild(iconRemove);
         selectionContent.appendChild(name);
         selectionContent.appendChild(selectionProcess);
@@ -2894,7 +2916,7 @@ function FeatureScript(idPanel) {
         list.appendChild(box);
         box.appendChild(subMenu);
     };
-    const templateSelectionPlantsChildren = (actionProcessActive = "", parentForm) => {
+    const templateSelectionPlantsChildren = ({ header, type } = {}, parentForm) => {
         if (!parentForm) {
             return;
         }
@@ -2906,11 +2928,12 @@ function FeatureScript(idPanel) {
         const selectionProcess = document.createElement("select");
         const input = document.createElement("input");
         const iconRemove = createIcon("trash");
+        input.value = header || "";
         MAP_PARAMS["plants"].forEach((_option) => {
             const option = document.createElement("option");
             option.innerHTML = _option.content;
             option.value = _option.action;
-            if (actionProcessActive == _option.action) {
+            if (type == _option.action) {
                 option.selected = true;
             }
             selectionProcess.appendChild(option);

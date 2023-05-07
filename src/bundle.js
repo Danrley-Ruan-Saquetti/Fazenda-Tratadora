@@ -2865,16 +2865,21 @@ function FeatureScript(idPanel) {
             return;
         }
         const nameInput = `Fazenda`;
+        const name = `Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`;
         mainControl.saveFarm(`Teste - Fazenda${nameInput ? ` ${nameInput}` : ``}`);
+        notificationControl.newNotification({ type: "_success", title: "Tratador de Fazenda", body: `Fazenda${name ? ` "${name}"` : ``} salva com sucesso` });
     };
     const clearHistory = () => {
         mainControl.clearHistory();
+        notificationControl.newNotification({ type: "_success", title: "Histórico", body: "Histórico limpado com sucesso" });
     };
     const clearFarm = () => {
         mainControl.clearFarm();
+        notificationControl.newNotification({ type: "_success", title: "Fazenda Tratadora", body: "Fazenda limpada com sucesso" });
     };
     const clearSettings = () => {
         mainControl.clearSettings();
+        notificationControl.newNotification({ type: "_success", title: "Configurações", body: "Configurações resetadas com sucesso" });
     };
     const templateSelectionPlantsParent = ({ name: nameValue, type, headers } = {}) => {
         const box = document.createElement("div");

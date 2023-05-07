@@ -1,14 +1,21 @@
 <form>
     <div button-container>
         <button type="button" action="_confirm" id="process-files-plant"><i class="bi-gear-wide" icon></i><span>Tratar</span></button>
-        <button type="button" action="_new" id="upload-files-plant"><i class="bi-upload" icon></i><span>Upload</span></button>
-        <button type="button" action="_new" id="config-advanced"><i class="bi-gear-wide" icon></i><span>Configurações</span></button>
+        <button type="button" action="_confirm" id="upload-files-plant"><i class="bi-upload" icon></i><span>Upload</span></button>
+        <button type="button" action="_new" id="setting-advanced"><i class="bi-gear-wide" icon></i><span>Configurações</span></button>
         <button type="button" action="_view" id="get-data"><i class="bi-search" icon></i><span>Fazenda</span></button>
         <a action="_new" href="#" id="download-files" class="bt" download><i class="bi-download" icon></i><span>Download</span></a>
         <button type="button" action="_new" id="save-farm"><i class="bi-plus-circle" icon></i><span>Salvar</span></button>
         <button type="button" action="_cancel" id="clear-ls"><i class="bi-x-lg" icon></i><span>Limpar Histórico</span></button>
         <button type="button" action="_cancel" id="clear-farm"><i class="bi-x-lg" icon></i><span>Limpar Fazenda</span></button>
         <button type="button" action="_cancel" id="clear-settings"><i class="bi-x-lg" icon></i><span>Limpar Configurações</span></button>
+    </div>
+
+    <div line="horizontal" line-width="margin"></div>
+
+    <div class="input-group-extra-wrapper">
+        <label>Arquivo de Configuração da Fazenda</label>
+        <input class="input" type="file" name="input-file-setting-advanced">
     </div>
 
     <h2># Tabelas</h2>

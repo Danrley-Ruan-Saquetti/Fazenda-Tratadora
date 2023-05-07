@@ -1,6 +1,7 @@
 [model-window-parent] {
     position: relative;
     &:has([model-window="enabled"]) {
+        @include scroll();
         &:after {
             position: absolute;
             content: '';
@@ -40,7 +41,6 @@
         color: get-text-color($main-color);
         padding-left: 1rem;
         z-index: 20;
-        cursor: move;
         &>* {
             white-space: nowrap;
             color: get-text-color($main-color);

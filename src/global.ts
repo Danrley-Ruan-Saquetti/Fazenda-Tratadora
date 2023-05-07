@@ -1,4 +1,4 @@
-const GLOBAL_TEMPLATE: ISettingsTemplate = {
+const GLOBAL_TEMPLATE: ISettingsForm = {
     "settings": {
         "process": {
             "deadline+D": 1,
@@ -34,30 +34,6 @@ const GLOBAL_TEMPLATE: ISettingsTemplate = {
                 "cep.origin.initial": ""
             }
         },
-        /*
-        plants:
-            code:
-                farm
-                plant.deadline
-                plant.price
-                template.deadline
-                template.price
-                template.rate
-            headers:
-                type:
-                    selection-criteria
-                    selection-criteria.value
-                    cep.initial
-                    cep.final
-                    cep.origin.initial
-                    cep.origin.final
-                    excess
-                    deadline
-                    deadline+D
-                    rate
-                    weight
-                    extra
-        */
         "plants": []
     },
     "process": [

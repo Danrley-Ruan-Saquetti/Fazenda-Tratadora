@@ -32,10 +32,10 @@ function FarmControl(farmRepository: IFarmRepository) {
     }
 
     const uploadFilePlant = ({ code, file, headers, name }: { file: Blob, code: TTableCode, headers: THeader[], name: string }, callback: Function) => {
-        const settings = settingControl.getSettings({ farm: true }).settings.process.converterStringTable
+        const { process: { converterStringTable: { separatorLine, separatorColumn, configSeparatorColumn } } } = settingControl.getSettings({ farm: true }, true).settings || settingControl.getSettings({ storage: true }, true).settings || _.cloneDeep(GLOBAL_SETTINGS)
 
         fileControl.getContentFile(file, result => {
-            const table = tableControl.converterStringForTable({ value: result, separatorLine: settings.separatorLine, separatorColumn: settings.separatorColumn, configSeparatorColumn: settings.configSeparatorColumn })
+            const table = tableControl.converterStringForTable({ value: result, separatorLine, separatorColumn, configSeparatorColumn })
 
             const tableModel = createPlant({ code, headers, table, name })
 

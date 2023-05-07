@@ -100,7 +100,7 @@ function converterJSONToString(str: object): string | null {
     }
 }
 
-function deepEqual(obj1: any, obj2: any) {
+function deepEqual(obj1: any, obj2: any, exclude: string[] = []) {
     const keys1 = Object.keys(obj1)
     const keys2 = Object.keys(obj2)
 
@@ -110,6 +110,8 @@ function deepEqual(obj1: any, obj2: any) {
     keys2.sort()
 
     for (let i = 0; i < keys1.length; i++) {
+        if (exclude.includes(keys1[i])) { continue }
+
         if (keys1[i] != keys2[i]) { return false }
     }
 

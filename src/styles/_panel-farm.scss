@@ -15,7 +15,7 @@
             @include scroll();
         }
     }
-    .form-config-advanced {
+    .form-setting-advanced {
         @include flex(true);
         height: 100%;
         .list-inputs-wrapper {
@@ -26,13 +26,13 @@
                 grid-template-columns: repeat(auto-fill, minmax(25rem, 1fr));
                 grid-auto-rows: min-content;
                 z-index: 30;
-                height: auto;
+                min-height: auto !important;
                 &:first-child {
                     margin-top: 0;
                 }
             }
         }
-        .actions-config-advanced {
+        .actions-setting-advanced {
             @include border("top");
             z-index: 120;
             background-color: $bg-neutro;

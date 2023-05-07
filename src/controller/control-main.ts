@@ -9,7 +9,7 @@ function MainControl() {
         console.log(`Panel=${id}`)
         console.log({ farm: farmControl.getData() })
         console.log(historyTableControl.getHistory())
-        console.log(settingControl.getSettings({ farm: true }).settings ? settingControl.getSettings({ farm: true }) : settingControl.getSettings({ global: true }))
+        console.log(settingControl.getSettings({ farm: true }, true).settings ? settingControl.getSettings({ farm: true }, true) : settingControl.getSettings({ global: true }))
         console.log("")
 
         return farmControl.getData()
@@ -90,13 +90,13 @@ function MainControl() {
     }
 
     // Table
-    const setupFarm = ({ plants, settings, process: processSelection }: { plants: { code: TTableCode, file: Blob, headers: THeader[], name: string }[], settings: ISettingsGeneral, process: TFarmProcessTypeSelection[] }, callback?: Function) => {
+    const setupFarm = ({ settings, process: processSelection }: { settings: ISettingsGeneral, process: TFarmProcessTypeSelection[] }, callback?: Function) => {
         const process = processSelection.map(_process => { return { type: _process, logs: [] } })
 
         farmControl.updateSetting({ settings })
         farmControl.setupProcess({ process })
 
-        uploadFilesPlants({ plants }, callback)
+        uploadFilesPlants({ plants: settings.plants }, callback)
     }
 
     const processFarm = () => {
@@ -112,7 +112,7 @@ function MainControl() {
 
         const farm = processRepoTable({
             modelTables: plants,
-            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
+            settings: settingControl.getSettings({ farm: true }, true).settings || settingControl.getSettings({ storage: true }, true).settings || settingControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS),
             process: farmControl.getProcess()
         })
 
@@ -160,6 +160,10 @@ function MainControl() {
         settingControl.updateSettings(GLOBAL_SETTINGS)
     }
 
+    const getSettings = (where?: { storage?: Boolean, farm?: Boolean, global?: Boolean }, onlyWhere?: boolean) => {
+        return settingControl.getSettings(where, onlyWhere)
+    }
+
     return {
         getData,
         uploadFilesPlants,
@@ -177,5 +181,6 @@ function MainControl() {
         clearSettings,
         prepareForDownload,
         setupFarm,
+        getSettings,
     }
 }

@@ -7,6 +7,6 @@ function PreloadPanel(panel: HTMLElement) {
     forms.forEach(_form => _form.addEventListener("submit", ev => ev.preventDefault()))
     models.forEach(_model => {
         const header = _model.querySelector(".model-header") as HTMLElement
-        modelWindow.setupMoveModel(header, _model)
+        modelWindow.activeMoveModel(header, _model)
     })
 }

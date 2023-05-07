@@ -1,5 +1,5 @@
-.flex-column, [panel=farm] .form-config-advanced,
-[panel=feature] .form-config-advanced, form .inputs-wrapper,
+.flex-column, [panel=farm] .form-setting-advanced,
+[panel=feature] .form-setting-advanced, form .inputs-wrapper,
 .form .inputs-wrapper, form .select-group-list .box,
 .form .select-group-list .box, [panel], .panel, [list-type=vertical], body {
   flex-direction: column;
@@ -108,6 +108,9 @@ body > * {
 [model-window-parent] {
   position: relative;
 }
+[model-window-parent]:has([model-window=enabled]) {
+  overflow: hidden;
+}
 [model-window-parent]:has([model-window=enabled]):after {
   position: absolute;
   content: "";
@@ -146,7 +149,6 @@ body > * {
   color: white;
   padding-left: 1rem;
   z-index: 20;
-  cursor: move;
 }
 [model-window] .model-header > * {
   white-space: nowrap;
@@ -443,7 +445,7 @@ button[action=_view]:active,
 
 [panel] button,
 [panel] .bt {
-  padding: 0.4rem 1.2rem;
+  padding: 0.8rem 1.2rem;
 }
 [panel] button [icon],
 [panel] .bt [icon] {
@@ -712,30 +714,30 @@ form .inputs-wrapper .input-group .field-input,
 [panel=feature] [model-window] [model-body] {
   overflow: hidden;
 }
-[panel=farm] .form-config-advanced,
-[panel=feature] .form-config-advanced {
+[panel=farm] .form-setting-advanced,
+[panel=feature] .form-setting-advanced {
   display: flex;
   height: 100%;
 }
-[panel=farm] .form-config-advanced .list-inputs-wrapper,
-[panel=feature] .form-config-advanced .list-inputs-wrapper {
+[panel=farm] .form-setting-advanced .list-inputs-wrapper,
+[panel=feature] .form-setting-advanced .list-inputs-wrapper {
   padding: 2rem;
   height: 100%;
 }
-[panel=farm] .form-config-advanced .list-inputs-wrapper .inputs-wrapper,
-[panel=feature] .form-config-advanced .list-inputs-wrapper .inputs-wrapper {
+[panel=farm] .form-setting-advanced .list-inputs-wrapper .inputs-wrapper,
+[panel=feature] .form-setting-advanced .list-inputs-wrapper .inputs-wrapper {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(25rem, 1fr));
   grid-auto-rows: min-content;
   z-index: 30;
-  height: auto;
+  min-height: auto !important;
 }
-[panel=farm] .form-config-advanced .list-inputs-wrapper .inputs-wrapper:first-child,
-[panel=feature] .form-config-advanced .list-inputs-wrapper .inputs-wrapper:first-child {
+[panel=farm] .form-setting-advanced .list-inputs-wrapper .inputs-wrapper:first-child,
+[panel=feature] .form-setting-advanced .list-inputs-wrapper .inputs-wrapper:first-child {
   margin-top: 0;
 }
-[panel=farm] .form-config-advanced .actions-config-advanced,
-[panel=feature] .form-config-advanced .actions-config-advanced {
+[panel=farm] .form-setting-advanced .actions-setting-advanced,
+[panel=feature] .form-setting-advanced .actions-setting-advanced {
   border-top: 1px solid #b6b6b6;
   z-index: 120;
   background-color: #fff;

@@ -76,4 +76,4 @@ interface ISettingsGeneral extends ISettingsProcessConfig, ISettingsTableTemplat
 interface ISettingsAdvanced extends ISettingsProcessConfig, ISettingsTableTemplate { }
 interface ISettingsFarm extends ISettingsGeneral { isActive?: Boolean }
 interface ISettingsTemplate extends ISettingsProcess { settings: ISettingsGeneral }
-interface ISettingsForm extends ISettingsProcess, ISettingsPlantTemplate { settings: ISettingsGeneral }
+interface ISettingsForm extends ISettingsProcess { settings: ISettingsProcessConfig & ISettingsTableTemplate & ISettingsPlantTemplate }

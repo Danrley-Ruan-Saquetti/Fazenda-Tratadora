@@ -6,7 +6,7 @@ function Setup() {
         historyTableControl.setup([...GLOBAL_HISTORY])
     }
 
-    if (!settingControl.getSettings({ storage: true })) {
+    if (!settingControl.getSettings({ storage: true }, true).settings) {
         settingControl.updateSettings(GLOBAL_SETTINGS)
     }
 }

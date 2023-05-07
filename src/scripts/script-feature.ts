@@ -14,7 +14,7 @@ function FeatureScript(idPanel: string) {
         btUpload: panel.querySelector("#upload-files-plant") as HTMLElement,
     }
 
-    const dataPlants: ISettingsPlant & { process: TFarmProcessTypeSelection[], settings: ISettingsGeneral } = { plants: [], process: [], settings: _.cloneDeep(GLOBAL_SETTINGS) }
+    const dataPlants: { process: TFarmProcessTypeSelection[], settings: ISettingsGeneral } = { process: [], settings: mainControl.getSettings({ storage: true }).settings || mainControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS) }
 
     const MAP_PARAMS = {
         process: { "create-farm": [], "insert-values": [], "deadline+D": [], "contained-cep": [], procv: [], template: [], rate: [] },
@@ -60,12 +60,21 @@ function FeatureScript(idPanel: string) {
         panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm)
         panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings)
         panel.querySelector("#process-files-plant")?.addEventListener("click", updateFilesPlant)
-        panel.querySelector("#config-advanced")?.addEventListener("click", openModelConfigAdvanced)
-        panel.querySelector("#upload-files-plant")?.addEventListener("click", () => uploadPlants(getListPlants(), getListProcess()))
+        panel.querySelector("#setting-advanced")?.addEventListener("click", openModelConfigAdvanced)
+        panel.querySelector("#upload-files-plant")?.addEventListener("click", () => {
+            uploadPlants(getListPlants(), getListProcess())
+            const input = panel.querySelector('input[name="input-file-setting-advanced"]') as HTMLInputElement
+
+            const file = input.files ? input.files[0] : null
+
+            if (!file) { return }
+
+            uploadSettings(file)
+        })
     }
 
     const uploadPlants = (plants: IFormResult, process: IFormResult) => {
-        dataPlants.plants.splice(0, dataPlants.plants.length)
+        dataPlants.settings.plants.splice(0, dataPlants.settings.plants.length)
         dataPlants.process.splice(0, dataPlants.process.length)
 
         plants.map((_plants) => {
@@ -90,7 +99,7 @@ function FeatureScript(idPanel: string) {
                 })
             })
 
-            dataPlants.plants.push(plant)
+            dataPlants.settings.plants.push(plant)
         })
 
         process.forEach(_process => {
@@ -105,98 +114,190 @@ function FeatureScript(idPanel: string) {
     }
 
     const openModelConfigAdvanced = () => {
-        const model = modelWindow.createModel(configAdvanced(), "Configurações Avançadas")
+        const form = getContentConfigAdvanced()
+
+        const model = modelWindow.createModel(form, "Configurações Avançadas", false)
+
+        const btCancelConfig = form.querySelector('button[name="cancel-setting-advanced"]') as HTMLElement
+        const btSaveConfig = form.querySelector('button[name="save-setting-advanced"]') as HTMLElement
+        const btResetConfig = form.querySelector('button[name="reset-setting-advanced"]') as HTMLElement
+
+        btResetConfig?.addEventListener("click", () => {
+            resetConfigAdvanced()
+            model.remove()
+        })
+        btCancelConfig?.addEventListener("click", () => model.remove())
+        btSaveConfig?.addEventListener("click", () => {
+            saveConfigAdvanced(form)
+            model.remove()
+        })
 
         panel.appendChild(model)
     }
 
-    const configAdvanced = () => {
-        const FORM_CONTENT_HTML = `<div class="list-inputs-wrapper" list-content>
-            <div class="inputs-wrapper" list-type="vertical">
-                <div class="input-group">
-                    <input class="input" required="required" type="number" min="0" name="input-d+1">
-                    <label>D+1</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-criteria.selection.join">
-                    <label>Junção de Critério de Seleção</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-cep.origin.initial">
-                    <label>Nome do Cabeçalho: Inicio Origem</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.cep.origin.final">
-                    <label>Nome do Cabeçalho: Fim Origem</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.cep.initial">
-                    <label>Nome do Cabeçalho: Inicio Destino</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.cep.final">
-                    <label>Nome do Cabeçalho: Fim Destino</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.deadline+D">
-                    <label>Nome do Cabeçalho: Dias</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.excess">
-                    <label>Nome do Cabeçalho: Excedente</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.final">
-                    <label>Valor do CEP de Inicio Origem</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.initial">
-                    <label>Valor do CEP de Fim Origem</label>
-                    <i class="field-input"></i>
-                </div>
+    const getContentConfigAdvanced = () => {
+        const FORM_CONTENT_HTML = `<div class="list-inputs-wrapper" list-content="">
+        <h2># Processos</h2>
+
+        <div class="inputs-wrapper" list-type="vertical">
+            <div class="input-group">
+                <input class="input" required="required" type="number" min="0" path-origin="process/deadline+D" name="input-d+1">
+                <label>D+1</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="process/criteria.selection/join" name="input-.join">
+                <label>Junção de Critério de Seleção</label>
+                <i class="field-input"></i>
             </div>
         </div>
-        <div button-container="end" class="actions-config-advanced">
-            <button type="button" action="_cancel" id="cancel-config-advanced"><i class="bi-x-lg" icon></i><span>Cancelar</span></button>
-            <button type="button" action="_new" id="save-config-advanced"><i class="bi-plus-circle" icon></i><span>Salvar</span></button>
-        </div>`
+
+        <div line="horizontal" line-width="margin"></div>
+        <h2># Nome dos Cabeçalhos</h2>
+
+        <div class="inputs-wrapper" list-type="vertical">
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.origin.initial" name="input-headerName-cep.origin.initial">
+                <label>Inicio Origem</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.origin.final" name="input-headerName-cep.origin.final">
+                <label>Fim Origem</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.initial" name="input-cep.initial">
+                <label>Inicio Destino</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.final" name="input-cep.final">
+                <label>Fim Destino</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/deadline+D" name="input-deadline+D">
+                <label>Dias</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/excess" name="input-excess">
+                <label>Excedente</label>
+                <i class="field-input"></i>
+            </div>
+        </div>
+
+        <div line="horizontal" line-width="margin"></div>
+        <h2># Valores do Template</h2>
+
+        <div class="inputs-wrapper" list-type="vertical">
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/cepOriginValue/cep.origin.initial" name="input-cepOriginValue-cep.origin.final">
+                <label>CEP de Inicio Origem (Preço/Prazo)</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/cepOriginValue/cep.origin.final" name="input-cepOriginValue-cep.origin.initial">
+                <label>CEP de Fim Origem (Preço/Prazo)</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/rateValue/cep.origin.initial" name="input-rateValue-cep.origin.final">
+                <label>CEP de Inicio Origem (Taxa)</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/rateValue/cep.origin.final" name="input-rateValue-cep.origin.initial">
+                <label>CEP de Fim Origem (Taxa)</label>
+                <i class="field-input"></i>
+            </div>
+        </div>
+    </div>
+    <div button-container="end" class="actions-setting-advanced">
+        <button type="button" action="_confirm" id="cancel-setting-advanced" name="reset-setting-advanced"><i class="bi-arrow-clockwise" icon=""></i><span>Resetar</span></button>
+        <button type="button" action="_cancel" id="cancel-setting-advanced" name="cancel-setting-advanced"><i class="bi-x-lg" icon=""></i><span>Cancelar</span></button>
+        <button type="button" action="_confirm" id="save-setting-advanced" name="save-setting-advanced"><i class="bi-check-lg" icon=""></i><span>Salvar</span></button>
+    </div>`
+
         const form = document.createElement("form")
 
         form.innerHTML = FORM_CONTENT_HTML
 
-        form.classList.add("form-config-advanced")
+        form.classList.add("form-setting-advanced")
+
+        loadValuesConfigAdvanced(form)
 
         return form
     }
 
-    // const uploadSettings = () => {
-    //     const fileSettingsInput = ELEMENTS_FORM.fileSettings?.files ? ELEMENTS_FORM.fileSettings?.files[0] : null
+    const saveConfigAdvanced = (form: HTMLElement) => {
+        const inputs = form.querySelectorAll("input") as NodeListOf<HTMLInputElement>
 
-    //     if (!fileSettingsInput) { return }
+        inputs.forEach(_input => {
+            const path = _input.getAttribute("path-origin") || ""
+            const valueInput = _input.value || ""
 
-    //     const fileSettings = mainControl.createFile({ content: [fileSettingsInput], type: fileSettingsInput.type })
+            if (!path) { return }
 
-    //     mainControl.getContentFile(fileSettings, (result) => {
-    //         const contentSettings = converterStringToJSON<ISettingsTemplate>(result, ["separatorLine"])
+            const paths = path.split("/")
 
-    //         if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE)) {
-    //             return console.log("Template incorrect")
-    //         }
+            let value: any = dataPlants.settings
 
-    //         Object.assign(PARAMS, contentSettings)
+            for (let i = 0; i < paths.length - 1; i++) {
+                if (!(paths[i] in value)) {
+                    value[paths[i]] = {}
+                }
+                value = value[paths[i]] ? value[paths[i]] : value
+            }
 
-    //         loadForm()
-    //     })
-    // }
+            Object.defineProperty(value, paths[paths.length - 1], { value: valueInput });
+        })
+
+        notificationControl.newNotification({ title: "Configurações Avançadas", body: "Configurações salvas com sucesso", type: "_success" })
+    }
+
+    const loadValuesConfigAdvanced = (form: HTMLElement) => {
+        const inputs = form.querySelectorAll("input") as NodeListOf<HTMLInputElement>
+
+        inputs.forEach(_input => {
+            const path = _input.getAttribute("path-origin") || ""
+
+            if (!path) { return }
+
+            let value: any = dataPlants.settings
+
+            const paths = path.split("/")
+
+            paths.forEach(_path => {
+                value = value[_path]
+            })
+
+            _input.value = value
+        })
+    }
+
+    const resetConfigAdvanced = () => {
+        dataPlants.settings = mainControl.getSettings({ storage: true }).settings || mainControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS)
+
+        notificationControl.newNotification({ title: "Configurações Avançadas", body: "Configurações resetadas", type: "_success" })
+    }
+
+    const uploadSettings = (file: File) => {
+        const fileSettings = mainControl.createFile({ content: [file], type: file.type })
+
+        mainControl.getContentFile(fileSettings, (result) => {
+            const contentSettings = converterStringToJSON<ISettingsForm>(result, ["separatorLine"])
+
+            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE, ["process", "plants"])) {
+                return notificationControl.newNotification({ title: "Upload de Configurações", body: "Template de configurações incorreto", type: "_error" })
+            }
+
+            Object.assign(dataPlants, contentSettings)
+
+            notificationControl.newNotification({ title: "Upload de Configurações", body: "Configurações importadas com sucesso", type: "_success" })
+        })
+    }
 
     const updateFilesPlant = () => {
         mainControl.setupFarm(dataPlants, () => {

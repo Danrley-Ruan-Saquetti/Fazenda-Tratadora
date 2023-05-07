@@ -394,7 +394,7 @@ function converterJSONToString(str) {
         return null;
     }
 }
-function deepEqual(obj1, obj2) {
+function deepEqual(obj1, obj2, exclude = []) {
     const keys1 = Object.keys(obj1);
     const keys2 = Object.keys(obj2);
     if (keys1.length !== keys2.length) {
@@ -403,6 +403,9 @@ function deepEqual(obj1, obj2) {
     keys1.sort();
     keys2.sort();
     for (let i = 0; i < keys1.length; i++) {
+        if (exclude.includes(keys1[i])) {
+            continue;
+        }
         if (keys1[i] != keys2[i]) {
             return false;
         }
@@ -653,6 +656,180 @@ function SelectionGroupComponent(form, props, pre) {
         getData,
     };
 }
+function NotificationControl(listNotificationEl) {
+    const MAP_TYPES_NOTIFICATIONS = {
+        "_success": {
+            icon: "check-lg"
+        },
+        "_error": {
+            icon: "dash-circle"
+        },
+        "_warning": {
+            icon: "exclamation-circle"
+        },
+        "_info": {
+            icon: "info-lg"
+        },
+        "_extra": {
+            icon: "stars"
+        },
+    };
+    function createNotification({ body, title, type }) {
+        const notificationContent = document.createElement("div");
+        const notification = document.createElement("div");
+        const contentEl = document.createElement("div");
+        const titleEl = document.createElement("span");
+        const bodyEl = document.createElement("span");
+        const actionEl = document.createElement("div");
+        const icon = createIcon(MAP_TYPES_NOTIFICATIONS[type].icon);
+        const loading = document.createElement("i");
+        contentEl.classList.add("content");
+        notificationContent.classList.add("notification-content");
+        notification.classList.add("notification");
+        actionEl.classList.add("status");
+        actionEl.setAttribute("action", type);
+        loading.classList.add("timer");
+        titleEl.classList.add("title");
+        bodyEl.classList.add("body");
+        titleEl.innerHTML = title;
+        bodyEl.innerHTML = body;
+        actionEl.appendChild(icon);
+        contentEl.appendChild(titleEl);
+        contentEl.appendChild(bodyEl);
+        notification.appendChild(loading);
+        notification.appendChild(actionEl);
+        notification.appendChild(contentEl);
+        notificationContent.appendChild(notification);
+        listNotificationEl.appendChild(notificationContent);
+        const max = 1000 * 3;
+        const update = 10;
+        let cont = 0;
+        let stopCont = false;
+        let timerCont;
+        notification.onmouseover = () => {
+            stopCont = true;
+        };
+        notification.onmouseout = () => {
+            stopCont = false;
+        };
+        notification.onclick = () => {
+            clearInterval(timerCont);
+            removeNotification(notificationContent);
+        };
+        timerCont = setInterval(() => {
+            if (stopCont) {
+                return;
+            }
+            if (cont >= max) {
+                clearInterval(timerCont);
+                removeNotification(notificationContent);
+            }
+            cont += update;
+            let perc = Math.round((cont * 100) / max);
+            loading.style.width = perc + "%";
+        }, update);
+    }
+    function removeNotification(notification) {
+        notification.classList.add("hidden");
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }
+    const createIcon = (name, type = "bi") => {
+        const iconEl = document.createElement("i");
+        iconEl.classList.add(`${type}-${name}`);
+        iconEl.setAttribute("icon", "");
+        return iconEl;
+    };
+    const newNotification = (props) => {
+        createNotification(props);
+    };
+    return {
+        newNotification
+    };
+}
+function ModelWindowComponent() {
+    const createModel = (children, title = "", move = true) => {
+        const model = document.createElement("div");
+        const modelBody = document.createElement("div");
+        model.setAttribute("model-window", "enabled");
+        modelBody.setAttribute("model-body", "");
+        setupModel(model, title, move);
+        modelBody.appendChild(children);
+        model.appendChild(modelBody);
+        model.style.width = "80%";
+        model.style.height = "450px";
+        model.style.top = "20px";
+        model.style.left = "50%";
+        model.style.transform = "translateX(-50%)";
+        return model;
+    };
+    const setupModel = (model, title, move = true) => {
+        const headerModel = document.createElement("div");
+        const titleEl = document.createElement("span");
+        const btClose = document.createElement("button");
+        titleEl.innerHTML = title;
+        headerModel.classList.add("model-header");
+        btClose.onclick = () => closeModel(model);
+        btClose.appendChild(createIcon("x-lg"));
+        headerModel.appendChild(titleEl);
+        headerModel.appendChild(btClose);
+        model.appendChild(headerModel);
+        move && activeMoveModel(headerModel, model);
+        openModel(model);
+    };
+    const activeMoveModel = (header, model) => {
+        let mouseX, mouseY, elementX, elementY;
+        let isPressed = false;
+        const move = (ev) => {
+            if (!isPressed) {
+                return;
+            }
+            const parent = model.parentElement;
+            const deltaX = ev.clientX - mouseX;
+            const deltaY = ev.clientY - mouseY;
+            const newElementX = elementX + deltaX;
+            const newElementY = elementY + deltaY;
+            const width = model.clientWidth;
+            const height = model.clientHeight;
+            const x = newElementX <= 0 ? 0 : parent ? newElementX + width >= parent.clientWidth ? parent.clientWidth - width : newElementX : newElementX;
+            const y = newElementY <= 0 ? 0 : parent ? newElementY + height >= parent.clientHeight ? parent.clientHeight - height : newElementY : newElementY;
+            model.style.left = x + "px";
+            model.style.top = y + "px";
+            model.style.transform = "none";
+        };
+        header.addEventListener("mousedown", (ev) => {
+            ev.preventDefault();
+            if (model.getAttribute("model-window") != "enabled") {
+                return;
+            }
+            mouseX = ev.clientX;
+            mouseY = ev.clientY;
+            elementX = model.offsetLeft;
+            elementY = model.offsetTop;
+            isPressed = true;
+        });
+        window.addEventListener("mouseup", () => {
+            isPressed = false;
+        });
+        window.addEventListener("mousemove", move);
+        header.style.cursor = "move";
+    };
+    const openModel = (model) => {
+        model.setAttribute("model-window", "enabled");
+        const headerModel = model.querySelector(".header");
+        if (!headerModel) {
+            return;
+        }
+    };
+    const closeModel = (model) => {
+        model.remove();
+    };
+    return {
+        createModel,
+        activeMoveModel
+    };
+}
 function FarmRepository() {
     const data = {
         tables: [], id: null, settings: _.cloneDeep({ ...GLOBAL_SETTINGS_RESET, isActive: false }),
@@ -791,9 +968,9 @@ function FarmControl(farmRepository) {
         plants.forEach(plant => uploadFilePlant(plant, updateContFiles));
     };
     const uploadFilePlant = ({ code, file, headers, name }, callback) => {
-        const settings = settingControl.getSettings({ farm: true }).settings.process.converterStringTable;
+        const { process: { converterStringTable: { separatorLine, separatorColumn, configSeparatorColumn } } } = settingControl.getSettings({ farm: true }, true).settings || settingControl.getSettings({ storage: true }, true).settings || _.cloneDeep(GLOBAL_SETTINGS);
         fileControl.getContentFile(file, result => {
-            const table = tableControl.converterStringForTable({ value: result, separatorLine: settings.separatorLine, separatorColumn: settings.separatorColumn, configSeparatorColumn: settings.configSeparatorColumn });
+            const table = tableControl.converterStringForTable({ value: result, separatorLine, separatorColumn, configSeparatorColumn });
             const tableModel = createPlant({ code, headers, table, name });
             addTable({ tableModel });
             callback();
@@ -1513,12 +1690,20 @@ function SettingControl(farmRepository) {
     const clearSettings = () => {
         controlDB.removeItem(KEY);
     };
-    const getSettings = (where = { farm: false, storage: false, global: false }) => {
-        if (where.storage)
-            return { settings: controlDB.getItem(KEY, ["separatorLine"]) || GLOBAL_SETTINGS };
+    const getSettings = (where = { farm: false, storage: false, global: false }, onlyWhere = false) => {
+        if (where.storage) {
+            const settings = controlDB.getItem(KEY, ["separatorLine"]);
+            if (onlyWhere) {
+                return { settings };
+            }
+            return { settings: settings || _.cloneDeep(GLOBAL_SETTINGS) };
+        }
         if (where.farm) {
             const set = _.cloneDeep(farmRepository.getSettings());
-            return { settings: set.isActive ? set : GLOBAL_SETTINGS };
+            if (onlyWhere) {
+                return { settings: set.isActive ? set : null };
+            }
+            return { settings: set.isActive ? set : _.cloneDeep(GLOBAL_SETTINGS) };
         }
         if (where.global)
             return { settings: _.cloneDeep(GLOBAL_SETTINGS) };
@@ -2011,7 +2196,7 @@ function MainControl() {
         console.log(`Panel=${id}`);
         console.log({ farm: farmControl.getData() });
         console.log(historyTableControl.getHistory());
-        console.log(settingControl.getSettings({ farm: true }).settings ? settingControl.getSettings({ farm: true }) : settingControl.getSettings({ global: true }));
+        console.log(settingControl.getSettings({ farm: true }, true).settings ? settingControl.getSettings({ farm: true }, true) : settingControl.getSettings({ global: true }));
         console.log("");
         return farmControl.getData();
     };
@@ -2067,11 +2252,11 @@ function MainControl() {
             tagDownload.setAttribute("download", `Fazenda - ${name ? `${name} ` : ``}${zipName}`);
         });
     };
-    const setupFarm = ({ plants, settings, process: processSelection }, callback) => {
+    const setupFarm = ({ settings, process: processSelection }, callback) => {
         const process = processSelection.map(_process => { return { type: _process, logs: [] }; });
         farmControl.updateSetting({ settings });
         farmControl.setupProcess({ process });
-        uploadFilesPlants({ plants }, callback);
+        uploadFilesPlants({ plants: settings.plants }, callback);
     };
     const processFarm = () => {
         const plantDeadline = _.cloneDeep(farmControl.getTable({ code: "plant.deadline" })[0]);
@@ -2083,7 +2268,7 @@ function MainControl() {
         plantFarm && plants.push(plantFarm);
         const farm = processRepoTable({
             modelTables: plants,
-            settings: settingControl.getSettings({ farm: true }).settings || settingControl.getSettings().settings || GLOBAL_SETTINGS,
+            settings: settingControl.getSettings({ farm: true }, true).settings || settingControl.getSettings({ storage: true }, true).settings || settingControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS),
             process: farmControl.getProcess()
         });
         console.log("$Finish");
@@ -2119,6 +2304,9 @@ function MainControl() {
         settingControl.clearSettings();
         settingControl.updateSettings(GLOBAL_SETTINGS);
     };
+    const getSettings = (where, onlyWhere) => {
+        return settingControl.getSettings(where, onlyWhere);
+    };
     return {
         getData,
         uploadFilesPlants,
@@ -2136,6 +2324,7 @@ function MainControl() {
         clearSettings,
         prepareForDownload,
         setupFarm,
+        getSettings,
     };
 }
 function RenderControl() {
@@ -2403,7 +2592,7 @@ function FeatureScript(idPanel) {
         selectGroupProcess: panel.querySelector(".select-group.process"),
         btUpload: panel.querySelector("#upload-files-plant"),
     };
-    const dataPlants = { plants: [], process: [], settings: _.cloneDeep(GLOBAL_SETTINGS) };
+    const dataPlants = { process: [], settings: mainControl.getSettings({ storage: true }).settings || mainControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS) };
     const MAP_PARAMS = {
         process: { "create-farm": [], "insert-values": [], "deadline+D": [], "contained-cep": [], procv: [], template: [], rate: [] },
         plants: [
@@ -2443,11 +2632,19 @@ function FeatureScript(idPanel) {
         panel.querySelector("#clear-farm")?.addEventListener("click", clearFarm);
         panel.querySelector("#clear-settings")?.addEventListener("click", clearSettings);
         panel.querySelector("#process-files-plant")?.addEventListener("click", updateFilesPlant);
-        panel.querySelector("#config-advanced")?.addEventListener("click", openModelConfigAdvanced);
-        panel.querySelector("#upload-files-plant")?.addEventListener("click", () => uploadPlants(getListPlants(), getListProcess()));
+        panel.querySelector("#setting-advanced")?.addEventListener("click", openModelConfigAdvanced);
+        panel.querySelector("#upload-files-plant")?.addEventListener("click", () => {
+            uploadPlants(getListPlants(), getListProcess());
+            const input = panel.querySelector('input[name="input-file-setting-advanced"]');
+            const file = input.files ? input.files[0] : null;
+            if (!file) {
+                return;
+            }
+            uploadSettings(file);
+        });
     };
     const uploadPlants = (plants, process) => {
-        dataPlants.plants.splice(0, dataPlants.plants.length);
+        dataPlants.settings.plants.splice(0, dataPlants.settings.plants.length);
         dataPlants.process.splice(0, dataPlants.process.length);
         plants.map((_plants) => {
             const plant = { code: "", file: new Blob([], { type: "text/plain" }), headers: [], name: "" };
@@ -2465,7 +2662,7 @@ function FeatureScript(idPanel) {
                     plant.headers.push(header);
                 });
             });
-            dataPlants.plants.push(plant);
+            dataPlants.settings.plants.push(plant);
         });
         process.forEach(_process => {
             _process.forEach(_pro => {
@@ -2478,72 +2675,161 @@ function FeatureScript(idPanel) {
         });
     };
     const openModelConfigAdvanced = () => {
-        const model = modelWindow.createModel(configAdvanced(), "Configurações Avançadas");
+        const form = getContentConfigAdvanced();
+        const model = modelWindow.createModel(form, "Configurações Avançadas", false);
+        const btCancelConfig = form.querySelector('button[name="cancel-setting-advanced"]');
+        const btSaveConfig = form.querySelector('button[name="save-setting-advanced"]');
+        const btResetConfig = form.querySelector('button[name="reset-setting-advanced"]');
+        btResetConfig?.addEventListener("click", () => {
+            resetConfigAdvanced();
+            model.remove();
+        });
+        btCancelConfig?.addEventListener("click", () => model.remove());
+        btSaveConfig?.addEventListener("click", () => {
+            saveConfigAdvanced(form);
+            model.remove();
+        });
         panel.appendChild(model);
     };
-    const configAdvanced = () => {
-        const FORM_CONTENT_HTML = `<div class="list-inputs-wrapper" list-content>
-            <div class="inputs-wrapper" list-type="vertical">
-                <div class="input-group">
-                    <input class="input" required="required" type="number" min="0" name="input-d+1">
-                    <label>D+1</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-criteria.selection.join">
-                    <label>Junção de Critério de Seleção</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-cep.origin.initial">
-                    <label>Nome do Cabeçalho: Inicio Origem</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.cep.origin.final">
-                    <label>Nome do Cabeçalho: Fim Origem</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.cep.initial">
-                    <label>Nome do Cabeçalho: Inicio Destino</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.cep.final">
-                    <label>Nome do Cabeçalho: Fim Destino</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.deadline+D">
-                    <label>Nome do Cabeçalho: Dias</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-headerName.excess">
-                    <label>Nome do Cabeçalho: Excedente</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.final">
-                    <label>Valor do CEP de Inicio Origem</label>
-                    <i class="field-input"></i>
-                </div>
-                <div class="input-group">
-                    <input class="input" required="required" type="text" name="input-cepOriginValue.cep.origin.initial">
-                    <label>Valor do CEP de Fim Origem</label>
-                    <i class="field-input"></i>
-                </div>
+    const getContentConfigAdvanced = () => {
+        const FORM_CONTENT_HTML = `<div class="list-inputs-wrapper" list-content="">
+        <h2># Processos</h2>
+
+        <div class="inputs-wrapper" list-type="vertical">
+            <div class="input-group">
+                <input class="input" required="required" type="number" min="0" path-origin="process/deadline+D" name="input-d+1">
+                <label>D+1</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="process/criteria.selection/join" name="input-.join">
+                <label>Junção de Critério de Seleção</label>
+                <i class="field-input"></i>
             </div>
         </div>
-        <div button-container="end" class="actions-config-advanced">
-            <button type="button" action="_cancel" id="cancel-config-advanced"><i class="bi-x-lg" icon></i><span>Cancelar</span></button>
-            <button type="button" action="_new" id="save-config-advanced"><i class="bi-plus-circle" icon></i><span>Salvar</span></button>
-        </div>`;
+
+        <div line="horizontal" line-width="margin"></div>
+        <h2># Nome dos Cabeçalhos</h2>
+
+        <div class="inputs-wrapper" list-type="vertical">
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.origin.initial" name="input-headerName-cep.origin.initial">
+                <label>Inicio Origem</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.origin.final" name="input-headerName-cep.origin.final">
+                <label>Fim Origem</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.initial" name="input-cep.initial">
+                <label>Inicio Destino</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/cep.final" name="input-cep.final">
+                <label>Fim Destino</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/deadline+D" name="input-deadline+D">
+                <label>Dias</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/headerName/excess" name="input-excess">
+                <label>Excedente</label>
+                <i class="field-input"></i>
+            </div>
+        </div>
+
+        <div line="horizontal" line-width="margin"></div>
+        <h2># Valores do Template</h2>
+
+        <div class="inputs-wrapper" list-type="vertical">
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/cepOriginValue/cep.origin.initial" name="input-cepOriginValue-cep.origin.final">
+                <label>CEP de Inicio Origem (Preço/Prazo)</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/cepOriginValue/cep.origin.final" name="input-cepOriginValue-cep.origin.initial">
+                <label>CEP de Fim Origem (Preço/Prazo)</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/rateValue/cep.origin.initial" name="input-rateValue-cep.origin.final">
+                <label>CEP de Inicio Origem (Taxa)</label>
+                <i class="field-input"></i>
+            </div>
+            <div class="input-group">
+                <input class="input" required="required" type="text" path-origin="template/rateValue/cep.origin.final" name="input-rateValue-cep.origin.initial">
+                <label>CEP de Fim Origem (Taxa)</label>
+                <i class="field-input"></i>
+            </div>
+        </div>
+    </div>
+    <div button-container="end" class="actions-setting-advanced">
+        <button type="button" action="_confirm" id="cancel-setting-advanced" name="reset-setting-advanced"><i class="bi-arrow-clockwise" icon=""></i><span>Resetar</span></button>
+        <button type="button" action="_cancel" id="cancel-setting-advanced" name="cancel-setting-advanced"><i class="bi-x-lg" icon=""></i><span>Cancelar</span></button>
+        <button type="button" action="_confirm" id="save-setting-advanced" name="save-setting-advanced"><i class="bi-check-lg" icon=""></i><span>Salvar</span></button>
+    </div>`;
         const form = document.createElement("form");
         form.innerHTML = FORM_CONTENT_HTML;
-        form.classList.add("form-config-advanced");
+        form.classList.add("form-setting-advanced");
+        loadValuesConfigAdvanced(form);
         return form;
+    };
+    const saveConfigAdvanced = (form) => {
+        const inputs = form.querySelectorAll("input");
+        inputs.forEach(_input => {
+            const path = _input.getAttribute("path-origin") || "";
+            const valueInput = _input.value || "";
+            if (!path) {
+                return;
+            }
+            const paths = path.split("/");
+            let value = dataPlants.settings;
+            for (let i = 0; i < paths.length - 1; i++) {
+                if (!(paths[i] in value)) {
+                    value[paths[i]] = {};
+                }
+                value = value[paths[i]] ? value[paths[i]] : value;
+            }
+            Object.defineProperty(value, paths[paths.length - 1], { value: valueInput });
+        });
+        notificationControl.newNotification({ title: "Configurações Avançadas", body: "Configurações salvas com sucesso", type: "_success" });
+    };
+    const loadValuesConfigAdvanced = (form) => {
+        const inputs = form.querySelectorAll("input");
+        inputs.forEach(_input => {
+            const path = _input.getAttribute("path-origin") || "";
+            if (!path) {
+                return;
+            }
+            let value = dataPlants.settings;
+            const paths = path.split("/");
+            paths.forEach(_path => {
+                value = value[_path];
+            });
+            _input.value = value;
+        });
+    };
+    const resetConfigAdvanced = () => {
+        dataPlants.settings = mainControl.getSettings({ storage: true }).settings || mainControl.getSettings().settings || _.cloneDeep(GLOBAL_SETTINGS);
+        notificationControl.newNotification({ title: "Configurações Avançadas", body: "Configurações resetadas", type: "_success" });
+    };
+    const uploadSettings = (file) => {
+        const fileSettings = mainControl.createFile({ content: [file], type: file.type });
+        mainControl.getContentFile(fileSettings, (result) => {
+            const contentSettings = converterStringToJSON(result, ["separatorLine"]);
+            if (!contentSettings || !deepEqual(contentSettings, GLOBAL_TEMPLATE, ["process", "plants"])) {
+                return notificationControl.newNotification({ title: "Upload de Configurações", body: "Template de configurações incorreto", type: "_error" });
+            }
+            Object.assign(dataPlants, contentSettings);
+            notificationControl.newNotification({ title: "Upload de Configurações", body: "Configurações importadas com sucesso", type: "_success" });
+        });
     };
     const updateFilesPlant = () => {
         mainControl.setupFarm(dataPlants, () => {
@@ -2720,7 +3006,7 @@ function Setup() {
     if (!historyTableControl.getHistory().history) {
         historyTableControl.setup([...GLOBAL_HISTORY]);
     }
-    if (!settingControl.getSettings({ storage: true })) {
+    if (!settingControl.getSettings({ storage: true }, true).settings) {
         settingControl.updateSettings(GLOBAL_SETTINGS);
     }
 }
@@ -2967,173 +3253,6 @@ function App() {
     return initComponents();
 }
 window.onload = App;
-function ModelWindowComponent() {
-    const createModel = (children, title = "") => {
-        const model = document.createElement("div");
-        const modelBody = document.createElement("div");
-        model.setAttribute("model-window", "enabled");
-        modelBody.setAttribute("model-body", "");
-        setupModel(model, title);
-        modelBody.appendChild(children);
-        model.appendChild(modelBody);
-        return model;
-    };
-    const setupModel = (model, title) => {
-        const headerModel = document.createElement("div");
-        const titleEl = document.createElement("span");
-        const btClose = document.createElement("button");
-        titleEl.innerHTML = title;
-        headerModel.classList.add("model-header");
-        btClose.onclick = () => closeModel(model);
-        btClose.appendChild(createIcon("x-lg"));
-        headerModel.appendChild(titleEl);
-        headerModel.appendChild(btClose);
-        model.appendChild(headerModel);
-        setupMoveModel(headerModel, model);
-        openModel(model);
-    };
-    const setupMoveModel = (header, model) => {
-        let mouseX, mouseY, elementX, elementY;
-        let isPressed = false;
-        const move = (ev) => {
-            if (!isPressed) {
-                return;
-            }
-            const parent = model.parentElement;
-            const deltaX = ev.clientX - mouseX;
-            const deltaY = ev.clientY - mouseY;
-            const newElementX = elementX + deltaX;
-            const newElementY = elementY + deltaY;
-            const width = model.clientWidth;
-            const height = model.clientHeight;
-            const x = newElementX <= 0 ? 0 : parent ? newElementX + width >= parent.clientWidth ? parent.clientWidth - width : newElementX : newElementX;
-            const y = newElementY <= 0 ? 0 : parent ? newElementY + height >= parent.clientHeight ? parent.clientHeight - height : newElementY : newElementY;
-            model.style.left = x + "px";
-            model.style.top = y + "px";
-        };
-        header.addEventListener("mousedown", (ev) => {
-            ev.preventDefault();
-            if (model.getAttribute("model-window") != "enabled") {
-                return;
-            }
-            mouseX = ev.clientX;
-            mouseY = ev.clientY;
-            elementX = model.offsetLeft;
-            elementY = model.offsetTop;
-            isPressed = true;
-        });
-        window.addEventListener("mouseup", () => {
-            isPressed = false;
-        });
-        window.addEventListener("mousemove", move);
-    };
-    const openModel = (model) => {
-        model.setAttribute("model-window", "enabled");
-        const headerModel = model.querySelector(".header");
-        if (!headerModel) {
-            return;
-        }
-    };
-    const closeModel = (model) => {
-        model.remove();
-    };
-    return {
-        createModel,
-        setupMoveModel
-    };
-}
-function NotificationControl(listNotificationEl) {
-    const MAP_TYPES_NOTIFICATIONS = {
-        "_success": {
-            icon: "check-lg"
-        },
-        "_error": {
-            icon: "dash-circle"
-        },
-        "_warning": {
-            icon: "exclamation-circle"
-        },
-        "_info": {
-            icon: "info-lg"
-        },
-        "_extra": {
-            icon: "stars"
-        },
-    };
-    function createNotification({ body, title, type }) {
-        const notificationContent = document.createElement("div");
-        const notification = document.createElement("div");
-        const contentEl = document.createElement("div");
-        const titleEl = document.createElement("span");
-        const bodyEl = document.createElement("span");
-        const actionEl = document.createElement("div");
-        const icon = createIcon(MAP_TYPES_NOTIFICATIONS[type].icon);
-        const loading = document.createElement("i");
-        contentEl.classList.add("content");
-        notificationContent.classList.add("notification-content");
-        notification.classList.add("notification");
-        actionEl.classList.add("status");
-        actionEl.setAttribute("action", type);
-        loading.classList.add("timer");
-        titleEl.classList.add("title");
-        bodyEl.classList.add("body");
-        titleEl.innerHTML = title;
-        bodyEl.innerHTML = body;
-        actionEl.appendChild(icon);
-        contentEl.appendChild(titleEl);
-        contentEl.appendChild(bodyEl);
-        notification.appendChild(loading);
-        notification.appendChild(actionEl);
-        notification.appendChild(contentEl);
-        notificationContent.appendChild(notification);
-        listNotificationEl.appendChild(notificationContent);
-        const max = 1000 * 3;
-        const update = 10;
-        let cont = 0;
-        let stopCont = false;
-        let timerCont;
-        notification.onmouseover = () => {
-            stopCont = true;
-        };
-        notification.onmouseout = () => {
-            stopCont = false;
-        };
-        notification.onclick = () => {
-            clearInterval(timerCont);
-            removeNotification(notificationContent);
-        };
-        timerCont = setInterval(() => {
-            if (stopCont) {
-                return;
-            }
-            if (cont >= max) {
-                clearInterval(timerCont);
-                removeNotification(notificationContent);
-            }
-            cont += update;
-            let perc = Math.round((cont * 100) / max);
-            loading.style.width = perc + "%";
-        }, update);
-    }
-    function removeNotification(notification) {
-        notification.classList.add("hidden");
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }
-    const createIcon = (name, type = "bi") => {
-        const iconEl = document.createElement("i");
-        iconEl.classList.add(`${type}-${name}`);
-        iconEl.setAttribute("icon", "");
-        return iconEl;
-    };
-    const newNotification = (props) => {
-        createNotification(props);
-    };
-    return {
-        newNotification
-    };
-}
 function PreloadPanel(panel) {
     const modelWindow = ModelWindowComponent();
     const forms = panel.querySelectorAll("form");
@@ -3141,6 +3260,6 @@ function PreloadPanel(panel) {
     forms.forEach(_form => _form.addEventListener("submit", ev => ev.preventDefault()));
     models.forEach(_model => {
         const header = _model.querySelector(".model-header");
-        modelWindow.setupMoveModel(header, _model);
+        modelWindow.activeMoveModel(header, _model);
     });
 }
